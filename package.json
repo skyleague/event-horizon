@@ -47,13 +47,19 @@
     "@skyleague/axioms": "^1.0.0",
     "@types/aws-lambda": "^8.10.101"
   },
+  "peerDependencies": {
+    "aws-sdk": "^2.1201.0"
+  },
   "devDependencies": {
-    "@skyleague/therefore": "^1.5.1",
     "@skyleague/node-standards": "^1.0.0",
-    "typescript": "^4.7.4",
+    "@skyleague/therefore": "^1.5.1",
+    "@types/node": "^18.7.13",
+    "@types/aws-sdk": "^2.7.0",
     "@types/source-map-support": "^0.5.4",
+    "aws-sdk": "^2.1201.0",
     "source-map-support": "^0.5.21",
     "tslib": "^2.4.0",
+    "typescript": "^4.7.4",
     "yargs": "^17.5.1"
   }
 }
