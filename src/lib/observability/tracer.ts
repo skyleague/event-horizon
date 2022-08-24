@@ -5,6 +5,7 @@ import { Tracer as AWSTracer } from '@aws-lambda-powertools/tracer'
 export interface Tracer {
     instance: AWSTracer
     trace: <R>(segmentName: string, fn: () => Promise<R>) => Promise<R>
+    captureAWSClient: <T>(service: T) => T
 }
 
 export function createTracer(instance: AWSTracer = new AWSTracer({ serviceName })): Tracer {
@@ -33,7 +34,11 @@ export function createTracer(instance: AWSTracer = new AWSTracer({ serviceName }
         return response
     }
 
-    return { instance, trace }
+    function captureAWSClient<T>(service: T): T {
+        return instance.captureAWSClient(service)
+    }
+
+    return { instance, trace, captureAWSClient }
 }
 
 export const tracer: Tracer = createTracer()

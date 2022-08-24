@@ -1,6 +1,9 @@
 import type { LambdaContext } from './events/context'
 import { handleHttpEvent } from './events/http/handler'
 import type { GatewayVersion, HttpEventHandler } from './events/http/types'
+import { handleSecretRotationEvent } from './events/secret-rotation/handler'
+import type { SecretRotationEventHandler } from './events/secret-rotation/types'
+import { errorHandler } from './functions/common/error-handler'
 import { loggerContext } from './functions/common/logger-context'
 import { metricsContext } from './functions/common/metrics-context'
 import { traceInvocation } from './functions/common/trace-invocation'
@@ -21,6 +24,7 @@ export interface EventHandler<
     GV extends GatewayVersion = 'v1'
 > {
     http?: HttpEventHandler<HttpB, HttpP, HttpQ, HttpH, HttpR, GV>
+    secretRotation?: SecretRotationEventHandler
 
     operationId?: string
     summary?: string
@@ -37,8 +41,8 @@ export function handleEvent(definition: EventHandler, request: RawRequest, conte
         // return definition.eventbridge?.handler(request, context)
     } else if ('source' in request) {
         // return definition.schedule?.handler(request, context)
-    } else if ('secretId' in request) {
-        // return definition.secret?.handler(request, context)
+    } else if ('SecretId' in request && 'Step' in request) {
+        return handleSecretRotationEvent(definition.secretRotation, request, context)
     } else if ('Records' in request) {
         for (const record of request.Records) {
             if ('Sns' in record) {
@@ -74,6 +78,7 @@ export function event<HttpB, HttpP, HttpQ, HttpH, HttpR, GV extends GatewayVersi
         const tracerFn = traceInvocation(lambdaContext)
         const metricsFn = metricsContext(lambdaContext)
         const loggerContextFn = loggerContext(lambdaContext)
+        const errorHandlerFn = errorHandler(lambdaContext)
 
         if (warmupFn.before(request)) {
             return
@@ -93,7 +98,7 @@ export function event<HttpB, HttpP, HttpQ, HttpH, HttpR, GV extends GatewayVersi
             tracerFn.after(response)
         } catch (error: unknown) {
             try {
-                for (const eh of [tracerFn.onError]) {
+                for (const eh of [errorHandlerFn.onError, tracerFn.onError]) {
                     eh(error as Error)
                 }
             } catch (resolverError: unknown) {
