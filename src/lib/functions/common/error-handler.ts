@@ -1,14 +1,14 @@
 import type { LambdaContext } from '../../events/context'
-import { HttpError } from '../../events/http/http-error'
+import { EventError } from '../../events/event-error'
 
 import { isError } from '@skyleague/axioms'
 
 export function errorHandler({ logger }: LambdaContext) {
     return {
         onError: (error: Error | unknown): void => {
-            const httpError = HttpError.is(error) ? error : isError(error) ? new HttpError(error) : new HttpError('unknown')
+            const eventError = EventError.is(error) ? error : isError(error) ? new EventError(error) : new EventError('unknown')
 
-            logger.error(`Uncaught error found`, httpError)
+            logger.error(`Uncaught error found`, eventError)
 
             throw error
         },

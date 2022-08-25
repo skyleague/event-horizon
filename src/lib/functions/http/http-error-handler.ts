@@ -1,5 +1,5 @@
 import type { LambdaContext } from '../../events/context'
-import { HttpError } from '../../events/http/http-error'
+import { EventError } from '../../events/event-error'
 import type { HttpResponse } from '../../events/http/types'
 
 import { isError } from '@skyleague/axioms'
@@ -7,24 +7,24 @@ import { isError } from '@skyleague/axioms'
 export function httpErrorHandler({ logger, isSensitive }: LambdaContext) {
     return {
         onError: (error: Error | unknown): HttpResponse => {
-            const httpError = HttpError.is(error) ? error : isError(error) ? new HttpError(error) : new HttpError('unknown')
+            const eventError = EventError.is(error) ? error : isError(error) ? new EventError(error) : new EventError('unknown')
 
             if (!isSensitive) {
-                if (httpError.statusCode >= 500) {
-                    logger.error(`Uncaught error found`, httpError)
-                } else if (httpError.statusCode >= 400) {
-                    logger.info('Client error found', httpError)
+                if (eventError.statusCode >= 500) {
+                    logger.error(`Uncaught error found`, eventError)
+                } else if (eventError.statusCode >= 400) {
+                    logger.info('Client error found', eventError)
                 } else {
-                    logger.error(`Error found`, httpError)
+                    logger.error(`Error found`, eventError)
                 }
             }
 
             return {
-                statusCode: httpError.statusCode,
+                statusCode: eventError.statusCode,
                 body: {
-                    statusCode: httpError.statusCode,
-                    message: httpError.expose && !isSensitive ? httpError.message : httpError.name,
-                    stack: httpError.expose && !isSensitive ? httpError.stack : undefined,
+                    statusCode: eventError.statusCode,
+                    message: eventError.expose && !isSensitive ? eventError.message : eventError.name,
+                    stack: eventError.expose && !isSensitive ? eventError.stack : undefined,
                 },
             }
         },
