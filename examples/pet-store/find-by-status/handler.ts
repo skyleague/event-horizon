@@ -7,9 +7,11 @@ export const handler = event({
     http: {
         method: 'get',
         url: '/pet/findByStatus',
-        query: Query,
-        responses: {
-            200: PetArray,
+        schema: {
+            query: Query,
+            responses: {
+                200: PetArray,
+            },
         },
         handler: ({ query }, { logger }) => {
             logger.info('query parameter given', {

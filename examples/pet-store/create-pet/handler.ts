@@ -5,9 +5,11 @@ export const handler = event({
     http: {
         method: 'post',
         url: '/pet',
-        body: Pet,
-        responses: {
-            200: Pet,
+        schema: {
+            body: Pet,
+            responses: {
+                200: Pet,
+            },
         },
         handler: ({ body }, { logger }) => {
             logger.info('foo', {

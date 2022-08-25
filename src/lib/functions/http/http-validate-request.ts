@@ -6,8 +6,8 @@ import type { ErrorObject } from 'ajv'
 export function httpValidateRequest() {
     return {
         before: (http: HttpEventHandler, event: HttpRequest): Either<ErrorObject[], HttpRequest> => {
-            if (http.body?.is(event.body) === false) {
-                return { left: http.body.validate.errors ?? [] }
+            if (http.schema.body?.is(event.body) === false) {
+                return { left: http.schema.body.validate.errors ?? [] }
             }
             return {
                 right: {
