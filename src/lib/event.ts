@@ -1,6 +1,8 @@
 import type { LambdaContext } from './events/context'
 import { handleHttpEvent } from './events/http/handler'
 import type { GatewayVersion, HttpEventHandler } from './events/http/types'
+import { handleRawEvent } from './events/raw/handler'
+import type { RawEventHandler } from './events/raw/types'
 import { handleSecretRotationEvent } from './events/secret-rotation/handler'
 import type { SecretRotationEventHandler } from './events/secret-rotation/types'
 import { errorHandler } from './functions/common/error-handler'
@@ -21,10 +23,13 @@ export interface EventHandler<
     HttpQ = unknown,
     HttpH = unknown,
     HttpR = unknown,
+    RawE = unknown,
+    RawR = unknown,
     GV extends GatewayVersion = 'v1'
 > {
     http?: HttpEventHandler<HttpB, HttpP, HttpQ, HttpH, HttpR, GV>
     secretRotation?: SecretRotationEventHandler
+    raw?: RawEventHandler<RawE, RawR>
 
     operationId?: string
     summary?: string
@@ -59,7 +64,7 @@ export function handleEvent(definition: EventHandler, request: RawRequest, conte
         }
     }
 
-    throw new Error('not implemented')
+    return handleRawEvent(definition.raw, request, context)
 }
 
 export function event<HttpB, HttpP, HttpQ, HttpH, HttpR, GV extends GatewayVersion>(
