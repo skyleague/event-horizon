@@ -1,5 +1,5 @@
 import { EventError } from './event-error'
 
-test('HttpError === HttpError', () => {
+test('EventError === EventError', () => {
     expect(EventError.is(EventError.badGateway())).toBe(true)
 })
