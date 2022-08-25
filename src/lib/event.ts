@@ -101,6 +101,8 @@ export function event<HttpB, HttpP, HttpQ, HttpH, HttpR, GV extends GatewayVersi
 
             metricsFn.after()
             tracerFn.after(response)
+
+            return response
         } catch (error: unknown) {
             try {
                 for (const eh of [errorHandlerFn.onError, tracerFn.onError]) {
@@ -111,6 +113,8 @@ export function event<HttpB, HttpP, HttpQ, HttpH, HttpR, GV extends GatewayVersi
                 throw resolverError
             }
         }
+
+        return
     }
     return handler
 }

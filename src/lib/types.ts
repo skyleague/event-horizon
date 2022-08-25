@@ -23,4 +23,4 @@ export type AWSLambdaHandler =
     | SQSHandler
 
 export type RawRequest = Parameters<AWSLambdaHandler>[0]
-export type RawResponse = ReturnType<AWSLambdaHandler>
+export type RawResponse = ReturnType<AWSLambdaHandler> | unknown
