@@ -40,11 +40,13 @@ export interface HttpEventHandler<
 > {
     method: HttpMethod
     url: string
-    body?: Schema<B>
-    path?: Schema<P>
-    query?: Schema<Q>
-    headers?: Schema<H>
-    responses: Record<PropertyKey, Schema<R>>
+    schema: {
+        body?: Schema<B>
+        path?: Schema<P>
+        query?: Schema<Q>
+        headers?: Schema<H>
+        responses: Record<PropertyKey, Schema<R>>
+    }
     handler: (request: HttpRequest<B, P, Q, H, GV>, context: LambdaContext) => HttpResponse<R> | Promise<HttpResponse<R>>
 
     bodyType?: 'binary' | 'json' | 'plaintext'
