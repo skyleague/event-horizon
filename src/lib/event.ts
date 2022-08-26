@@ -108,6 +108,7 @@ export function event<HttpB, HttpP, HttpQ, HttpH, HttpR, GV extends GatewayVersi
                 for (const eh of [errorHandlerFn.onError, tracerFn.onError]) {
                     eh(error as Error)
                 }
+                throw error
             } catch (resolverError: unknown) {
                 void 0
                 throw resolverError
