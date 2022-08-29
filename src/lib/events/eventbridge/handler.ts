@@ -9,13 +9,14 @@ import { EventError } from '../event-error'
 import type { EventBridgeEvent as AWSEventBridgeEvent } from 'aws-lambda'
 
 export async function handleEventBridgeEvent(
-    eventBridge: EventBridgeHandler | undefined,
+    handler: EventBridgeHandler,
     event: AWSEventBridgeEvent<string, unknown>,
     context: LambdaContext
 ): Promise<unknown> {
-    if (eventBridge === undefined) {
+    if (!('eventBridge' in handler) || handler.eventBridge === undefined) {
         throw EventError.notImplemented()
     }
+    const { eventBridge } = handler
 
     const parseEventFn = eventBridgeParseEvent(eventBridge)
     const validateRequestFn = eventBridgeValidateRequest()

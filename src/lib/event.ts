@@ -1,10 +1,12 @@
 import type { LambdaContext } from './events/context'
+import { handleEventBridgeEvent } from './events/eventbridge/handler'
+import type { EventBridgeHandler } from './events/eventbridge/types'
 import { handleHttpEvent } from './events/http/handler'
-import type { GatewayVersion, HttpEventHandler } from './events/http/types'
+import type { GatewayVersion, HttpHandler } from './events/http/types'
 import { handleRawEvent } from './events/raw/handler'
-import type { RawEventHandler } from './events/raw/types'
+import type { RawHandler } from './events/raw/types'
 import { handleSecretRotationEvent } from './events/secret-rotation/handler'
-import type { SecretRotationEventHandler } from './events/secret-rotation/types'
+import type { SecretRotationHandler, SecretRotationServices } from './events/secret-rotation/types'
 import { errorHandler } from './functions/common/error-handler'
 import { loggerContext } from './functions/common/logger-context'
 import { metricsContext } from './functions/common/metrics-context'
@@ -13,11 +15,12 @@ import { warmup } from './functions/common/warmup'
 import { logger as globalLogger } from './observability/logger'
 import { metrics as globalMetrics } from './observability/metrics'
 import { tracer as globalTracer } from './observability/tracer'
-import type { RawRequest, RawResponse } from './types'
+import type { RawRequest, RawResponse, Services } from './types'
 
 import type { Handler, APIGatewayProxyEvent, Context } from 'aws-lambda'
 
-export interface EventHandler<
+export type EventHandler<
+    S extends Services | undefined = undefined,
     HttpB = unknown,
     HttpP = unknown,
     HttpQ = unknown,
@@ -25,29 +28,28 @@ export interface EventHandler<
     HttpR = unknown,
     RawE = unknown,
     RawR = unknown,
+    EbE = unknown,
+    EbR = unknown,
     GV extends GatewayVersion = 'v1'
-> {
-    http?: HttpEventHandler<HttpB, HttpP, HttpQ, HttpH, HttpR, GV>
-    secretRotation?: SecretRotationEventHandler
-    raw?: RawEventHandler<RawE, RawR>
-
-    operationId?: string
-    summary?: string
-    description?: string
-    tags?: string[]
-    logEvent?: boolean
-    isSensitive?: boolean
-}
+> =
+    | EventBridgeHandler<S, EbE, EbR>
+    | HttpHandler<S, HttpB, HttpP, HttpQ, HttpH, HttpR, GV>
+    | RawHandler<S, RawE, RawR>
+    | (S extends SecretRotationServices ? SecretRotationHandler<S> : never)
 
 export function handleEvent(definition: EventHandler, request: RawRequest, context: LambdaContext) {
     if ('headers' in request) {
-        return handleHttpEvent(definition.http, request, context)
+        return handleHttpEvent(definition, request, context)
     } else if ('detail' in request) {
-        // return definition.eventbridge?.handler(request, context)
+        return handleEventBridgeEvent(definition as EventBridgeHandler<undefined>, request, context)
     } else if ('source' in request) {
         // return definition.schedule?.handler(request, context)
     } else if ('SecretId' in request && 'Step' in request) {
-        return handleSecretRotationEvent(definition.secretRotation, request, context)
+        return handleSecretRotationEvent(
+            definition as unknown as SecretRotationHandler<SecretRotationServices>,
+            request,
+            context as unknown as LambdaContext<SecretRotationServices>
+        )
     } else if ('Records' in request) {
         for (const record of request.Records) {
             if ('Sns' in record) {
@@ -64,12 +66,21 @@ export function handleEvent(definition: EventHandler, request: RawRequest, conte
         }
     }
 
-    return handleRawEvent(definition.raw, request, context)
+    return handleRawEvent(definition, request, context)
 }
 
-export function event<HttpB, HttpP, HttpQ, HttpH, HttpR, GV extends GatewayVersion>(
-    definition: EventHandler<HttpB, HttpP, HttpQ, HttpH, HttpR, GV>
-): Handler<APIGatewayProxyEvent> {
+export function event<
+    D,
+    S extends Services | undefined,
+    HttpB,
+    HttpP,
+    HttpQ,
+    HttpH,
+    HttpR,
+    RawE,
+    RawR,
+    GV extends GatewayVersion = 'v1'
+>(definition: D & EventHandler<S, HttpB, HttpP, HttpQ, HttpH, HttpR, RawE, RawR, GV>): D & Handler<APIGatewayProxyEvent> {
     async function handler(request: RawRequest, context: Context): Promise<RawResponse> {
         const lambdaContext: LambdaContext = {
             logger: globalLogger,
@@ -77,6 +88,8 @@ export function event<HttpB, HttpP, HttpQ, HttpH, HttpR, GV extends GatewayVersi
             tracer: globalTracer,
             isSensitive: definition.isSensitive ?? false,
             raw: context,
+            // this type is checked on the declaration: and will be correct on the handlers
+            services: definition.services as undefined,
         }
 
         const warmupFn = warmup()
@@ -97,7 +110,7 @@ export function event<HttpB, HttpP, HttpQ, HttpH, HttpR, GV extends GatewayVersi
             // isolate the context logger
             lambdaContext.logger = lambdaContext.logger.child()
 
-            const response = await handleEvent(definition as EventHandler, request, lambdaContext)
+            const response = await handleEvent(definition as unknown as EventHandler, request, lambdaContext)
 
             metricsFn.after()
             tracerFn.after(response)
@@ -117,5 +130,6 @@ export function event<HttpB, HttpP, HttpQ, HttpH, HttpR, GV extends GatewayVersi
 
         return
     }
-    return handler
+    Object.assign(handler, definition)
+    return handler as unknown as D & Handler<APIGatewayProxyEvent>
 }

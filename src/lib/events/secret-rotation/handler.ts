@@ -1,4 +1,4 @@
-import type { SecretRotationEventHandler } from './types'
+import type { SecretRotationHandler, SecretRotationServices } from './types'
 
 import { secretParseEvent } from '../../functions/secret-rotation/secret-parse-event'
 import { secretValidateEvent } from '../../functions/secret-rotation/secret-validate-event'
@@ -8,18 +8,19 @@ import { EventError } from '../event-error'
 import type { SecretsManagerRotationEvent } from 'aws-lambda'
 
 export async function handleSecretRotationEvent(
-    secrets: SecretRotationEventHandler | undefined,
+    handler: SecretRotationHandler,
     event: SecretsManagerRotationEvent,
-    context: LambdaContext
+    context: LambdaContext<SecretRotationServices>
 ): Promise<void> {
-    if (secrets === undefined) {
+    if (!('secretRotation' in handler) || handler.secretRotation === undefined) {
         throw EventError.notImplemented()
     }
+    const { secretRotation } = handler
     const parseEventFn = secretParseEvent()
-    const validateEventFn = secretValidateEvent(secrets, context)
+    const validateEventFn = secretValidateEvent(context)
 
     const secretRotationEvent = parseEventFn.before(event)
     await validateEventFn.before(secretRotationEvent)
 
-    return secrets.handler(secretRotationEvent, context)
+    return secretRotation.handler(secretRotationEvent, context)
 }
