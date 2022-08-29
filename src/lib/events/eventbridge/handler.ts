@@ -19,7 +19,7 @@ export async function handleEventBridgeEvent(
     const { eventBridge } = handler
 
     const parseEventFn = eventBridgeParseEvent(eventBridge)
-    const ioValidateFn = ioValidate<EventBridgeEvent>({ request: (x) => x.detail })
+    const ioValidateFn = ioValidate<EventBridgeEvent>({ input: (x) => x.detail })
     const ioLoggerFn = ioLogger({ type: 'eventbridge' }, context)
 
     const unvalidatedEbEvent = parseEventFn.before(event)

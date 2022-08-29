@@ -3,14 +3,14 @@ import type { Schema } from '@skyleague/therefore'
 import type { ErrorObject } from 'ajv'
 
 export interface ValidateOptions<E, R> {
-    request?: (x: E) => unknown
-    response?: (x: R) => unknown
+    input?: (x: E) => unknown
+    output?: (x: R) => unknown
 }
 
-export function ioValidate<E = unknown, R = unknown>(options?: ValidateOptions<E, R>) {
+export function ioValidate<I = unknown, O = unknown>(options?: ValidateOptions<I, O>) {
     return {
-        before: (schema: Schema<unknown> | undefined, event: E): Either<ErrorObject[], E> => {
-            const unknownValue = options?.request?.(event) ?? event
+        before: (schema: Schema<unknown> | undefined, event: I): Either<ErrorObject[], I> => {
+            const unknownValue = options?.input?.(event) ?? event
             if (schema?.is(unknownValue) === false) {
                 return { left: schema?.validate.errors ?? [] }
             }
@@ -18,8 +18,8 @@ export function ioValidate<E = unknown, R = unknown>(options?: ValidateOptions<E
                 right: event,
             }
         },
-        after: (schema: Schema<unknown> | undefined, event: R): Either<ErrorObject[], R> => {
-            const unknownValue = options?.response?.(event) ?? event
+        after: (schema: Schema<unknown> | undefined, event: O): Either<ErrorObject[], O> => {
+            const unknownValue = options?.output?.(event) ?? event
             if (schema?.is(unknownValue) === false) {
                 return { left: schema?.validate.errors ?? [] }
             }
