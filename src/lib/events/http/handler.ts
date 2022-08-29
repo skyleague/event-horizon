@@ -1,11 +1,11 @@
 import type { HttpResponse } from './types'
 
 import type { EventHandler } from '../../event'
-import { httpErrorHandler } from '../../functions/http/http-error-handler'
-import { httpIOLogger } from '../../functions/http/http-io-logger'
-import { httpParseEvent } from '../../functions/http/http-parse-event'
-import { httpSerializeResponse } from '../../functions/http/http-serialize-response'
-import { httpValidateRequest } from '../../functions/http/http-validate-request'
+import { httpErrorHandler } from '../../functions/http/error-handler'
+import { httpIOLogger } from '../../functions/http/io-logger'
+import { httpParseEvent } from '../../functions/http/parse-event'
+import { httpSerializeResponse } from '../../functions/http/serialize-response'
+import { httpValidateRequest } from '../../functions/http/validate-request'
 import type { LambdaContext } from '../context'
 import { EventError } from '../event-error'
 
