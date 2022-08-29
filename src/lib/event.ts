@@ -15,12 +15,13 @@ import { warmup } from './functions/common/warmup'
 import { logger as globalLogger } from './observability/logger'
 import { metrics as globalMetrics } from './observability/metrics'
 import { tracer as globalTracer } from './observability/tracer'
-import type { RawRequest, RawResponse, Services } from './types'
+import type { RawRequest, RawResponse } from './types'
 
 import type { Handler, APIGatewayProxyEvent, Context } from 'aws-lambda'
 
 export type EventHandler<
-    S extends Services | undefined = undefined,
+    C = unknown,
+    S = unknown,
     HttpB = unknown,
     HttpP = unknown,
     HttpQ = unknown,
@@ -32,23 +33,23 @@ export type EventHandler<
     EbR = unknown,
     GV extends GatewayVersion = 'v1'
 > =
-    | EventBridgeHandler<S, EbE, EbR>
-    | HttpHandler<S, HttpB, HttpP, HttpQ, HttpH, HttpR, GV>
-    | RawHandler<S, RawE, RawR>
-    | (S extends SecretRotationServices ? SecretRotationHandler<S> : never)
+    | EventBridgeHandler<C, S, EbE, EbR>
+    | HttpHandler<C, S, HttpB, HttpP, HttpQ, HttpH, HttpR, GV>
+    | RawHandler<C, S, RawE, RawR>
+    | (S extends SecretRotationServices ? SecretRotationHandler<C, S> : never)
 
 export function handleEvent(definition: EventHandler, request: RawRequest, context: LambdaContext) {
     if ('headers' in request) {
         return handleHttpEvent(definition, request, context)
     } else if ('detail' in request) {
-        return handleEventBridgeEvent(definition as EventBridgeHandler<undefined>, request, context)
+        return handleEventBridgeEvent(definition as EventBridgeHandler, request, context)
     } else if ('source' in request) {
         // return definition.schedule?.handler(request, context)
     } else if ('SecretId' in request && 'Step' in request) {
         return handleSecretRotationEvent(
-            definition as unknown as SecretRotationHandler<SecretRotationServices>,
+            definition as unknown as SecretRotationHandler,
             request,
-            context as unknown as LambdaContext<SecretRotationServices>
+            context as unknown as LambdaContext<unknown, SecretRotationServices>
         )
     } else if ('Records' in request) {
         for (const record of request.Records) {
@@ -69,18 +70,9 @@ export function handleEvent(definition: EventHandler, request: RawRequest, conte
     return handleRawEvent(definition, request, context)
 }
 
-export function event<
-    D,
-    S extends Services | undefined,
-    HttpB,
-    HttpP,
-    HttpQ,
-    HttpH,
-    HttpR,
-    RawE,
-    RawR,
-    GV extends GatewayVersion = 'v1'
->(definition: D & EventHandler<S, HttpB, HttpP, HttpQ, HttpH, HttpR, RawE, RawR, GV>): D & Handler<APIGatewayProxyEvent> {
+export function event<C, S, HttpB, HttpP, HttpQ, HttpH, HttpR, RawE, RawR, D, GV extends GatewayVersion = 'v1'>(
+    definition: D & EventHandler<C, S, HttpB, HttpP, HttpQ, HttpH, HttpR, RawE, RawR, GV>
+): D & Handler<APIGatewayProxyEvent> {
     async function handler(request: RawRequest, context: Context): Promise<RawResponse> {
         const lambdaContext: LambdaContext = {
             logger: globalLogger,
@@ -88,8 +80,8 @@ export function event<
             tracer: globalTracer,
             isSensitive: definition.isSensitive ?? false,
             raw: context,
-            // this type is checked on the declaration: and will be correct on the handlers
-            services: definition.services as undefined,
+            services: definition.services,
+            config: definition.config,
         }
 
         const warmupFn = warmup()
