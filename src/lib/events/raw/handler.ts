@@ -1,15 +1,14 @@
-import type { RawEventHandler } from './types'
-
+import type { EventHandler } from '../../event'
 import { rawIOLogger } from '../../functions/raw/raw-io-logger'
 import { rawValidateRequest } from '../../functions/raw/raw-validate-request'
 import type { LambdaContext } from '../context'
 import { EventError } from '../event-error'
 
-export async function handleRawEvent(raw: RawEventHandler | undefined, event: unknown, context: LambdaContext): Promise<unknown> {
-    if (raw === undefined) {
+export async function handleRawEvent(handler: EventHandler, event: unknown, context: LambdaContext): Promise<unknown> {
+    if (!('raw' in handler) || handler.raw === undefined) {
         throw EventError.notImplemented()
     }
-
+    const { raw } = handler
     const validateRequestFn = rawValidateRequest()
     const inputOutputFn = rawIOLogger(context)
 

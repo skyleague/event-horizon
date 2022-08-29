@@ -24,3 +24,14 @@ export type AWSLambdaHandler =
 
 export type RawRequest = Parameters<AWSLambdaHandler>[0]
 export type RawResponse = ReturnType<AWSLambdaHandler> | unknown
+
+export interface Services {}
+
+export interface HandlerDefinition {
+    operationId?: string
+    summary?: string
+    description?: string
+    tags?: string[]
+    logEvent?: boolean
+    isSensitive?: boolean
+}

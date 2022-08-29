@@ -1,3 +1,4 @@
+import type { HandlerDefinition, Services } from '../../types'
 import type { LambdaContext } from '../context'
 
 import type { Schema } from '@skyleague/therefore'
@@ -31,6 +32,7 @@ export interface HttpResponse<R = unknown> {
 export type GatewayVersion = 'v1' | 'v2'
 
 export interface HttpEventHandler<
+    S extends Services | undefined = undefined,
     B = unknown,
     P = unknown,
     Q = unknown,
@@ -47,9 +49,22 @@ export interface HttpEventHandler<
         headers?: Schema<H>
         responses: Record<PropertyKey, Schema<R>>
     }
-    handler: (request: HttpRequest<B, P, Q, H, GV>, context: LambdaContext) => HttpResponse<R> | Promise<HttpResponse<R>>
+    handler: (request: HttpRequest<B, P, Q, H, GV>, context: LambdaContext<S>) => HttpResponse<R> | Promise<HttpResponse<R>>
 
     bodyType?: 'binary' | 'json' | 'plaintext'
 
     gatewayVersion?: GV
+}
+
+export interface HttpHandler<
+    S extends Services | undefined = undefined,
+    HttpB = unknown,
+    HttpP = unknown,
+    HttpQ = unknown,
+    HttpH = unknown,
+    HttpR = unknown,
+    GV extends GatewayVersion = 'v1'
+> extends HandlerDefinition {
+    services?: S
+    http: HttpEventHandler<S, HttpB, HttpP, HttpQ, HttpH, HttpR, GV>
 }

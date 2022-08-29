@@ -1,8 +1,8 @@
 import type { LambdaContext } from '../../events/context'
 import { EventError } from '../../events/event-error'
-import type { SecretRotationEventHandler, SecretRotationRequest } from '../../events/secret-rotation/types'
+import type { SecretRotationRequest, SecretRotationServices } from '../../events/secret-rotation/types'
 
-export function secretValidateEvent({ secretManager }: SecretRotationEventHandler, { logger }: LambdaContext) {
+export function secretValidateEvent({ logger, services: { secretManager } }: LambdaContext<SecretRotationServices>) {
     return {
         before: async ({ secretId, step, clientRequestToken }: SecretRotationRequest) => {
             logger.setBindings({ secretId, step })

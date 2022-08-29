@@ -1,5 +1,6 @@
-import type { HttpEventHandler, HttpResponse } from './types'
+import type { HttpResponse } from './types'
 
+import type { EventHandler } from '../../event'
 import { httpErrorHandler } from '../../functions/http/http-error-handler'
 import { httpIOLogger } from '../../functions/http/http-io-logger'
 import { httpParseEvent } from '../../functions/http/http-parse-event'
@@ -11,14 +12,14 @@ import { EventError } from '../event-error'
 import type { APIGatewayProxyEvent, APIGatewayProxyEventV2, APIGatewayProxyResult, APIGatewayProxyResultV2 } from 'aws-lambda'
 
 export async function handleHttpEvent(
-    http: HttpEventHandler | undefined,
+    handler: EventHandler,
     event: APIGatewayProxyEvent | APIGatewayProxyEventV2,
     context: LambdaContext
 ): Promise<APIGatewayProxyResult | APIGatewayProxyResultV2> {
-    if (http === undefined) {
+    if (!('http' in handler) || handler.http === undefined) {
         throw EventError.notImplemented()
     }
-
+    const { http } = handler
     const parseEventFn = httpParseEvent(http)
     const validateRequestFn = httpValidateRequest()
     const serializeResponseFn = httpSerializeResponse()
