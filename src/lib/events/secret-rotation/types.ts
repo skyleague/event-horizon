@@ -11,15 +11,17 @@ export interface SecretRotationRequest {
     raw: SecretsManagerRotationEvent
 }
 
-export interface SecretRotationEventHandler<S extends SecretRotationServices = SecretRotationServices> {
-    handler: (request: SecretRotationRequest, context: LambdaContext<S>) => Promise<void> | void
+export interface SecretRotationEventHandler<C = unknown, S extends SecretRotationServices = SecretRotationServices> {
+    handler: (request: SecretRotationRequest, context: LambdaContext<C, S>) => Promise<void> | void
 }
 
 export interface SecretRotationServices {
     secretManager: SecretsManager
 }
 
-export interface SecretRotationHandler<S extends SecretRotationServices = SecretRotationServices> extends HandlerDefinition {
-    services: S
-    secretRotation: SecretRotationEventHandler<S>
+export interface SecretRotationHandler<C = unknown, S extends SecretRotationServices = SecretRotationServices>
+    extends HandlerDefinition {
+    config?: C
+    services: S // Services<C, S>
+    secretRotation: SecretRotationEventHandler<C, S>
 }
