@@ -7,6 +7,8 @@ import { handleRawEvent } from './events/raw/handler'
 import type { RawHandler } from './events/raw/types'
 import { handleSecretRotationEvent } from './events/secret-rotation/handler'
 import type { SecretRotationHandler, SecretRotationServices } from './events/secret-rotation/types'
+import { handleSnsEvent } from './events/sns/handler'
+import type { SnsHandler } from './events/sns/types'
 import { errorHandler } from './functions/common/error-handler'
 import { loggerContext } from './functions/common/logger-context'
 import { metricsContext } from './functions/common/metrics-context'
@@ -17,7 +19,7 @@ import { metrics as globalMetrics } from './observability/metrics'
 import { tracer as globalTracer } from './observability/tracer'
 import type { RawRequest, RawResponse } from './types'
 
-import type { Handler, APIGatewayProxyEvent, Context } from 'aws-lambda'
+import type { Handler, APIGatewayProxyEvent, Context, SNSEventRecord } from 'aws-lambda'
 
 export type EventHandler<
     C = unknown,
@@ -31,20 +33,20 @@ export type EventHandler<
     RawR = unknown,
     EbE = unknown,
     EbR = unknown,
+    SnsE = unknown,
     GV extends GatewayVersion = 'v1'
 > =
     | EventBridgeHandler<C, S, EbE, EbR>
     | HttpHandler<C, S, HttpB, HttpP, HttpQ, HttpH, HttpR, GV>
     | RawHandler<C, S, RawE, RawR>
+    | SnsHandler<C, S, SnsE>
     | (S extends SecretRotationServices ? SecretRotationHandler<C, S> : never)
 
-export function handleEvent(definition: EventHandler, request: RawRequest, context: LambdaContext) {
+export async function handleEvent(definition: EventHandler, request: RawRequest, context: LambdaContext) {
     if ('headers' in request) {
         return handleHttpEvent(definition, request, context)
     } else if ('detail' in request) {
         return handleEventBridgeEvent(definition as EventBridgeHandler, request, context)
-    } else if ('source' in request) {
-        // return definition.schedule?.handler(request, context)
     } else if ('SecretId' in request && 'Step' in request) {
         return handleSecretRotationEvent(
             definition as unknown as SecretRotationHandler,
@@ -52,26 +54,26 @@ export function handleEvent(definition: EventHandler, request: RawRequest, conte
             context as unknown as LambdaContext<unknown, SecretRotationServices>
         )
     } else if ('Records' in request) {
+        const unprocessable: unknown[] = []
+        const snsRecords: SNSEventRecord[] = []
         for (const record of request.Records) {
             if ('Sns' in record) {
-                // return definition.sns?.handler(record, context)
-            } else if ('dynamodb' in record) {
-                // return definition.dynamodb?.handler(record, context)
-            } else if ('messageAttributes' in record) {
-                // return definition.sqs?.handler(record, context)
-            } else if ('cf' in record) {
-                // return definition.cf?.handler(record.cf, context)
-            } else if ('ses' in record) {
-                // return definition.ses?.handler(record, context)
+                snsRecords.push(record)
+            } else {
+                unprocessable.push(record)
             }
+        }
+
+        if (snsRecords.length > 0 && snsRecords.length === request.Records.length) {
+            return handleSnsEvent(definition, snsRecords, context)
         }
     }
 
     return handleRawEvent(definition, request, context)
 }
 
-export function event<C, S, HttpB, HttpP, HttpQ, HttpH, HttpR, RawE, RawR, D, GV extends GatewayVersion = 'v1'>(
-    definition: D & EventHandler<C, S, HttpB, HttpP, HttpQ, HttpH, HttpR, RawE, RawR, GV>
+export function event<C, S, HttpB, HttpP, HttpQ, HttpH, HttpR, RawE, RawR, EbE, EbR, SnsE, D, GV extends GatewayVersion = 'v1'>(
+    definition: D & EventHandler<C, S, HttpB, HttpP, HttpQ, HttpH, HttpR, RawE, RawR, EbE, EbR, SnsE, GV>
 ): D & Handler<APIGatewayProxyEvent> {
     async function handler(request: RawRequest, context: Context): Promise<RawResponse> {
         const lambdaContext: LambdaContext = {
