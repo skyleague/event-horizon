@@ -1,8 +1,8 @@
-import type { EventBridgeHandler } from './types'
+import type { EventBridgeEvent, EventBridgeHandler } from './types'
 
-import { eventBridgeIOLogger } from '../../functions/eventbridge/eventbridge-io-logger'
-import { eventBridgeParseEvent } from '../../functions/eventbridge/eventbridge-parse-event'
-import { eventBridgeValidateRequest } from '../../functions/eventbridge/eventbridge-validate-request'
+import { eventBridgeParseEvent } from '../../functions/eventbridge/parse-event'
+import { ioLogger } from '../../functions/shared/io-logger'
+import { ioValidate } from '../../functions/shared/io-validate'
 import type { LambdaContext } from '../context'
 import { EventError } from '../event-error'
 
@@ -19,20 +19,21 @@ export async function handleEventBridgeEvent(
     const { eventBridge } = handler
 
     const parseEventFn = eventBridgeParseEvent(eventBridge)
-    const validateRequestFn = eventBridgeValidateRequest()
-    const inputOutputFn = eventBridgeIOLogger(context)
+    const ioValidateFn = ioValidate<EventBridgeEvent>({ request: (x) => x.detail })
+    const ioLoggerFn = ioLogger({ type: 'eventbridge' }, context)
 
     const unvalidatedEbEvent = parseEventFn.before(event)
-    inputOutputFn.before(unvalidatedEbEvent)
-    const ebEvent = validateRequestFn.before(eventBridge, unvalidatedEbEvent)
+    const ebEvent = ioValidateFn.before(eventBridge.schema.detail, unvalidatedEbEvent)
 
     if ('left' in ebEvent) {
         throw EventError.badRequest(ebEvent.left[0].message)
     }
 
+    ioLoggerFn.before(unvalidatedEbEvent)
+
     const response = await eventBridge.handler(ebEvent.right, context)
 
-    inputOutputFn.after(response)
+    ioLoggerFn.after(response)
 
     return response
 }
