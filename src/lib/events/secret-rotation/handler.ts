@@ -1,7 +1,7 @@
 import type { SecretRotationHandler, SecretRotationServices } from './types'
 
-import { secretParseEvent } from '../../functions/secret-rotation/secret-parse-event'
-import { secretValidateEvent } from '../../functions/secret-rotation/secret-validate-event'
+import { secretParseEvent } from '../../functions/secret-rotation/parse-event'
+import { secretValidateEvent } from '../../functions/secret-rotation/validate-event'
 import type { LambdaContext } from '../context'
 import { EventError } from '../event-error'
 
