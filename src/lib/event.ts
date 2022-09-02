@@ -1,6 +1,8 @@
 import type { LambdaContext } from './events/context'
 import { handleEventBridgeEvent } from './events/eventbridge/handler'
 import type { EventBridgeHandler } from './events/eventbridge/types'
+import { handleFirehoseTransformation } from './events/firehose/handler'
+import type { FirehoseTransformationHandler } from './events/firehose/types'
 import { handleHttpEvent } from './events/http/handler'
 import type { GatewayVersion, HttpHandler } from './events/http/types'
 import { handleKinesisEvent } from './events/kinesis/handler'
@@ -21,7 +23,14 @@ import { metrics as globalMetrics } from './observability/metrics'
 import { tracer as globalTracer } from './observability/tracer'
 import type { RawRequest, RawResponse } from './types'
 
-import type { Handler, APIGatewayProxyEvent, Context, SNSEventRecord, KinesisStreamRecord } from 'aws-lambda'
+import type {
+    Handler,
+    APIGatewayProxyEvent,
+    Context,
+    SNSEventRecord,
+    KinesisStreamRecord,
+    FirehoseTransformationEventRecord,
+} from 'aws-lambda'
 
 export type EventHandler<
     C = unknown,
@@ -38,9 +47,12 @@ export type EventHandler<
     SnsE = unknown,
     KinesisE = unknown,
     KinesisR = unknown,
+    FirehoseP = unknown,
+    FirehoseR = unknown,
     GV extends GatewayVersion = 'v1'
 > =
     | EventBridgeHandler<C, S, EbE, EbR>
+    | FirehoseTransformationHandler<C, S, FirehoseP, FirehoseR>
     | HttpHandler<C, S, HttpB, HttpP, HttpQ, HttpH, HttpR, GV>
     | KinesisHandler<C, S, KinesisE, KinesisR>
     | RawHandler<C, S, RawE, RawR>
@@ -77,6 +89,19 @@ export async function handleEvent(definition: EventHandler, request: RawRequest,
         }
         if (kinesisRecords.length > 0 && kinesisRecords.length === request.Records.length) {
             return handleKinesisEvent(definition, kinesisRecords, context)
+        }
+    } else if ('records' in request) {
+        const unprocessable: unknown[] = []
+        const firehoseRecords: FirehoseTransformationEventRecord[] = []
+        for (const record of request.records) {
+            if ('recordId' in record) {
+                firehoseRecords.push(record)
+            } else {
+                unprocessable.push(record)
+            }
+        }
+        if (firehoseRecords.length > 0 && firehoseRecords.length === request.records.length) {
+            return handleFirehoseTransformation(definition, firehoseRecords, context)
         }
     }
 
