@@ -19,17 +19,17 @@ export async function handleEventBridgeEvent(
     const { eventBridge } = handler
 
     const parseEventFn = eventBridgeParseEvent(eventBridge)
-    const ioValidateFn = ioValidate<EventBridgeEvent>({ input: (x) => x.detail })
+    const ioValidateFn = ioValidate<EventBridgeEvent>({ input: (x) => x.payload })
     const ioLoggerFn = ioLogger({ type: 'eventbridge' }, context)
 
     const unvalidatedEbEvent = parseEventFn.before(event)
-    const ebEvent = ioValidateFn.before(eventBridge.schema.detail, unvalidatedEbEvent)
+    const ebEvent = ioValidateFn.before(eventBridge.schema.payload, unvalidatedEbEvent)
 
     if ('left' in ebEvent) {
         throw EventError.badRequest(ebEvent.left[0].message)
     }
 
-    ioLoggerFn.before(unvalidatedEbEvent)
+    ioLoggerFn.before(ebEvent)
 
     const response = await eventBridge.handler(ebEvent.right, context)
 

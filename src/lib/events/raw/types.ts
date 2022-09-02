@@ -5,7 +5,7 @@ import type { Schema } from '@skyleague/therefore'
 
 export interface RawEventHandler<C = unknown, S = unknown, E = unknown, R = unknown> {
     schema: {
-        event?: Schema<E>
+        payload?: Schema<E>
         result?: Schema<R>
     }
     handler: (request: E, context: LambdaContext<C, S>) => Promise<R> | R
