@@ -3,17 +3,15 @@ import type { EventBridgeEvent, EventBridgeEventHandler } from '../../events/eve
 import { isString } from '@skyleague/axioms'
 import type { EventBridgeEvent as AWSEventBridgeEvent } from 'aws-lambda/trigger/eventbridge'
 
-export function eventBridgeParseEvent({ detailType = 'json' }: EventBridgeEventHandler) {
+export function eventBridgeParseEvent({ payloadType = 'json' }: EventBridgeEventHandler) {
     return {
         before: (event: AWSEventBridgeEvent<string, unknown>): EventBridgeEvent => {
-            let detail: unknown = event.detail
-            if (detailType !== 'binary' && isString(event.detail)) {
-                detail = detailType === 'json' ? JSON.parse(event.detail) : event.detail
+            let payload: unknown = event.detail
+            if (payloadType !== 'binary' && isString(event.detail)) {
+                payload = payloadType === 'json' ? JSON.parse(event.detail) : event.detail
             }
             return {
-                detail: detail,
-                source: event.source,
-                detailType: event['detail-type'],
+                payload,
                 raw: event,
             }
         },
