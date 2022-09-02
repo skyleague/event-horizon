@@ -2,9 +2,9 @@ import type { Either } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
 import type { ErrorObject } from 'ajv'
 
-export interface ValidateOptions<E, R> {
-    input?: (x: E) => unknown
-    output?: (x: R) => unknown
+export interface ValidateOptions<I, O> {
+    input?: (x: I) => unknown
+    output?: (x: O) => unknown
 }
 
 export function ioValidate<I = unknown, O = unknown>(options?: ValidateOptions<I, O>) {
