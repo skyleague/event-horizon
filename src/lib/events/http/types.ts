@@ -19,7 +19,7 @@ export interface HttpRequest<
     body: B
     headers: H
     query: Q
-    path: P
+    pathParams: P
     raw: GV extends 'v1' ? APIGatewayProxyEvent : APIGatewayProxyEventV2
 }
 
@@ -42,10 +42,10 @@ export interface HttpEventHandler<
     GV extends GatewayVersion = 'v1'
 > {
     method: HttpMethod
-    url: string
+    path: string
     schema: {
         body?: Schema<B>
-        path?: Schema<P>
+        pathParams?: Schema<P>
         query?: Schema<Q>
         headers?: Schema<H>
         responses: Record<PropertyKey, Schema<R>>

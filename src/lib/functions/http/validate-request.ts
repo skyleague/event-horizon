@@ -14,7 +14,7 @@ export function httpValidateRequest() {
                     body: event.body,
                     headers: event.headers,
                     query: event.query,
-                    path: event.path,
+                    pathParams: event.pathParams,
                     raw: event.raw,
                 },
             }
