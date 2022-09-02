@@ -4,6 +4,7 @@ import type {
     CloudFrontRequestHandler,
     DynamoDBStreamHandler,
     EventBridgeHandler,
+    KinesisStreamHandler,
     ScheduledHandler,
     SecretsManagerRotationHandler,
     SNSHandler,
@@ -16,6 +17,7 @@ export type AWSLambdaHandler =
     | CloudFrontRequestHandler
     | DynamoDBStreamHandler
     | EventBridgeHandler<string, string, void>
+    | KinesisStreamHandler
     | ScheduledHandler
     | ScheduledHandler<string>
     | SecretsManagerRotationHandler

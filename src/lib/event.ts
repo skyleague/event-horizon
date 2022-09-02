@@ -3,6 +3,8 @@ import { handleEventBridgeEvent } from './events/eventbridge/handler'
 import type { EventBridgeHandler } from './events/eventbridge/types'
 import { handleHttpEvent } from './events/http/handler'
 import type { GatewayVersion, HttpHandler } from './events/http/types'
+import { handleKinesisEvent } from './events/kinesis/handler'
+import type { KinesisHandler } from './events/kinesis/types'
 import { handleRawEvent } from './events/raw/handler'
 import type { RawHandler } from './events/raw/types'
 import { handleSecretRotationEvent } from './events/secret-rotation/handler'
@@ -19,7 +21,7 @@ import { metrics as globalMetrics } from './observability/metrics'
 import { tracer as globalTracer } from './observability/tracer'
 import type { RawRequest, RawResponse } from './types'
 
-import type { Handler, APIGatewayProxyEvent, Context, SNSEventRecord } from 'aws-lambda'
+import type { Handler, APIGatewayProxyEvent, Context, SNSEventRecord, KinesisStreamRecord } from 'aws-lambda'
 
 export type EventHandler<
     C = unknown,
@@ -34,10 +36,13 @@ export type EventHandler<
     EbE = unknown,
     EbR = unknown,
     SnsE = unknown,
+    KinesisE = unknown,
+    KinesisR = unknown,
     GV extends GatewayVersion = 'v1'
 > =
     | EventBridgeHandler<C, S, EbE, EbR>
     | HttpHandler<C, S, HttpB, HttpP, HttpQ, HttpH, HttpR, GV>
+    | KinesisHandler<C, S, KinesisE, KinesisR>
     | RawHandler<C, S, RawE, RawR>
     | SnsHandler<C, S, SnsE>
     | (S extends SecretRotationServices ? SecretRotationHandler<C, S> : never)
@@ -56,9 +61,12 @@ export async function handleEvent(definition: EventHandler, request: RawRequest,
     } else if ('Records' in request) {
         const unprocessable: unknown[] = []
         const snsRecords: SNSEventRecord[] = []
+        const kinesisRecords: KinesisStreamRecord[] = []
         for (const record of request.Records) {
             if ('Sns' in record) {
                 snsRecords.push(record)
+            } else if ('kinesis' in record) {
+                kinesisRecords.push(record)
             } else {
                 unprocessable.push(record)
             }
@@ -67,13 +75,33 @@ export async function handleEvent(definition: EventHandler, request: RawRequest,
         if (snsRecords.length > 0 && snsRecords.length === request.Records.length) {
             return handleSnsEvent(definition, snsRecords, context)
         }
+        if (kinesisRecords.length > 0 && kinesisRecords.length === request.Records.length) {
+            return handleKinesisEvent(definition, kinesisRecords, context)
+        }
     }
 
     return handleRawEvent(definition, request, context)
 }
 
-export function event<C, S, HttpB, HttpP, HttpQ, HttpH, HttpR, RawE, RawR, EbE, EbR, SnsE, D, GV extends GatewayVersion = 'v1'>(
-    definition: D & EventHandler<C, S, HttpB, HttpP, HttpQ, HttpH, HttpR, RawE, RawR, EbE, EbR, SnsE, GV>
+export function event<
+    C,
+    S,
+    HttpB,
+    HttpP,
+    HttpQ,
+    HttpH,
+    HttpR,
+    RawE,
+    RawR,
+    EbE,
+    EbR,
+    SnsE,
+    KinesisE,
+    KinesisR,
+    D,
+    GV extends GatewayVersion = 'v1'
+>(
+    definition: D & EventHandler<C, S, HttpB, HttpP, HttpQ, HttpH, HttpR, RawE, RawR, EbE, EbR, SnsE, KinesisE, KinesisR, GV>
 ): D & Handler<APIGatewayProxyEvent> {
     async function handler(request: RawRequest, context: Context): Promise<RawResponse> {
         const lambdaContext: LambdaContext = {
