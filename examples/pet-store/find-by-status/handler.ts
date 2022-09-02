@@ -6,7 +6,7 @@ import { PetArray } from '../lib/models.type'
 export const handler = event({
     http: {
         method: 'get',
-        url: '/pet/findByStatus',
+        path: '/pet/findByStatus',
         schema: {
             query: Query,
             responses: {
