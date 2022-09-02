@@ -13,7 +13,7 @@ export async function handleRawEvent(handler: EventHandler, event: unknown, cont
     const ioLoggerFn = ioLogger({ type: 'raw' }, context)
 
     ioLoggerFn.before(raw)
-    const rawEvent = ioValidateFn.before(raw.schema.event, event)
+    const rawEvent = ioValidateFn.before(raw.schema.payload, event)
 
     if ('left' in rawEvent) {
         throw EventError.badRequest(rawEvent.left[0].message)
