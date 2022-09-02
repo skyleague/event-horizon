@@ -4,7 +4,7 @@ import { Pet } from '../lib/models.type'
 export const handler = event({
     http: {
         method: 'post',
-        url: '/pet',
+        path: '/pet',
         schema: {
             body: Pet,
             responses: {
