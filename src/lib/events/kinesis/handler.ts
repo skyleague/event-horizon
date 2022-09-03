@@ -1,6 +1,5 @@
-import type { KinesisEvent } from './types'
+import type { KinesisEvent, KinesisHandler } from './types'
 
-import type { EventHandler } from '../../event'
 import { kinesisParseEvent } from '../../functions/kinesis/parse-event'
 import { ioLogger } from '../../functions/shared/io-logger'
 import { ioValidate } from '../../functions/shared/io-validate'
@@ -11,13 +10,10 @@ import { enumerate } from '@skyleague/axioms'
 import type { KinesisStreamBatchResponse, KinesisStreamRecord } from 'aws-lambda'
 
 export async function handleKinesisEvent(
-    handler: EventHandler,
+    handler: KinesisHandler,
     events: KinesisStreamRecord[],
     context: LambdaContext
 ): Promise<KinesisStreamBatchResponse | void> {
-    if (!('kinesis' in handler) || handler.kinesis === undefined) {
-        throw EventError.notImplemented()
-    }
     const { kinesis } = handler
 
     const parseEventFn = kinesisParseEvent(kinesis)

@@ -40,15 +40,17 @@ export type EventHandler<C = unknown, S = unknown> =
 
 export async function handleEvent(definition: EventHandler, request: RawRequest, context: LambdaContext) {
     if ('headers' in request) {
-        return handleHttpEvent(definition, request, context)
+        if ('http' in definition) {
+            return handleHttpEvent(definition, request, context)
+        }
     } else if ('detail' in request) {
-        return handleEventBridgeEvent(definition as EventBridgeHandler, request, context)
+        if ('eventBridge' in definition) {
+            return handleEventBridgeEvent(definition, request, context)
+        }
     } else if ('SecretId' in request && 'Step' in request) {
-        return handleSecretRotationEvent(
-            definition as unknown as SecretRotationHandler,
-            request,
-            context as unknown as LambdaContext<never, SecretRotationServices>
-        )
+        if ('secretRotation' in definition) {
+            return handleSecretRotationEvent(definition, request, context)
+        }
     } else if ('Records' in request) {
         const unprocessable: unknown[] = []
         const snsRecords: SNSEventRecord[] = []
@@ -67,13 +69,17 @@ export async function handleEvent(definition: EventHandler, request: RawRequest,
         }
 
         if (sqsRecords.length > 0 && sqsRecords.length === request.Records.length) {
-            return handleSqsEvent(definition, sqsRecords, context)
-        }
-        if (snsRecords.length > 0 && snsRecords.length === request.Records.length) {
-            return handleSnsEvent(definition, snsRecords, context)
-        }
-        if (kinesisRecords.length > 0 && kinesisRecords.length === request.Records.length) {
-            return handleKinesisEvent(definition, kinesisRecords, context)
+            if ('sqs' in definition) {
+                return handleSqsEvent(definition, sqsRecords, context)
+            }
+        } else if (snsRecords.length > 0 && snsRecords.length === request.Records.length) {
+            if ('sns' in definition) {
+                return handleSnsEvent(definition, snsRecords, context)
+            }
+        } else if (kinesisRecords.length > 0 && kinesisRecords.length === request.Records.length) {
+            if ('kinesis' in definition) {
+                return handleKinesisEvent(definition, kinesisRecords, context)
+            }
         }
     } else if ('records' in request) {
         const unprocessable: unknown[] = []
@@ -86,7 +92,9 @@ export async function handleEvent(definition: EventHandler, request: RawRequest,
             }
         }
         if (firehoseRecords.length > 0 && firehoseRecords.length === request.records.length) {
-            return handleFirehoseTransformation(definition, firehoseRecords, context)
+            if ('firehose' in definition) {
+                return handleFirehoseTransformation(definition, firehoseRecords, context)
+            }
         }
     }
 
