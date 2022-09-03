@@ -1,4 +1,4 @@
-import type { HandlerDefinition } from '../../types'
+import type { Config, HandlerDefinition, Services } from '../../types'
 import type { LambdaContext } from '../context'
 
 import type { Schema } from '@skyleague/therefore'
@@ -14,7 +14,7 @@ export interface FirehoseTransformationEvent<P = unknown> {
     raw: FirehoseTransformationEventRecord
 }
 
-export interface FirehoseTransformationEventHandler<C = unknown, S = unknown, P = unknown, R = unknown> {
+export interface FirehoseTransformationEventHandler<C = never, S = never, P = unknown, R = unknown> {
     schema: {
         payload?: Schema<P>
         result?: Schema<R>
@@ -26,8 +26,8 @@ export interface FirehoseTransformationEventHandler<C = unknown, S = unknown, P 
     payloadType?: 'binary' | 'json' | 'plaintext'
 }
 
-export interface FirehoseTransformationHandler<C = unknown, S = unknown, P = unknown, R = unknown> extends HandlerDefinition {
-    config?: C
-    services?: S // Services<C, S>
+export interface FirehoseTransformationHandler<C = never, S = never, P = unknown, R = unknown> extends HandlerDefinition {
+    config?: Config<C>
+    services?: Services<C, S>
     firehose: FirehoseTransformationEventHandler<C, S, P, R>
 }

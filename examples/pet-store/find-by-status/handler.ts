@@ -1,9 +1,9 @@
 import { Query } from './request.type'
 
-import { event } from '../../../src/lib'
+import { httpHandler } from '../../../src/lib'
 import { PetArray } from '../lib/models.type'
 
-export const handler = event({
+export const handler = httpHandler({
     http: {
         method: 'get',
         path: '/pet/findByStatus',

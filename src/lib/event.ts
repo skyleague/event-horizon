@@ -21,42 +21,18 @@ import { warmup } from './functions/common/warmup'
 import { logger as globalLogger } from './observability/logger'
 import { metrics as globalMetrics } from './observability/metrics'
 import { tracer as globalTracer } from './observability/tracer'
-import type { RawRequest, RawResponse } from './types'
+import type { AWSLambdaHandler, RawRequest, RawResponse } from './types'
 
-import type {
-    Handler,
-    APIGatewayProxyEvent,
-    Context,
-    SNSEventRecord,
-    KinesisStreamRecord,
-    FirehoseTransformationEventRecord,
-} from 'aws-lambda'
+import { isFunction } from '@skyleague/axioms'
+import type { Context, SNSEventRecord, KinesisStreamRecord, FirehoseTransformationEventRecord } from 'aws-lambda'
 
-export type EventHandler<
-    C = unknown,
-    S = unknown,
-    HttpB = unknown,
-    HttpP = unknown,
-    HttpQ = unknown,
-    HttpH = unknown,
-    HttpR = unknown,
-    RawE = unknown,
-    RawR = unknown,
-    EbE = unknown,
-    EbR = unknown,
-    SnsE = unknown,
-    KinesisE = unknown,
-    KinesisR = unknown,
-    FirehoseP = unknown,
-    FirehoseR = unknown,
-    GV extends GatewayVersion = 'v1'
-> =
-    | EventBridgeHandler<C, S, EbE, EbR>
-    | FirehoseTransformationHandler<C, S, FirehoseP, FirehoseR>
-    | HttpHandler<C, S, HttpB, HttpP, HttpQ, HttpH, HttpR, GV>
-    | KinesisHandler<C, S, KinesisE, KinesisR>
-    | RawHandler<C, S, RawE, RawR>
-    | SnsHandler<C, S, SnsE>
+export type EventHandler<C = unknown, S = unknown> =
+    | EventBridgeHandler
+    | FirehoseTransformationHandler
+    | HttpHandler
+    | KinesisHandler
+    | RawHandler
+    | SnsHandler
     | (S extends SecretRotationServices ? SecretRotationHandler<C, S> : never)
 
 export async function handleEvent(definition: EventHandler, request: RawRequest, context: LambdaContext) {
@@ -68,7 +44,7 @@ export async function handleEvent(definition: EventHandler, request: RawRequest,
         return handleSecretRotationEvent(
             definition as unknown as SecretRotationHandler,
             request,
-            context as unknown as LambdaContext<unknown, SecretRotationServices>
+            context as unknown as LambdaContext<never, SecretRotationServices>
         )
     } else if ('Records' in request) {
         const unprocessable: unknown[] = []
@@ -108,35 +84,19 @@ export async function handleEvent(definition: EventHandler, request: RawRequest,
     return handleRawEvent(definition, request, context)
 }
 
-export function event<
-    C,
-    S,
-    HttpB,
-    HttpP,
-    HttpQ,
-    HttpH,
-    HttpR,
-    RawE,
-    RawR,
-    EbE,
-    EbR,
-    SnsE,
-    KinesisE,
-    KinesisR,
-    D,
-    GV extends GatewayVersion = 'v1'
->(
-    definition: D & EventHandler<C, S, HttpB, HttpP, HttpQ, HttpH, HttpR, RawE, RawR, EbE, EbR, SnsE, KinesisE, KinesisR, GV>
-): D & Handler<APIGatewayProxyEvent> {
+export function eventHandler<H extends EventHandler>(definition: H): AWSLambdaHandler {
+    const config = isFunction(definition.config) ? Promise.resolve(definition.config()) : definition.config
     async function handler(request: RawRequest, context: Context): Promise<RawResponse> {
+        const services = isFunction(definition.services) ? definition.services((await config) as never) : definition.services
+
         const lambdaContext: LambdaContext = {
             logger: globalLogger,
             metrics: globalMetrics,
             tracer: globalTracer,
             isSensitive: definition.isSensitive ?? false,
             raw: context,
-            services: definition.services,
-            config: definition.config,
+            services: (await services) as never,
+            config: (await config) as never,
         }
 
         const warmupFn = warmup()
@@ -178,5 +138,41 @@ export function event<
         return
     }
     Object.assign(handler, definition)
-    return handler as unknown as D & Handler<APIGatewayProxyEvent>
+    return handler as AWSLambdaHandler
+}
+
+export function firehoseHandler<C, S, FirehoseP, FirehoseR, D>(
+    definition: D & FirehoseTransformationHandler<C, S, FirehoseP, FirehoseR>
+): AWSLambdaHandler & D {
+    return eventHandler(definition as unknown as EventHandler) as AWSLambdaHandler & D
+}
+
+export function eventBridgeHandler<C, S, EbP, EbR, D>(definition: D & EventBridgeHandler<C, S, EbP, EbR>): AWSLambdaHandler & D {
+    return eventHandler(definition as unknown as EventHandler) as AWSLambdaHandler & D
+}
+
+export function httpHandler<C, S, HttpB, HttpP, HttpQ, HttpH, HttpR, GV extends GatewayVersion, D>(
+    definition: D & HttpHandler<C, S, HttpB, HttpP, HttpQ, HttpH, HttpR, GV>
+): AWSLambdaHandler & D {
+    return eventHandler(definition as unknown as EventHandler) as AWSLambdaHandler & D
+}
+
+export function kinesisHandler<C, S, KinesisP, KinesisR, D>(
+    definition: D & KinesisHandler<C, S, KinesisP, KinesisR>
+): AWSLambdaHandler & D {
+    return eventHandler(definition as unknown as EventHandler) as AWSLambdaHandler & D
+}
+
+export function rawHandler<C, S, RawP, RawR, D>(definition: D & RawHandler<C, S, RawP, RawR>): AWSLambdaHandler & D {
+    return eventHandler(definition as unknown as EventHandler) as AWSLambdaHandler & D
+}
+
+export function snsHandler<C, S, SnsP, D>(definition: D & SnsHandler<C, S, SnsP>): AWSLambdaHandler & D {
+    return eventHandler(definition as unknown as EventHandler) as AWSLambdaHandler & D
+}
+
+export function secretRotationHandler<C extends {}, S extends SecretRotationServices, D>(
+    definition: D & SecretRotationHandler<C, S>
+): AWSLambdaHandler & D {
+    return eventHandler(definition as unknown as EventHandler) as AWSLambdaHandler & D
 }

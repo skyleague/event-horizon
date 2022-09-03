@@ -29,7 +29,8 @@ export type AWSLambdaHandler =
 export type RawRequest = Parameters<AWSLambdaHandler>[0]
 export type RawResponse = ReturnType<AWSLambdaHandler> | unknown
 
-export type Services<C, S> = S | (() => Promise<S> | S) | ((config: C) => Promise<S> | S)
+export type Config<C> = C | (() => C | Promise<C>)
+export type Services<C, S> = S | ((config: C) => Promise<S> | S)
 
 export interface HandlerDefinition {
     operationId?: string

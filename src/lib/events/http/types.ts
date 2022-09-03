@@ -1,4 +1,4 @@
-import type { HandlerDefinition } from '../../types'
+import type { Config, HandlerDefinition, Services } from '../../types'
 import type { LambdaContext } from '../context'
 
 import type { Schema } from '@skyleague/therefore'
@@ -32,8 +32,8 @@ export interface HttpResponse<R = unknown> {
 export type GatewayVersion = 'v1' | 'v2'
 
 export interface HttpEventHandler<
-    C = unknown,
-    S = unknown,
+    C = never,
+    S = never,
     B = unknown,
     P = unknown,
     Q = unknown,
@@ -58,8 +58,8 @@ export interface HttpEventHandler<
 }
 
 export interface HttpHandler<
-    C = unknown,
-    S = unknown,
+    C = never,
+    S = never,
     HttpB = unknown,
     HttpP = unknown,
     HttpQ = unknown,
@@ -67,7 +67,7 @@ export interface HttpHandler<
     HttpR = unknown,
     GV extends GatewayVersion = 'v1'
 > extends HandlerDefinition {
-    config?: C
-    services?: S // Services<C, S>
+    config?: Config<C>
+    services?: Services<C, S>
     http: HttpEventHandler<C, S, HttpB, HttpP, HttpQ, HttpH, HttpR, GV>
 }

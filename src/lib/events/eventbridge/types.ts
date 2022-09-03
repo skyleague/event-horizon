@@ -1,4 +1,4 @@
-import type { HandlerDefinition } from '../../types'
+import type { Config, HandlerDefinition, Services } from '../../types'
 import type { LambdaContext } from '../context'
 
 import type { Schema } from '@skyleague/therefore'
@@ -9,7 +9,7 @@ export interface EventBridgeEvent<P = unknown> {
     raw: AWSEventBridgeEvent<string, P>
 }
 
-export interface EventBridgeEventHandler<C = unknown, S = unknown, P = unknown, R = unknown> {
+export interface EventBridgeEventHandler<C = never, S = never, P = unknown, R = unknown> {
     schema: {
         payload?: Schema<P>
         result?: Schema<R>
@@ -18,8 +18,8 @@ export interface EventBridgeEventHandler<C = unknown, S = unknown, P = unknown, 
     payloadType?: 'binary' | 'json' | 'plaintext'
 }
 
-export interface EventBridgeHandler<C = unknown, S = unknown, P = unknown, R = unknown> extends HandlerDefinition {
-    config?: C
-    services?: S // Services<C, S>
+export interface EventBridgeHandler<C = never, S = never, P = unknown, R = unknown> extends HandlerDefinition {
+    config?: Config<C>
+    services?: Services<C, S>
     eventBridge: EventBridgeEventHandler<C, S, P, R>
 }
