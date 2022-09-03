@@ -1,6 +1,5 @@
-import type { SQSEvent } from './types'
+import type { SQSEvent, SQSHandler } from './types'
 
-import type { EventHandler } from '../../event'
 import { ioLogger } from '../../functions/shared/io-logger'
 import { ioValidate } from '../../functions/shared/io-validate'
 import { sqsErrorHandler } from '../../functions/sqs/error-handler'
@@ -13,13 +12,10 @@ import { enumerate, isJust, Nothing } from '@skyleague/axioms'
 import type { SQSBatchItemFailure, SQSBatchResponse, SQSRecord } from 'aws-lambda'
 
 export async function handleSqsEvent(
-    handler: EventHandler,
+    handler: SQSHandler,
     events: SQSRecord[],
     context: LambdaContext
 ): Promise<SQSBatchResponse | void> {
-    if (!('sqs' in handler) || handler.sqs === undefined) {
-        throw EventError.notImplemented()
-    }
     const { sqs } = handler
 
     const errorHandlerFn = sqsErrorHandler(context)

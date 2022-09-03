@@ -13,9 +13,6 @@ export async function handleEventBridgeEvent(
     event: AWSEventBridgeEvent<string, unknown>,
     context: LambdaContext
 ): Promise<unknown> {
-    if (!('eventBridge' in handler) || handler.eventBridge === undefined) {
-        throw EventError.notImplemented()
-    }
     const { eventBridge } = handler
 
     const parseEventFn = eventBridgeParseEvent(eventBridge)
