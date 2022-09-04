@@ -1,3 +1,5 @@
+import { handleTokenAuthorizerEvent } from './events/authorizer/handler'
+import type { AuthorizerHandler } from './events/authorizer/types'
 import type { LambdaContext } from './events/context'
 import { handleEventBridgeEvent } from './events/eventbridge/handler'
 import type { EventBridgeHandler } from './events/eventbridge/types'
@@ -29,6 +31,7 @@ import { isFunction } from '@skyleague/axioms'
 import type { Context, SNSEventRecord, KinesisStreamRecord, FirehoseTransformationEventRecord, SQSRecord } from 'aws-lambda'
 
 export type EventHandler<C = unknown, S = unknown> =
+    | AuthorizerHandler
     | EventBridgeHandler
     | FirehoseTransformationHandler
     | HttpHandler
@@ -39,7 +42,13 @@ export type EventHandler<C = unknown, S = unknown> =
     | (S extends SecretRotationServices ? SecretRotationHandler<C, S> : never)
 
 export async function handleEvent(definition: EventHandler, request: RawRequest, context: LambdaContext) {
-    if ('headers' in request) {
+    if ('authorizationToken' in request || 'type' in request) {
+        if ('token' in definition) {
+            return handleTokenAuthorizerEvent(definition, request, context)
+        } else if ('request' in definition) {
+            // return handleAuthorizerEvent(definition, request, context)
+        }
+    } else if ('headers' in request) {
         if ('http' in definition) {
             return handleHttpEvent(definition, request, context)
         }
