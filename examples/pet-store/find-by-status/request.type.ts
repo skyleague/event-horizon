@@ -16,7 +16,7 @@ export const Query = {
     get schema() {
         return Query.validate.schema
     },
-    source: `${__dirname}request.schema`,
+    source: `${__dirname}/request.schema`,
     sourceSymbol: 'query',
     is: (o: unknown): o is Query => Query.validate(o) === true,
     assert: (o: unknown) => {

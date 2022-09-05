@@ -16,7 +16,7 @@ export const Category = {
     get schema() {
         return Category.validate.schema
     },
-    source: `${__dirname}models.schema`,
+    source: `${__dirname}/models.schema`,
     sourceSymbol: 'category',
     is: (o: unknown): o is Category => Category.validate(o) === true,
     assert: (o: unknown) => {
@@ -36,7 +36,7 @@ export const Tag = {
     get schema() {
         return Tag.validate.schema
     },
-    source: `${__dirname}models.schema`,
+    source: `${__dirname}/models.schema`,
     sourceSymbol: 'tag',
     is: (o: unknown): o is Tag => Tag.validate(o) === true,
     assert: (o: unknown) => {
@@ -53,7 +53,7 @@ export const Status = {
     get schema() {
         return Status.validate.schema
     },
-    source: `${__dirname}models.schema`,
+    source: `${__dirname}/models.schema`,
     sourceSymbol: 'status',
     is: (o: unknown): o is Status => Status.validate(o) === true,
     assert: (o: unknown) => {
@@ -77,7 +77,7 @@ export const Pet = {
     get schema() {
         return Pet.validate.schema
     },
-    source: `${__dirname}models.schema`,
+    source: `${__dirname}/models.schema`,
     sourceSymbol: 'pet',
     is: (o: unknown): o is Pet => Pet.validate(o) === true,
     assert: (o: unknown) => {
@@ -94,7 +94,7 @@ export const PetArray = {
     get schema() {
         return PetArray.validate.schema
     },
-    source: `${__dirname}models.schema`,
+    source: `${__dirname}/models.schema`,
     sourceSymbol: 'petArray',
     is: (o: unknown): o is PetArray => PetArray.validate(o) === true,
     assert: (o: unknown) => {
