@@ -13,6 +13,8 @@ import { handleSecretRotationEvent } from './events/secret-rotation/handler'
 import type { SecretRotationHandler, SecretRotationServices } from './events/secret-rotation/types'
 import { handleSnsEvent } from './events/sns/handler'
 import type { SnsHandler } from './events/sns/types'
+import { handleSqsEvent } from './events/sqs/handler'
+import type { SQSHandler } from './events/sqs/types'
 import { errorHandler } from './functions/common/error-handler'
 import { loggerContext } from './functions/common/logger-context'
 import { metricsContext } from './functions/common/metrics-context'
@@ -24,7 +26,7 @@ import { tracer as globalTracer } from './observability/tracer'
 import type { AWSLambdaHandler, RawRequest, RawResponse } from './types'
 
 import { isFunction } from '@skyleague/axioms'
-import type { Context, SNSEventRecord, KinesisStreamRecord, FirehoseTransformationEventRecord } from 'aws-lambda'
+import type { Context, SNSEventRecord, KinesisStreamRecord, FirehoseTransformationEventRecord, SQSRecord } from 'aws-lambda'
 
 export type EventHandler<C = unknown, S = unknown> =
     | EventBridgeHandler
@@ -33,6 +35,7 @@ export type EventHandler<C = unknown, S = unknown> =
     | KinesisHandler
     | RawHandler
     | SnsHandler
+    | SQSHandler
     | (S extends SecretRotationServices ? SecretRotationHandler<C, S> : never)
 
 export async function handleEvent(definition: EventHandler, request: RawRequest, context: LambdaContext) {
@@ -50,9 +53,12 @@ export async function handleEvent(definition: EventHandler, request: RawRequest,
         const unprocessable: unknown[] = []
         const snsRecords: SNSEventRecord[] = []
         const kinesisRecords: KinesisStreamRecord[] = []
+        const sqsRecords: SQSRecord[] = []
         for (const record of request.Records) {
             if ('Sns' in record) {
                 snsRecords.push(record)
+            } else if ('messageAttributes' in record) {
+                sqsRecords.push(record)
             } else if ('kinesis' in record) {
                 kinesisRecords.push(record)
             } else {
@@ -60,6 +66,9 @@ export async function handleEvent(definition: EventHandler, request: RawRequest,
             }
         }
 
+        if (sqsRecords.length > 0 && sqsRecords.length === request.Records.length) {
+            return handleSqsEvent(definition, sqsRecords, context)
+        }
         if (snsRecords.length > 0 && snsRecords.length === request.Records.length) {
             return handleSnsEvent(definition, snsRecords, context)
         }
@@ -174,5 +183,9 @@ export function snsHandler<C, S, SnsP, D>(definition: D & SnsHandler<C, S, SnsP>
 export function secretRotationHandler<C extends {}, S extends SecretRotationServices, D>(
     definition: D & SecretRotationHandler<C, S>
 ): AWSLambdaHandler & D {
+    return eventHandler(definition as unknown as EventHandler) as AWSLambdaHandler & D
+}
+
+export function sqsHandler<C, S, SqsP, D>(definition: D & SQSHandler<C, S, SqsP>): AWSLambdaHandler & D {
     return eventHandler(definition as unknown as EventHandler) as AWSLambdaHandler & D
 }

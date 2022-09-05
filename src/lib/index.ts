@@ -8,6 +8,7 @@ export {
     kinesisHandler,
     rawHandler,
     snsHandler,
+    sqsHandler,
     secretRotationHandler,
     EventHandler,
 } from './event'
