@@ -29,7 +29,9 @@ export async function handleHttpEvent(
         const httpEvent = ioValidateFn.before(http, unvalidatedHttpEvent)
 
         if ('left' in httpEvent) {
-            throw EventError.badRequest(httpEvent.left[0].message, { in: httpEvent.in })
+            throw EventError.badRequest(`in ${httpEvent.in}: ${httpEvent.left[0]?.message ?? 'validation failed'}`, {
+                in: httpEvent.in,
+            })
         }
 
         response = await http.handler(httpEvent.right, context)

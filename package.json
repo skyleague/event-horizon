@@ -58,7 +58,6 @@
     "@skyleague/node-standards": "^1.7.0",
     "@skyleague/therefore": "^1.11.0",
     "@types/node": "^18.7.13",
-    "@types/aws-sdk": "^2.7.0",
     "@types/source-map-support": "^0.5.6",
     "aws-sdk": "^2.1201.0",
     "source-map-support": "^0.5.21",
