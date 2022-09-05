@@ -1,3 +1,4 @@
+import { isDebug } from '../../constants'
 import type { LambdaContext } from '../../events/context'
 import { EventError } from '../../events/event-error'
 import type { HttpResponse } from '../../events/http/types'
@@ -24,7 +25,7 @@ export function httpErrorHandler({ logger, isSensitive }: LambdaContext) {
                 body: {
                     statusCode: eventError.statusCode,
                     message: eventError.expose && !isSensitive ? eventError.message : eventError.name,
-                    stack: eventError.expose && !isSensitive ? eventError.stack : undefined,
+                    stack: isDebug && eventError.expose && !isSensitive ? eventError.stack : undefined,
                 },
             }
         },
