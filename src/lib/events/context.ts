@@ -4,7 +4,7 @@ import type { Tracer } from '../observability/tracer'
 
 import type { Context } from 'aws-lambda'
 
-export interface LambdaContext<C = unknown, S = unknown> {
+export interface LambdaContext<C = never, S = never> {
     logger: Logger
     tracer: Tracer
     metrics: Metrics

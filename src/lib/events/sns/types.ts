@@ -1,4 +1,4 @@
-import type { HandlerDefinition } from '../../types'
+import type { Config, HandlerDefinition, Services } from '../../types'
 import type { LambdaContext } from '../context'
 
 import type { Schema } from '@skyleague/therefore'
@@ -9,7 +9,7 @@ export interface SNSEvent<E = unknown> {
     raw: SNSEventRecord
 }
 
-export interface SnsEventHandler<C = unknown, S = unknown, E = unknown> {
+export interface SnsEventHandler<C = never, S = never, E = unknown> {
     schema: {
         payload?: Schema<E>
     }
@@ -17,8 +17,8 @@ export interface SnsEventHandler<C = unknown, S = unknown, E = unknown> {
     payloadType?: 'binary' | 'json' | 'plaintext'
 }
 
-export interface SnsHandler<C = unknown, S = unknown, E = unknown> extends HandlerDefinition {
-    config?: C
-    services?: S // Services<C, S>
+export interface SnsHandler<C = never, S = never, E = unknown> extends HandlerDefinition {
+    config?: Config<C>
+    services?: Services<C, S>
     sns: SnsEventHandler<C, S, E>
 }

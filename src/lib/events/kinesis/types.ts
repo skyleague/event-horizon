@@ -1,4 +1,4 @@
-import type { HandlerDefinition } from '../../types'
+import type { Config, HandlerDefinition, Services } from '../../types'
 import type { LambdaContext } from '../context'
 
 import type { Schema } from '@skyleague/therefore'
@@ -9,7 +9,7 @@ export interface KinesisEvent<P = unknown> {
     raw: KinesisStreamRecord
 }
 
-export interface KinesisEventHandler<C = unknown, S = unknown, P = unknown, R = unknown> {
+export interface KinesisEventHandler<C = never, S = never, P = unknown, R = unknown> {
     schema: {
         payload?: Schema<P>
         result?: Schema<R>
@@ -18,8 +18,8 @@ export interface KinesisEventHandler<C = unknown, S = unknown, P = unknown, R = 
     payloadType?: 'binary' | 'json' | 'plaintext'
 }
 
-export interface KinesisHandler<C = unknown, S = unknown, P = unknown, R = unknown> extends HandlerDefinition {
-    config?: C
-    services?: S // Services<C, S>
+export interface KinesisHandler<C = never, S = never, P = unknown, R = unknown> extends HandlerDefinition {
+    config?: Config<C>
+    services?: Services<C, S>
     kinesis: KinesisEventHandler<C, S, P, R>
 }

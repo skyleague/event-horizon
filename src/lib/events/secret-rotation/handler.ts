@@ -10,7 +10,7 @@ import type { SecretsManagerRotationEvent } from 'aws-lambda'
 export async function handleSecretRotationEvent(
     handler: SecretRotationHandler,
     event: SecretsManagerRotationEvent,
-    context: LambdaContext<unknown, SecretRotationServices>
+    context: LambdaContext<never, SecretRotationServices>
 ): Promise<void> {
     if (!('secretRotation' in handler) || handler.secretRotation === undefined) {
         throw EventError.notImplemented()

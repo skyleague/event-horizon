@@ -1,7 +1,7 @@
-import { event } from '../../../src/lib'
+import { httpHandler } from '../../../src'
 import { Pet } from '../lib/models.type'
 
-export const handler = event({
+export const handler = httpHandler({
     http: {
         method: 'post',
         path: '/pet',
