@@ -1,6 +1,8 @@
 import type {
+    APIGatewayAuthorizerHandler,
     APIGatewayProxyHandler,
     APIGatewayProxyHandlerV2,
+    APIGatewayRequestAuthorizerHandler,
     CloudFrontRequestHandler,
     DynamoDBStreamHandler,
     EventBridgeHandler,
@@ -13,8 +15,10 @@ import type {
 } from 'aws-lambda'
 
 export type AWSLambdaHandler =
+    | APIGatewayAuthorizerHandler
     | APIGatewayProxyHandler
     | APIGatewayProxyHandlerV2
+    | APIGatewayRequestAuthorizerHandler
     | CloudFrontRequestHandler
     | DynamoDBStreamHandler
     | EventBridgeHandler<string, string, void>
