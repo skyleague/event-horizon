@@ -16,7 +16,11 @@ async function main() {
         outfile: path.join(__dirname, '.main.js'),
         entryPoints: [path.join(__dirname, 'index.ts')],
         treeShaking: true,
-        external: Object.keys(packageJson.dependencies),
+        external: Object.keys({
+            ...(packageJson as { devDependencies?: Record<string, string> }).devDependencies,
+            ...(packageJson as { peerDependencies?: Record<string, string> }).peerDependencies,
+            ...(packageJson as { dependencies?: Record<string, string> }).dependencies,
+        }),
         plugins: [
             {
                 name: 'json-loader',
