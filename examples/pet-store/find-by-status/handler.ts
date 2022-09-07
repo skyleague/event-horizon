@@ -1,6 +1,6 @@
 import { Query } from './request.type'
 
-import { httpHandler } from '../../../src/lib'
+import { httpHandler } from '../../../src'
 import { PetArray } from '../lib/models.type'
 
 export const handler = httpHandler({
