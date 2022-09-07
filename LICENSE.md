@@ -1,4 +1,6 @@
-Copyright (c) 2022 SkyLeague.
+Copyright (c) 2022, SkyLeague Technologies B.V..
+'SkyLeague' and the astronaut logo are trademarks of SkyLeague Technologies, 
+registered at Chamber of Commerce in The Netherlands under number 86650564.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
