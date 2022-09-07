@@ -1,9 +1,7 @@
 import { status } from '../lib/models.schema'
 
-import { $object, $ref, $validator } from '@skyleague/therefore'
+import { $ref, $query } from '@skyleague/therefore'
 
-export const query = $validator(
-    $object({
-        status: $ref(status),
-    })
-)
+export const query = $query({
+    status: $ref(status),
+})
