@@ -22,11 +22,4 @@ export const handler = httpHandler({
             }
         },
     },
-    // sqs: {
-    //     event: <schema>,
-    //     batched: true
-    // },
-    // sns: {
-    //     event: <schema>
-    // },
 })

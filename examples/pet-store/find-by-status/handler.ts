@@ -1,7 +1,10 @@
 import { Query } from './request.type'
 
-import { httpHandler } from '../../../src'
-import { PetArray } from '../lib/models.type'
+import { httpHandler } from '../../../src/'
+import { Pet, PetArray } from '../lib/models.type'
+
+import { array, random } from '@skyleague/axioms'
+import { toArbitrary } from '@skyleague/therefore'
 
 export const handler = httpHandler({
     http: {
@@ -13,14 +16,15 @@ export const handler = httpHandler({
                 200: PetArray,
             },
         },
-        handler: ({ query }, { logger }) => {
+        handler: async ({ query }, { logger }) => {
             logger.info('query parameter given', {
                 status: query.status,
             })
 
+            const petsArb = array(await toArbitrary(Pet))
             return {
                 statusCode: 200,
-                body: [{ name: 'foo', photoUrls: ['example.com'] }],
+                body: random(petsArb).filter((p) => p.status === query.status),
             }
         },
     },
