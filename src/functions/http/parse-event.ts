@@ -13,7 +13,7 @@ export function httpParseEvent({ bodyType = 'json' }: HttpEventHandler) {
             }
             return {
                 body,
-                headers: event.headers,
+                headers: Object.fromEntries(Object.entries(event.headers ?? {}).map(([h, v]) => [h.toLowerCase(), v])),
                 query: event.queryStringParameters ?? {},
                 pathParams: event.pathParameters ?? {},
                 raw: event as HttpRequest['raw'],
