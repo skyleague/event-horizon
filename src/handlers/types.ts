@@ -10,7 +10,7 @@ import type {
     SQSHandler,
 } from '../events'
 
-export type EventHandler<C = unknown, S = unknown> =
+export type EventHandler<C = never, S = never> =
     | EventBridgeHandler
     | FirehoseTransformationHandler
     | HttpHandler

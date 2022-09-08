@@ -41,7 +41,7 @@ export interface HttpEventHandler<
     GV extends GatewayVersion = 'v1'
 > {
     method: HttpMethod
-    path: string
+    path: `/${string}`
     schema: {
         body?: Schema<B>
         pathParams?: Schema<P>

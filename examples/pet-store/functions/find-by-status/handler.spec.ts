@@ -1,6 +1,6 @@
 import { handler } from './handler'
 
-import { PetArray } from '../lib/models.type'
+import { PetArray } from '../../lib/models.type'
 
 import { asyncForAll, tuple } from '@skyleague/axioms'
 import { arbitraryHttp, arbitraryContext } from '@skyleague/space-junk'

@@ -1,0 +1,1 @@
+export { openapiFromHandlers } from './openapi'
