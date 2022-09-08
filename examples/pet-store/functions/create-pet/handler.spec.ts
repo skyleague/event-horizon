@@ -1,6 +1,6 @@
 import { handler } from './handler'
 
-import { Pet } from '../lib/models.type'
+import { Pet } from '../../lib/models.type'
 
 import { forAll, tuple } from '@skyleague/axioms'
 import { arbitraryHttp, arbitraryContext } from '@skyleague/space-junk'

@@ -1,7 +1,7 @@
 import { Query } from './request.type'
 
-import { httpHandler } from '../../../src/'
-import { Pet, PetArray } from '../lib/models.type'
+import { httpHandler } from '../../../../src'
+import { Pet, PetArray } from '../../lib/models.type'
 
 import { array, random } from '@skyleague/axioms'
 import { toArbitrary } from '@skyleague/therefore'

@@ -1,5 +1,5 @@
-import { httpHandler } from '../../../src'
-import { Pet } from '../lib/models.type'
+import { httpHandler } from '../../../../src'
+import { Pet } from '../../lib/models.type'
 
 export const handler = httpHandler({
     http: {
