@@ -26,7 +26,7 @@ export async function handleEventBridgeEvent(
         throw EventError.badRequest(ebEvent.left[0].message)
     }
 
-    ioLoggerFn.before(ebEvent)
+    ioLoggerFn.before(ebEvent.right)
 
     const response = await eventBridge.handler(ebEvent.right, context)
 
