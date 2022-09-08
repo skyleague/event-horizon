@@ -5,7 +5,7 @@ import type { LambdaContext } from '../../events/types'
 export function secretValidateEvent({ logger, services: { secretManager } }: LambdaContext<unknown, SecretRotationServices>) {
     return {
         before: async ({ secretId, step, clientRequestToken }: SecretRotationRequest) => {
-            logger.setBindings({ secretId, step })
+            logger.setBindings({ secretId, step, clientRequestToken })
             logger.info('Starting secret rotation')
 
             const metadata = await secretManager.describeSecret({ SecretId: secretId }).promise()
@@ -21,10 +21,10 @@ export function secretValidateEvent({ logger, services: { secretManager } }: Lam
                 throw EventError.preconditionFailed()
             }
 
-            if ('AWSCURRENT' in versions[clientRequestToken]) {
+            if (versions[clientRequestToken].includes('AWSCURRENT')) {
                 logger.info('Secret version was already set as AWSCURRENT')
                 return
-            } else if (!('AWSPENDING' in versions[clientRequestToken])) {
+            } else if (!versions[clientRequestToken].includes('AWSPENDING')) {
                 logger.error('Secret version not set as AWSPENDING for rotation')
                 throw EventError.preconditionFailed()
             }
