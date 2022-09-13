@@ -2,7 +2,7 @@ import type { LambdaContext } from '../../events/types'
 
 import type { Segment, Subsegment } from 'aws-xray-sdk-core'
 
-export function traceInvocation({ tracer }: LambdaContext) {
+export function traceInvocation({ tracer, traceId, requestId }: LambdaContext) {
     let lambdaSegment: Segment | Subsegment
 
     function startSegment(): void {
@@ -21,6 +21,8 @@ export function traceInvocation({ tracer }: LambdaContext) {
         before: () => {
             if (tracer.instance.isTracingEnabled()) {
                 startSegment()
+                tracer.instance.putMetadata('requestId', requestId)
+                tracer.instance.putMetadata('traceId', traceId)
                 tracer.instance.annotateColdStart()
                 tracer.instance.addServiceNameAnnotation()
             }

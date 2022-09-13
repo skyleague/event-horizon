@@ -10,6 +10,9 @@ export interface LambdaContext<C = never, S = never> {
     metrics: Metrics
     isSensitive: boolean
 
+    traceId: string
+    requestId: string
+
     services: S
     config: C
 

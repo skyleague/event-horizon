@@ -2,6 +2,7 @@ import type { AWSLambdaHandler } from './aws'
 import { eventHandler } from './event'
 import type { EventHandler } from './types'
 
+import { requestIdHeader, traceIdHeader } from '../constants'
 import type {
     GatewayVersion,
     HttpHandler,
@@ -17,6 +18,8 @@ import type {
     S3Handler,
 } from '../events'
 
+import type { APIGatewayProxyEvent, APIGatewayProxyEventV2 } from 'aws-lambda'
+
 export function firehoseHandler<C, S, FirehoseP, FirehoseR, D>(
     definition: D & FirehoseTransformationHandler<C, S, FirehoseP, FirehoseR>
 ): AWSLambdaHandler & D {
@@ -30,7 +33,10 @@ export function eventBridgeHandler<C, S, EbP, EbR, D>(definition: D & EventBridg
 export function httpHandler<C, S, HttpB, HttpP, HttpQ, HttpH, HttpR, GV extends GatewayVersion, D>(
     definition: D & HttpHandler<C, S, HttpB, HttpP, HttpQ, HttpH, HttpR, GV>
 ): AWSLambdaHandler & D {
-    return eventHandler(definition as unknown as EventHandler) as AWSLambdaHandler & D
+    return eventHandler(definition as unknown as EventHandler, {
+        requestId: (request: APIGatewayProxyEvent | APIGatewayProxyEventV2) => request.headers[requestIdHeader],
+        traceId: (request: APIGatewayProxyEvent | APIGatewayProxyEventV2) => request.headers[traceIdHeader],
+    }) as AWSLambdaHandler & D
 }
 
 export function kinesisHandler<C, S, KinesisP, KinesisR, D>(

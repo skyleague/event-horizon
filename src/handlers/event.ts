@@ -1,6 +1,7 @@
 import type { AWSLambdaHandler, RawRequest, RawResponse } from './aws'
 import type { EventHandler } from './types'
 
+import { requestIdGenerator, traceIdGenerator } from '../constants'
 import { handleEventBridgeEvent } from '../events/eventbridge/handler'
 import { handleFirehoseTransformation } from '../events/firehose/handler'
 import { handleHttpEvent } from '../events/http/handler'
@@ -30,6 +31,8 @@ import type {
     SQSRecord,
     S3EventRecord,
 } from 'aws-lambda'
+
+import { randomUUID } from 'crypto'
 
 export async function handleEvent(definition: EventHandler, request: RawRequest, context: LambdaContext) {
     if ('headers' in request) {
@@ -105,20 +108,52 @@ export async function handleEvent(definition: EventHandler, request: RawRequest,
     return handleRawEvent(definition, request, context)
 }
 
-export function eventHandler<H extends EventHandler>(definition: H): AWSLambdaHandler {
+export async function createLambdaContext({
+    definition,
+    context,
+    services,
+    config,
+    traceId,
+    requestId,
+}: {
+    definition: EventHandler
+    context: Context
+    services: Promise<never> | undefined
+    config: Promise<never> | undefined
+    traceId: string | undefined
+    requestId: string | undefined
+}): Promise<LambdaContext<never, never>> {
+    return {
+        logger: globalLogger,
+        metrics: globalMetrics,
+        tracer: globalTracer,
+        isSensitive: definition.isSensitive ?? false,
+        traceId: traceId ?? (traceIdGenerator === 'uuid' ? randomUUID : randomUUID)(),
+        requestId: requestId ?? (requestIdGenerator === 'uuid' ? randomUUID : randomUUID)(),
+        raw: context,
+        services: (await services) as never,
+        config: (await config) as never,
+    }
+}
+
+export interface EventHandlerOptions<R> {
+    traceId?: (request: R) => string | undefined
+    requestId?: (request: R) => string | undefined
+}
+
+export function eventHandler<H extends EventHandler, R>(definition: H, options: EventHandlerOptions<R> = {}): AWSLambdaHandler {
     const config = isFunction(definition.config) ? Promise.resolve(definition.config()) : definition.config
     async function handler(request: RawRequest, context: Context): Promise<RawResponse> {
         const services = isFunction(definition.services) ? definition.services((await config) as never) : definition.services
 
-        const lambdaContext: LambdaContext = {
-            logger: globalLogger,
-            metrics: globalMetrics,
-            tracer: globalTracer,
-            isSensitive: definition.isSensitive ?? false,
-            raw: context,
-            services: (await services) as never,
-            config: (await config) as never,
-        }
+        const lambdaContext: LambdaContext = await createLambdaContext({
+            definition,
+            context,
+            services,
+            config,
+            requestId: options?.requestId?.(request as R),
+            traceId: options?.traceId?.(request as R),
+        })
 
         const warmupFn = warmup()
         const tracerFn = traceInvocation(lambdaContext)
