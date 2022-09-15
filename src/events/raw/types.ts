@@ -13,5 +13,5 @@ export interface RawEventHandler<C = never, S = never, P = unknown, R = unknown>
 export interface RawHandler<C = never, S = never, P = unknown, R = unknown> extends EventHandlerDefinition {
     config?: Config<C>
     services?: Services<C, S>
-    raw: RawEventHandler<C, P, R>
+    raw: RawEventHandler<C, S, P, R>
 }
