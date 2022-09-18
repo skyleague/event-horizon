@@ -13,6 +13,7 @@ import type {
     FirehoseTransformationHandler,
     EventBridgeHandler,
     SQSHandler,
+    S3BatchHandler,
 } from '../events'
 
 export function firehoseHandler<C, S, FirehoseP, FirehoseR, D>(
@@ -52,5 +53,9 @@ export function secretRotationHandler<C extends {}, S extends SecretRotationServ
 }
 
 export function sqsHandler<C, S, SqsP, D>(definition: D & SQSHandler<C, S, SqsP>): AWSLambdaHandler & D {
+    return eventHandler(definition as unknown as EventHandler) as AWSLambdaHandler & D
+}
+
+export function s3BatchHandler<C, S, S3BatchR, D>(definition: D & S3BatchHandler<C, S, S3BatchR>): AWSLambdaHandler & D {
     return eventHandler(definition as unknown as EventHandler) as AWSLambdaHandler & D
 }

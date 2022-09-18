@@ -6,6 +6,7 @@ import { handleFirehoseTransformation } from '../events/firehose/handler'
 import { handleHttpEvent } from '../events/http/handler'
 import { handleKinesisEvent } from '../events/kinesis/handler'
 import { handleRawEvent } from '../events/raw/handler'
+import { handleS3Batch } from '../events/s3-batch/handler'
 import { handleSecretRotationEvent } from '../events/secret-rotation/handler'
 import { handleSnsEvent } from '../events/sns/handler'
 import { handleSqsEvent } from '../events/sqs/handler'
@@ -79,6 +80,10 @@ export async function handleEvent(definition: EventHandler, request: RawRequest,
             if ('firehose' in definition) {
                 return handleFirehoseTransformation(definition, firehoseRecords, context)
             }
+        }
+    } else if ('results' in request) {
+        if ('s3Batch' in definition) {
+            return handleS3Batch(definition, request, context)
         }
     }
 
