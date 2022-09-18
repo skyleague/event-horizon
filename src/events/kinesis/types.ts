@@ -13,7 +13,7 @@ export interface KinesisEventHandler<C = never, S = never, P = unknown, R = unkn
         payload?: Schema<P>
         result?: Schema<R>
     }
-    handler: (request: P, context: LambdaContext<C, S>) => Promise<R> | R
+    handler: (request: KinesisEvent<P>, context: LambdaContext<C, S>) => Promise<R> | R
     payloadType?: 'binary' | 'json' | 'plaintext'
 }
 
