@@ -1,0 +1,1 @@
+export { createSQS } from './sqs'
