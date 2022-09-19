@@ -12,7 +12,7 @@ export interface SnsEventHandler<C = never, S = never, E = unknown> {
     schema: {
         payload?: Schema<E>
     }
-    handler: (request: E, context: LambdaContext<C, S>) => Promise<void> | void
+    handler: (request: SNSEvent<E>, context: LambdaContext<C, S>) => Promise<void> | void
     payloadType?: 'binary' | 'json' | 'plaintext'
 }
 
