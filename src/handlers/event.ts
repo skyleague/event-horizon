@@ -7,6 +7,7 @@ import { handleHttpEvent } from '../events/http/handler'
 import { handleKinesisEvent } from '../events/kinesis/handler'
 import { handleRawEvent } from '../events/raw/handler'
 import { handleS3Batch } from '../events/s3-batch/handler'
+import { handleS3Event } from '../events/s3/handler'
 import { handleSecretRotationEvent } from '../events/secret-rotation/handler'
 import { handleSnsEvent } from '../events/sns/handler'
 import { handleSqsEvent } from '../events/sqs/handler'
@@ -21,7 +22,14 @@ import { metrics as globalMetrics } from '../observability/metrics/metrics'
 import { tracer as globalTracer } from '../observability/tracer/tracer'
 
 import { isFunction } from '@skyleague/axioms'
-import type { Context, SNSEventRecord, KinesisStreamRecord, FirehoseTransformationEventRecord, SQSRecord } from 'aws-lambda'
+import type {
+    Context,
+    SNSEventRecord,
+    KinesisStreamRecord,
+    FirehoseTransformationEventRecord,
+    SQSRecord,
+    S3EventRecord,
+} from 'aws-lambda'
 
 export async function handleEvent(definition: EventHandler, request: RawRequest, context: LambdaContext) {
     if ('headers' in request) {
@@ -41,6 +49,7 @@ export async function handleEvent(definition: EventHandler, request: RawRequest,
         const snsRecords: SNSEventRecord[] = []
         const kinesisRecords: KinesisStreamRecord[] = []
         const sqsRecords: SQSRecord[] = []
+        const s3Records: S3EventRecord[] = []
         for (const record of request.Records) {
             if ('Sns' in record) {
                 snsRecords.push(record)
@@ -48,6 +57,8 @@ export async function handleEvent(definition: EventHandler, request: RawRequest,
                 sqsRecords.push(record)
             } else if ('kinesis' in record) {
                 kinesisRecords.push(record)
+            } else if ('s3' in record) {
+                s3Records.push(record)
             } else {
                 unprocessable.push(record)
             }
@@ -64,6 +75,10 @@ export async function handleEvent(definition: EventHandler, request: RawRequest,
         } else if (kinesisRecords.length > 0 && kinesisRecords.length === request.Records.length) {
             if ('kinesis' in definition) {
                 return handleKinesisEvent(definition, kinesisRecords, context)
+            }
+        } else if (s3Records.length > 0 && s3Records.length === request.Records.length) {
+            if ('s3' in definition) {
+                return handleS3Event(definition, s3Records, context)
             }
         }
     } else if ('records' in request) {
