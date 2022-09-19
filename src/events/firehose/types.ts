@@ -19,7 +19,7 @@ export interface FirehoseTransformationEventHandler<C = never, S = never, P = un
         result?: Schema<R>
     }
     handler: (
-        request: P,
+        request: FirehoseTransformationEvent<P>,
         context: LambdaContext<C, S>
     ) => FirehoseTransformationResult<R> | Promise<FirehoseTransformationResult<R>>
     payloadType?: 'binary' | 'json' | 'plaintext'
