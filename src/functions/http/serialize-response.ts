@@ -1,5 +1,6 @@
 import type { HttpResponse } from '../../events/http/types'
 
+import { isString } from '@skyleague/axioms'
 import type { APIGatewayProxyResult, APIGatewayProxyResultV2 } from 'aws-lambda'
 
 export function httpSerializeResponse() {
@@ -8,7 +9,7 @@ export function httpSerializeResponse() {
             return {
                 statusCode: response.statusCode,
                 headers: response.headers,
-                body: JSON.stringify(response.body),
+                body: isString(response.body) ? response.body : JSON.stringify(response.body),
             }
         },
     }

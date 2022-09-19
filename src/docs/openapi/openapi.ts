@@ -1,6 +1,6 @@
 import type { EventHandler } from '../../handlers/types'
 
-import { entriesOf, isArray, isBoolean, omitUndefined, valuesOf } from '@skyleague/axioms'
+import { cloneDeep, entriesOf, isArray, isBoolean, omitUndefined, valuesOf } from '@skyleague/axioms'
 import type { OpenapiV3 } from '@skyleague/therefore'
 import type { JsonSchema } from '@skyleague/therefore/src/json'
 import type {
@@ -31,7 +31,7 @@ export function normalizeSchema(ctx: JsonSchemaContext, schema: JsonSchema | Ref
         return { $ref: schema.$ref.replace('#/$defs/', '#/components/schemas/') }
     }
 
-    const jsonschema = schema as unknown as JsonSchema
+    const jsonschema = cloneDeep(schema) as unknown as JsonSchema
     const title = schema.title
     delete jsonschema.$schema
 
@@ -80,14 +80,15 @@ export interface OpenapiOptions {
     info: Info
 }
 
-export function openapiFromHandlers<H extends EventHandler>(handlers: Record<string, H>, options: OpenapiOptions) {
+export function openapiFromHandlers(handlers: Record<string, unknown>, options: OpenapiOptions) {
     const openapi: OpenapiV3 = {
         openapi: '3.0.1',
         info: options.info,
         paths: {},
         components: {},
     }
-    for (const handler of valuesOf(handlers)) {
+    for (const h of valuesOf(handlers)) {
+        const handler = h as EventHandler
         if ('http' in handler) {
             openapi.paths[handler.http.path] ??= {}
 
