@@ -6,6 +6,7 @@ import type {
     EventBridgeHandler,
     FirehoseTransformationHandler,
     KinesisStreamHandler,
+    S3BatchHandler,
     ScheduledHandler,
     SecretsManagerRotationHandler,
     SNSHandler,
@@ -20,6 +21,7 @@ export type AWSLambdaHandler =
     | EventBridgeHandler<string, string, void>
     | FirehoseTransformationHandler
     | KinesisStreamHandler
+    | S3BatchHandler
     | ScheduledHandler
     | ScheduledHandler<string>
     | SecretsManagerRotationHandler

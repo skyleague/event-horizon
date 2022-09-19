@@ -3,11 +3,12 @@ import type {
     KinesisHandler,
     RawHandler,
     SnsHandler,
-    SecretRotationServices,
-    SecretRotationHandler,
     EventBridgeHandler,
     FirehoseTransformationHandler,
     SQSHandler,
+    S3BatchHandler,
+    SecretRotationServices,
+    SecretRotationHandler,
 } from '../events'
 
 export type EventHandler<C = never, S = never> =
@@ -16,6 +17,7 @@ export type EventHandler<C = never, S = never> =
     | HttpHandler
     | KinesisHandler
     | RawHandler
+    | S3BatchHandler
     | SnsHandler
     | SQSHandler
     | (S extends SecretRotationServices ? SecretRotationHandler<C, S> : never)
