@@ -13,7 +13,7 @@ export interface SQSEventHandler<C = never, S = never, P = unknown> {
         payload?: Schema<P>
     }
     handler: (payload: SQSEvent<P>, context: LambdaContext<C, S>) => Promise<void> | void
-    payloadType?: 'binary' | 'json' | 'plaintext'
+    payloadType?: 'json' | 'plaintext'
 }
 
 export interface SQSHandler<C = never, S = never, P = unknown> extends EventHandlerDefinition {
