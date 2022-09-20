@@ -11,9 +11,11 @@ export function httpParseEvent({ bodyType = 'json' }: HttpEventHandler) {
                 const unencodedBody = event.isBase64Encoded ? Buffer.from(event.body, 'base64').toString() : event.body
                 body = bodyType === 'json' ? JSON.parse(unencodedBody) : unencodedBody
             }
+            const headers = Object.fromEntries(Object.entries(event.headers ?? {}).map(([h, v]) => [h.toLowerCase(), v]))
+
             return {
                 body,
-                headers: Object.fromEntries(Object.entries(event.headers ?? {}).map(([h, v]) => [h.toLowerCase(), v])),
+                headers,
                 query: event.queryStringParameters ?? {},
                 pathParams: event.pathParameters ?? {},
                 raw: event as HttpRequest['raw'],
