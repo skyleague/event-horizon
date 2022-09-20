@@ -118,7 +118,7 @@ export async function createLambdaContext({
 }: {
     definition: EventHandler
     context: Context
-    services: Promise<never> | undefined
+    services: Promise<never | undefined> | undefined
     config: Promise<never> | undefined
     traceId: string | undefined
     requestId: string | undefined
@@ -143,9 +143,11 @@ export interface EventHandlerOptions<R> {
 
 export function eventHandler<H extends EventHandler, R>(definition: H, options: EventHandlerOptions<R> = {}): AWSLambdaHandler {
     const config = isFunction(definition.config) ? Promise.resolve(definition.config()) : definition.config
-    async function handler(request: RawRequest, context: Context): Promise<RawResponse> {
-        const services = isFunction(definition.services) ? definition.services((await config) as never) : definition.services
+    const services = isFunction(definition.services)
+        ? Promise.resolve(config).then((c) => definition.services?.(c as never))
+        : definition.services
 
+    async function handler(request: RawRequest, context: Context): Promise<RawResponse> {
         const lambdaContext: LambdaContext = await createLambdaContext({
             definition,
             context,
