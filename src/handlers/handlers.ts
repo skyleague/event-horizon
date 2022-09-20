@@ -33,9 +33,13 @@ export function eventBridgeHandler<C, S, EbP, EbR, D>(definition: D & EventBridg
 export function httpHandler<C, S, HttpB, HttpP, HttpQ, HttpH, HttpR, GV extends GatewayVersion, D>(
     definition: D & HttpHandler<C, S, HttpB, HttpP, HttpQ, HttpH, HttpR, GV>
 ): AWSLambdaHandler & D {
+    function findHeader(name: string) {
+        return (request: APIGatewayProxyEvent | APIGatewayProxyEventV2) =>
+            Object.entries(request.headers ?? {}).find(([n]) => n.toLowerCase() === name.toLowerCase())?.[1]
+    }
     return eventHandler(definition as unknown as EventHandler, {
-        requestId: (request: APIGatewayProxyEvent | APIGatewayProxyEventV2) => request.headers[requestIdHeader],
-        traceId: (request: APIGatewayProxyEvent | APIGatewayProxyEventV2) => request.headers[traceIdHeader],
+        requestId: findHeader(requestIdHeader),
+        traceId: findHeader(traceIdHeader),
     }) as AWSLambdaHandler & D
 }
 
