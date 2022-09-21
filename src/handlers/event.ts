@@ -1,7 +1,7 @@
 import type { AWSLambdaHandler, RawRequest, RawResponse } from './aws'
 import type { EventHandler } from './types'
 
-import { requestIdGenerator, traceIdGenerator } from '../constants'
+import { eagerHandlerInitialization, requestIdGenerator, traceIdGenerator } from '../constants'
 import { handleEventBridgeEvent } from '../events/eventbridge/handler'
 import { handleFirehoseTransformation } from '../events/firehose/handler'
 import { handleHttpEvent } from '../events/http/handler'
@@ -22,7 +22,7 @@ import { logger as globalLogger } from '../observability/logger/logger'
 import { metrics as globalMetrics } from '../observability/metrics/metrics'
 import { tracer as globalTracer } from '../observability/tracer/tracer'
 
-import { isFunction } from '@skyleague/axioms'
+import { isFunction, memoize } from '@skyleague/axioms'
 import type {
     Context,
     SNSEventRecord,
@@ -142,17 +142,22 @@ export interface EventHandlerOptions<R> {
 }
 
 export function eventHandler<H extends EventHandler, R>(definition: H, options: EventHandlerOptions<R> = {}): AWSLambdaHandler {
-    const config = isFunction(definition.config) ? Promise.resolve(definition.config()) : definition.config
-    const services = isFunction(definition.services)
-        ? Promise.resolve(config).then((c) => definition.services?.(c as never))
-        : definition.services
+    const config = memoize(() => (isFunction(definition.config) ? definition.config() : definition.config))
+    const services = memoize(() =>
+        isFunction(definition.services)
+            ? Promise.resolve(config()).then((c) => definition.services?.(c as never))
+            : definition.services
+    )
+    if (eagerHandlerInitialization) {
+        void services()
+    }
 
     async function handler(request: RawRequest, context: Context): Promise<RawResponse> {
         const lambdaContext: LambdaContext = await createLambdaContext({
             definition,
             context,
-            services,
-            config,
+            services: services(),
+            config: config(),
             requestId: options?.requestId?.(request as R),
             traceId: options?.traceId?.(request as R),
         })
