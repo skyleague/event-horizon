@@ -9,3 +9,4 @@ export const requestIdGenerator = process.env.REQUEST_ID_GENERATOR === 'uuid' ? 
 export const requestIdHeader = process.env.REQUEST_ID_HEADER ?? 'x-amz-request-id'
 export const traceIdGenerator = process.env.TRACE_ID_GENERATOR === 'uuid' ? 'uuid' : 'uuid'
 export const traceIdHeader = process.env.TRACE_ID_HEADER ?? 'x-trace-id'
+export const eagerHandlerInitialization = (process.env.EH_EAGER_HANDLER_INIT ?? process.env.EAGER_HANDLER_INIT) === 'true'
