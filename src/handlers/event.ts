@@ -31,6 +31,7 @@ import type {
     SQSRecord,
     S3EventRecord,
 } from 'aws-lambda'
+import AWSXRay from 'aws-xray-sdk-core'
 
 import { randomUUID } from 'crypto'
 
@@ -140,6 +141,10 @@ export interface EventHandlerOptions<R> {
     traceId?: (request: R) => string | undefined
     requestId?: (request: R) => string | undefined
 }
+
+AWSXRay.setContextMissingStrategy(() => {
+    // do not log errors on the cold start
+})
 
 export function eventHandler<H extends EventHandler, R>(definition: H, options: EventHandlerOptions<R> = {}): AWSLambdaHandler {
     const config = memoize(() => (isFunction(definition.config) ? definition.config() : definition.config))
