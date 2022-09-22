@@ -1,3 +1,4 @@
+export * from './dynamodb'
 export * from './eventbridge'
 export * from './s3'
 export * from './secret-manager'
