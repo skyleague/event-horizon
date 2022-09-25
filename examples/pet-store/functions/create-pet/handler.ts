@@ -2,6 +2,7 @@ import { httpHandler } from '../../../../src'
 import { Pet } from '../../lib/models.type'
 
 export const handler = httpHandler({
+    description: 'Add a new pet to the store',
     http: {
         method: 'post',
         path: '/pet',

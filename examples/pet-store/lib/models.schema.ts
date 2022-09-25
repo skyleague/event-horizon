@@ -17,14 +17,19 @@ export const tag = $validator(
 export const status = $validator($enum(['available', 'pending', 'sold']))
 
 export const pet = $validator(
-    $object({
-        id: $optional($integer),
-        category: $optional($ref(category)),
-        name: $string,
-        photoUrls: $array($string),
-        tags: $optional($array($ref(tag))),
-        status: $optional(status),
-    })
+    $object(
+        {
+            id: $optional($integer),
+            category: $optional($ref(category)),
+            name: $string,
+            photoUrls: $array($string),
+            tags: $optional($array($ref(tag))),
+            status: $optional(status),
+        },
+        {
+            description: 'Pet object from the store',
+        }
+    )
 )
 
-export const petArray = $validator($array($ref(pet)))
+export const petArray = $validator($array($ref(pet), { description: 'A list of Pet objects' }))

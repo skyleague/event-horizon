@@ -57,6 +57,9 @@ export const Status = {
     },
 } as const
 
+/**
+ * Pet object from the store
+ */
 export interface Pet {
     id?: number
     category?: Category
@@ -79,6 +82,9 @@ export const Pet = {
     },
 } as const
 
+/**
+ * A list of Pet objects
+ */
 export type PetArray = Pet[]
 
 export const PetArray = {
