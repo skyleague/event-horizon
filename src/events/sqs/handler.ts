@@ -1,10 +1,10 @@
+import { sqsErrorHandler } from './functions/error-handler'
+import { sqsParseEvent } from './functions/parse-event'
 import type { SQSEvent, SQSHandler } from './types'
 
 import { EventError } from '../../errors/event-error'
-import { ioLogger } from '../../functions/shared/io-logger'
-import { ioValidate } from '../../functions/shared/io-validate'
-import { sqsErrorHandler } from '../../functions/sqs/error-handler'
-import { sqsParseEvent } from '../../functions/sqs/parse-event'
+import { ioLogger } from '../functions/io-logger'
+import { ioValidate } from '../functions/io-validate'
 import type { LambdaContext } from '../types'
 
 import type { Maybe } from '@skyleague/axioms'

@@ -1,9 +1,9 @@
+import { eventBridgeParseEvent } from './functions/parse-event'
 import type { EventBridgeEvent, EventBridgeHandler } from './types'
 
 import { EventError } from '../../errors/event-error'
-import { eventBridgeParseEvent } from '../../functions/eventbridge/parse-event'
-import { ioLogger } from '../../functions/shared/io-logger'
-import { ioValidate } from '../../functions/shared/io-validate'
+import { ioLogger } from '../functions/io-logger'
+import { ioValidate } from '../functions/io-validate'
 import type { LambdaContext } from '../types'
 
 import type { EventBridgeEvent as AWSEventBridgeEvent } from 'aws-lambda'

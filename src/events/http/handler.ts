@@ -1,11 +1,11 @@
+import { httpErrorHandler } from './functions/error-handler'
+import { httpIOLogger } from './functions/io-logger'
+import { httpIOValidate } from './functions/io-validate'
+import { httpParseEvent } from './functions/parse-event'
+import { httpSerializeResponse } from './functions/serialize-response'
 import type { HttpHandler, HttpResponse } from './types'
 
 import { EventError } from '../../errors/event-error'
-import { httpErrorHandler } from '../../functions/http/error-handler'
-import { httpIOLogger } from '../../functions/http/io-logger'
-import { httpIOValidate } from '../../functions/http/io-validate'
-import { httpParseEvent } from '../../functions/http/parse-event'
-import { httpSerializeResponse } from '../../functions/http/serialize-response'
 import type { LambdaContext } from '../types'
 
 import type { APIGatewayProxyEvent, APIGatewayProxyEventV2, APIGatewayProxyResult, APIGatewayProxyResultV2 } from 'aws-lambda'

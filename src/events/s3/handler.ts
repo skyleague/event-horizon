@@ -1,7 +1,7 @@
+import { s3ParseEvent } from './functions/parse-event'
 import type { S3Handler } from './types'
 
-import { s3ParseEvent } from '../../functions/s3/parse-event'
-import { ioLogger } from '../../functions/shared/io-logger'
+import { ioLogger } from '../functions/io-logger'
 import type { LambdaContext } from '../types'
 
 import { enumerate } from '@skyleague/axioms'
