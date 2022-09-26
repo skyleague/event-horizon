@@ -7,4 +7,6 @@ export {
     snsHandler,
     secretRotationHandler,
     sqsHandler,
+    s3Handler,
+    s3BatchHandler,
 } from './handlers'
