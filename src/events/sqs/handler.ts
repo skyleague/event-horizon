@@ -21,7 +21,7 @@ export async function handleSqsEvent(
     const errorHandlerFn = sqsErrorHandler(context)
     const parseEventFn = sqsParseEvent(sqs)
     const ioValidateFn = ioValidate<SQSEvent>({ input: (e) => e.payload })
-    const ioLoggerFn = ioLogger({ type: 'firehose' }, context)
+    const ioLoggerFn = ioLogger({ type: 'sqs' }, context)
 
     let failures: SQSBatchItemFailure[] | undefined = undefined
     for (const [i, event] of enumerate(events)) {
