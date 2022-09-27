@@ -1,7 +1,7 @@
+import { secretParseEvent } from './functions/parse-event'
+import { secretValidateEvent } from './functions/validate-event'
 import type { SecretRotationHandler, SecretRotationServices } from './types'
 
-import { secretParseEvent } from '../../functions/secret-rotation/parse-event'
-import { secretValidateEvent } from '../../functions/secret-rotation/validate-event'
 import type { LambdaContext } from '../types'
 
 import type { SecretsManagerRotationEvent } from 'aws-lambda'

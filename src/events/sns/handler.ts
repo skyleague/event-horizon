@@ -1,9 +1,9 @@
+import { snsParseEvent } from './functions/parse-event'
 import type { SNSEvent, SnsHandler } from './types'
 
 import { EventError } from '../../errors/event-error'
-import { ioLogger } from '../../functions/shared/io-logger'
-import { ioValidate } from '../../functions/shared/io-validate'
-import { snsParseEvent } from '../../functions/sns/parse-event'
+import { ioLogger } from '../functions/io-logger'
+import { ioValidate } from '../functions/io-validate'
 import type { LambdaContext } from '../types'
 
 import { enumerate } from '@skyleague/axioms'

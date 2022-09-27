@@ -1,7 +1,7 @@
 import { EventError } from '../../errors/event-error'
-import { ioLogger } from '../../functions/shared/io-logger'
-import { ioValidate } from '../../functions/shared/io-validate'
 import type { EventHandler } from '../../handlers/types'
+import { ioLogger } from '../functions/io-logger'
+import { ioValidate } from '../functions/io-validate'
 import type { LambdaContext } from '../types'
 
 export async function handleRawEvent(handler: EventHandler, event: unknown, context: LambdaContext): Promise<unknown> {

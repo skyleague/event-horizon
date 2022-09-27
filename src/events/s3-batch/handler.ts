@@ -1,11 +1,11 @@
+import { s3BatchErrorHandler } from './functions/error-handler'
+import { s3BatchParseEvent } from './functions/parse-event'
+import { s3BatchSerializeResult } from './functions/serialize-result'
 import type { S3BatchHandler, S3BatchTaskResult } from './types'
 
 import { EventError } from '../../errors/event-error'
-import { s3BatchErrorHandler } from '../../functions/s3-batch/error-handler'
-import { s3BatchParseEvent } from '../../functions/s3-batch/parse-event'
-import { s3BatchSerializeResult } from '../../functions/s3-batch/serialize-result'
-import { ioLogger } from '../../functions/shared/io-logger'
-import { ioValidate } from '../../functions/shared/io-validate'
+import { ioLogger } from '../functions/io-logger'
+import { ioValidate } from '../functions/io-validate'
 import type { LambdaContext } from '../types'
 
 import { enumerate } from '@skyleague/axioms'

@@ -1,11 +1,11 @@
+import { firehoseErrorHandler } from './functions/error-handler'
+import { firehoseParseEvent } from './functions/parse-event'
+import { firehoseSerializeTransformation } from './functions/serialize-transformation'
 import type { FirehoseTransformationEvent, FirehoseTransformationHandler } from './types'
 
 import { EventError } from '../../errors/event-error'
-import { firehoseErrorHandler } from '../../functions/firehose/error-handler'
-import { firehoseParseEvent } from '../../functions/firehose/parse-event'
-import { firehoseSerializeTransformation } from '../../functions/firehose/serialize-transformation'
-import { ioLogger } from '../../functions/shared/io-logger'
-import { ioValidate } from '../../functions/shared/io-validate'
+import { ioLogger } from '../functions/io-logger'
+import { ioValidate } from '../functions/io-validate'
 import type { LambdaContext } from '../types'
 
 import { enumerate } from '@skyleague/axioms'
