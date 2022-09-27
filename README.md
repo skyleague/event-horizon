@@ -1,4 +1,6 @@
 <!-- ABOUT-->
+A standardized boilerplate for lambda handlers.
+
 ## Event Horizon (@skyleague/event-horizon) 
 <p>
   <img alt="Lines of code" src="https://img.shields.io/tokei/lines/github/skyleague/event-horizon"/>
@@ -10,9 +12,21 @@
   </a>
 </p> 
 
-Creates a standardised boilerplate for lambda handlers specific for AWS Lambda.
-It is comparable with Express middleware
+> I propose that the information is stored not in the interior of the black hole as one might expect, but on its boundary, the event horizon
+> 
+> - Stephen Hawking
 
+Event Horizon simplifies doing _the right_ thing with AWS lambda handlers. It tries to do *as little* as possible, and adds little functionality:
+
+ * Typing & validation on handler input and output.
+ * Sane and configurable error handling depending on the event source.
+ * Exposes loggers, tracing and metrics functionality.
+ * A standardized way of injecting dependencies in the cold start of lambdas.
+ * Out of the box [AWS X-Ray](https://docs.aws.amazon.com/xray/latest/devguide/aws-xray.html) integration.
+ * OpenAPI documentation generation.
+ * Tries to stay out of your way as much as possible.
+
+ Notably, Event Horizon is *not* an http framework. Routing is outside of the scope of this library. Replacing the library with something else shouldn't be hard due to its limited functionality.
 
 <!-- GETTING STARTED -->
 
@@ -24,7 +38,37 @@ Use npm to install event-horizon and the event-horizon-cli
   npm i @skyleague/event-horizon
   ```
 
-## Required
+## Handlers
+
+### HTTP
+
+An example http handler:
+```
+export const handler = httpHandler({
+    http: {
+        method: 'post',
+        path: '/pet',
+        schema: {
+            body: Pet,
+            responses: {
+                200: Pet,
+            },
+        },
+        handler: ({ body }, { logger }) => {
+            logger.info('Request received', {
+                foo: 'bar',
+            })
+
+            return {
+                statusCode: 200,
+                body: body,
+            }
+        },
+    },
+})
+```
+
+## Local Development
 
 Install [Event Horizon CLI module](https://github.com/skyleague/event-horizon-cli)
 
@@ -47,7 +91,17 @@ Two local endpoints will become available on http://localhost:3000
 [http://localhost:3000/pet](http://localhost:3000/pet) and [http://localhost:3000/pet/findByStatus
 ](http://localhost:3000/pet/findByStatus?status=sold)
 
-Logs will be available in your terminal
+Logs will be available in your terminal.
+
+## Alternative projects
+
+In no particular order, the following libraries try to solve similar problems (albeit very differently):
+
+- [`Middy`](https://middy.js.org/)
+- [`Serverless Express`](https://github.com/vendia/serverless-express)
+- The list goes on...
+
+PR's are very welcome if you think your project is missing here.
 
 <!-- LICENSE -->
 
