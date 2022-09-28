@@ -7,6 +7,8 @@ import { array, random } from '@skyleague/axioms'
 import { toArbitrary } from '@skyleague/therefore'
 
 export const handler = httpHandler({
+    summary: 'Finds Pets by status',
+    description: 'Multiple status values can be provided with comma separated strings',
     http: {
         method: 'get',
         path: '/pet/findByStatus',

@@ -1,3 +1,4 @@
+import { HttpError } from '../../events/http/functions/http-error.type'
 import type { EventHandler } from '../../handlers/types'
 
 import { cloneDeep, entriesOf, isArray, isBoolean, omitUndefined, valuesOf } from '@skyleague/axioms'
@@ -26,9 +27,49 @@ export function addComponent(ctx: JsonSchemaContext, schema: JsonSchema | Schema
     return name
 }
 
-export function normalizeSchema(ctx: JsonSchemaContext, schema: JsonSchema | Reference | Schema): JsonSchema | Reference {
+export function ensureTarget(
+    ctx: JsonSchemaContext,
+    ptr: string,
+    target: 'parameters' | 'requestBodies' | 'responses' | 'schemas'
+) {
+    ctx.openapi.components ??= {}
+    ctx.openapi.components[target] ??= {}
+    const targetSchemas = ctx.openapi.components[target]
+    if (targetSchemas !== undefined && target !== 'schemas') {
+        const name = ptr.replace(/#\/((.*?)\/)+/, '')
+        if (['requestBodies', 'responses'].includes(target)) {
+            targetSchemas[name] = {
+                description: (ctx.openapi.components?.schemas?.[name] as Schema)?.description as string,
+                content: {
+                    'application/json': {
+                        schema: {
+                            $ref: `#/components/schemas/${name}`,
+                        },
+                    },
+                },
+            }
+        } else {
+            targetSchemas[name] = {
+                $ref: `#/components/schemas/${name}`,
+            }
+        }
+    }
+}
+
+export function normalizeSchema({
+    ctx,
+    schema,
+    target = 'schemas',
+    defsOnly: defsOnly = false,
+}: {
+    ctx: JsonSchemaContext
+    schema: JsonSchema | Reference | Schema
+    target?: 'parameters' | 'requestBodies' | 'responses' | 'schemas'
+    defsOnly?: boolean
+}): JsonSchema | Reference {
     if ('$ref' in schema) {
-        return { $ref: schema.$ref.replace('#/$defs/', '#/components/schemas/') }
+        ensureTarget(ctx, schema.$ref, target)
+        return { $ref: schema.$ref.replace('#/$defs/', `#/components/${target}/`) }
     }
 
     const jsonschema = cloneDeep(schema) as unknown as JsonSchema
@@ -42,35 +83,38 @@ export function normalizeSchema(ctx: JsonSchemaContext, schema: JsonSchema | Ref
 
         delete jsonschema.$defs
     }
+    if (defsOnly) {
+        return {}
+    }
 
     if (jsonschema.type === 'array') {
         if (jsonschema.items !== undefined) {
             if (isArray(jsonschema.items)) {
-                jsonschema.items = jsonschema.items.map((i) => normalizeSchema(ctx, i))
+                jsonschema.items = jsonschema.items.map((i) => normalizeSchema({ ctx, schema: i }))
             } else {
-                jsonschema.items = normalizeSchema(ctx, jsonschema.items)
+                jsonschema.items = normalizeSchema({ ctx, schema: jsonschema.items })
             }
         }
     } else if (jsonschema.type === 'object') {
         if (jsonschema.properties !== undefined) {
             for (const [key, c] of entriesOf(jsonschema.properties)) {
-                jsonschema.properties[key] = normalizeSchema(ctx, c)
+                jsonschema.properties[key] = normalizeSchema({ ctx, schema: c })
             }
         }
         if (jsonschema.patternProperties !== undefined) {
             for (const [key, c] of entriesOf(jsonschema.patternProperties)) {
-                jsonschema.patternProperties[key] = normalizeSchema(ctx, c)
+                jsonschema.patternProperties[key] = normalizeSchema({ ctx, schema: c })
             }
         }
         if (jsonschema.additionalProperties !== undefined && !isBoolean(jsonschema.additionalProperties)) {
-            jsonschema.additionalProperties = normalizeSchema(ctx, jsonschema.additionalProperties)
+            jsonschema.additionalProperties = normalizeSchema({ ctx, schema: jsonschema.additionalProperties })
         }
     }
 
     if (title !== undefined) {
         const name = addComponent(ctx, jsonschema)
-
-        return { $ref: `#/components/schemas/${name}` }
+        ensureTarget(ctx, `#/components/${target}/${name}`, target)
+        return { $ref: `#/components/${target}/${name}` }
     }
 
     return jsonschema
@@ -85,30 +129,50 @@ export function openapiFromHandlers(handlers: Record<string, unknown>, options: 
         openapi: '3.0.1',
         info: options.info,
         paths: {},
-        components: {},
+        components: {
+            schemas: {
+                Error: HttpError.schema,
+            },
+            requestBodies: {},
+            responses: {
+                Error: {
+                    description: HttpError.schema.description!,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                $ref: '#/components/schemas/Error',
+                            },
+                        },
+                    },
+                },
+            },
+        },
     }
     for (const h of valuesOf(handlers)) {
         const handler = h as EventHandler
         if ('http' in handler) {
             openapi.paths[handler.http.path] ??= {}
 
-            let requestBody: RequestBody | undefined = undefined
+            let requestBody: Reference | RequestBody | undefined = undefined
             const bodySchema = handler.http.schema.body?.schema
             if (bodySchema !== undefined) {
-                requestBody = {
-                    content: {
-                        'application/json': {
-                            schema: normalizeSchema({ openapi }, bodySchema as Schema) as Reference | Schema,
-                        },
-                    },
-                }
+                requestBody = normalizeSchema({
+                    ctx: { openapi },
+                    schema: bodySchema as Schema,
+                    target: 'requestBodies',
+                }) as Reference
             }
             const responses: Responses = {}
             for (const [statusCode, response] of entriesOf(handler.http.schema.responses)) {
-                responses[statusCode.toString()] = {
-                    content: {
-                        'application/json': normalizeSchema({ openapi }, response.schema as Schema),
-                    },
+                responses[statusCode.toString()] = normalizeSchema({
+                    ctx: { openapi },
+                    schema: response.schema as Schema,
+                    target: 'responses',
+                }) as Reference
+            }
+            if (responses.default === undefined && Object.keys(responses).filter((s) => s.startsWith('2')).length > 0) {
+                responses.default = {
+                    $ref: '#/components/responses/Error',
                 }
             }
 
@@ -123,6 +187,7 @@ export function openapiFromHandlers(handlers: Record<string, unknown>, options: 
                             required: headers.required?.includes(name),
                             description: value.description,
                             deprecated: value.deprecated,
+                            schema: value as unknown as Schema,
                         })
                     )
                 )
@@ -138,6 +203,7 @@ export function openapiFromHandlers(handlers: Record<string, unknown>, options: 
                             required: true,
                             description: value.description,
                             deprecated: value.deprecated,
+                            schema: value as unknown as Schema,
                         })
                     )
                 )
@@ -145,6 +211,7 @@ export function openapiFromHandlers(handlers: Record<string, unknown>, options: 
 
             const query = handler.http.schema.query?.schema as JsonSchema | undefined
             if (query?.properties !== undefined) {
+                normalizeSchema({ ctx: { openapi }, schema: query, defsOnly: true, target: 'parameters' })
                 parameters.push(
                     ...entriesOf(query.properties).map(([name, value]) =>
                         omitUndefined({
@@ -153,6 +220,11 @@ export function openapiFromHandlers(handlers: Record<string, unknown>, options: 
                             required: query.required?.includes(name),
                             description: value.description,
                             deprecated: value.deprecated,
+                            schema: normalizeSchema({
+                                ctx: { openapi },
+                                schema: value as unknown as Schema,
+                                target: 'parameters',
+                            }) as Reference,
                         })
                     )
                 )
@@ -160,6 +232,7 @@ export function openapiFromHandlers(handlers: Record<string, unknown>, options: 
 
             openapi.paths[handler.http.path][handler.http.method] = omitUndefined({
                 operationId: handler.operationId,
+                summary: handler.summary,
                 description: handler.description,
                 parameters,
                 requestBody,
