@@ -82,7 +82,7 @@ export interface EventErrorOptions {
     expose?: boolean
     headers?: HttpHeaders
     statusCode?: number
-    attributes?: Record<string, string>
+    attributes?: Record<string, unknown>
 }
 
 export class EventError extends Error {
@@ -91,7 +91,7 @@ export class EventError extends Error {
     public headers: HttpHeaders | undefined
     public message: string
     public statusCode: number
-    public attributes: Record<string, string> | undefined
+    public attributes: Record<string, unknown> | undefined
 
     public constructor(
         message?: ErrorLike,
@@ -119,27 +119,27 @@ export class EventError extends Error {
         return e instanceof Error && 'isEventError' in e && e.isEventError === true
     }
 
-    public static badRequest(message?: ErrorLike, attributes?: Record<string, string>): EventError {
+    public static badRequest(message?: ErrorLike, attributes?: Record<string, unknown>): EventError {
         return new EventError(message, { statusCode: 400, attributes })
     }
 
-    public static unauthorized(message: ErrorLike, attributes?: Record<string, string>): EventError {
+    public static unauthorized(message: ErrorLike, attributes?: Record<string, unknown>): EventError {
         return new EventError(message, { statusCode: 401, attributes })
     }
 
-    public static paymentRequired(message?: ErrorLike, attributes?: Record<string, string>): EventError {
+    public static paymentRequired(message?: ErrorLike, attributes?: Record<string, unknown>): EventError {
         return new EventError(message, { statusCode: 402, attributes })
     }
 
-    public static forbidden(message?: ErrorLike, attributes?: Record<string, string>): EventError {
+    public static forbidden(message?: ErrorLike, attributes?: Record<string, unknown>): EventError {
         return new EventError(message, { statusCode: 403, attributes })
     }
 
-    public static notFound(message?: ErrorLike, attributes?: Record<string, string>): EventError {
+    public static notFound(message?: ErrorLike, attributes?: Record<string, unknown>): EventError {
         return new EventError(message, { statusCode: 404, attributes })
     }
 
-    public static methodNotAllowed(allow: HttpMethod[], message?: ErrorLike, attributes?: Record<string, string>): EventError {
+    public static methodNotAllowed(allow: HttpMethod[], message?: ErrorLike, attributes?: Record<string, unknown>): EventError {
         return new EventError(message, {
             statusCode: 405,
             attributes,
@@ -149,87 +149,87 @@ export class EventError extends Error {
         })
     }
 
-    public static notAcceptable(message?: ErrorLike, attributes?: Record<string, string>): EventError {
+    public static notAcceptable(message?: ErrorLike, attributes?: Record<string, unknown>): EventError {
         return new EventError(message, { statusCode: 406, attributes })
     }
 
-    public static proxyAuthRequired(message?: ErrorLike, attributes?: Record<string, string>): EventError {
+    public static proxyAuthRequired(message?: ErrorLike, attributes?: Record<string, unknown>): EventError {
         return new EventError(message, { statusCode: 407, attributes })
     }
 
-    public static requestTimeout(message?: ErrorLike, attributes?: Record<string, string>): EventError {
+    public static requestTimeout(message?: ErrorLike, attributes?: Record<string, unknown>): EventError {
         return new EventError(message, { statusCode: 408, attributes })
     }
 
-    public static conflict(message?: ErrorLike, attributes?: Record<string, string>): EventError {
+    public static conflict(message?: ErrorLike, attributes?: Record<string, unknown>): EventError {
         return new EventError(message, { statusCode: 409, attributes })
     }
 
-    public static gone(message?: ErrorLike, attributes?: Record<string, string>): EventError {
+    public static gone(message?: ErrorLike, attributes?: Record<string, unknown>): EventError {
         return new EventError(message, { statusCode: 410, attributes })
     }
 
-    public static lengthRequired(message?: ErrorLike, attributes?: Record<string, string>): EventError {
+    public static lengthRequired(message?: ErrorLike, attributes?: Record<string, unknown>): EventError {
         return new EventError(message, { statusCode: 411, attributes })
     }
 
-    public static preconditionFailed(message?: ErrorLike, attributes?: Record<string, string>): EventError {
+    public static preconditionFailed(message?: ErrorLike, attributes?: Record<string, unknown>): EventError {
         return new EventError(message, { statusCode: 412, attributes })
     }
 
-    public static payloadTooLarge(message?: ErrorLike, attributes?: Record<string, string>): EventError {
+    public static payloadTooLarge(message?: ErrorLike, attributes?: Record<string, unknown>): EventError {
         return new EventError(message, { statusCode: 413, attributes })
     }
 
-    public static uriTooLong(message?: ErrorLike, attributes?: Record<string, string>): EventError {
+    public static uriTooLong(message?: ErrorLike, attributes?: Record<string, unknown>): EventError {
         return new EventError(message, { statusCode: 414, attributes })
     }
 
-    public static unsupportedMediaType(message?: ErrorLike, attributes?: Record<string, string>): EventError {
+    public static unsupportedMediaType(message?: ErrorLike, attributes?: Record<string, unknown>): EventError {
         return new EventError(message, { statusCode: 415, attributes })
     }
 
-    public static rangeNotSatisfiable(message?: ErrorLike, attributes?: Record<string, string>): EventError {
+    public static rangeNotSatisfiable(message?: ErrorLike, attributes?: Record<string, unknown>): EventError {
         return new EventError(message, { statusCode: 416, attributes })
     }
 
-    public static expectationFailed(message?: ErrorLike, attributes?: Record<string, string>): EventError {
+    public static expectationFailed(message?: ErrorLike, attributes?: Record<string, unknown>): EventError {
         return new EventError(message, { statusCode: 417, attributes })
     }
 
-    public static teapot(message?: ErrorLike, attributes?: Record<string, string>): EventError {
+    public static teapot(message?: ErrorLike, attributes?: Record<string, unknown>): EventError {
         return new EventError(message, { statusCode: 418, attributes })
     }
 
-    public static unprocessableEntity(message?: ErrorLike, attributes?: Record<string, string>): EventError {
+    public static unprocessableEntity(message?: ErrorLike, attributes?: Record<string, unknown>): EventError {
         return new EventError(message, { statusCode: 422, attributes })
     }
 
-    public static locked(message?: ErrorLike, attributes?: Record<string, string>): EventError {
+    public static locked(message?: ErrorLike, attributes?: Record<string, unknown>): EventError {
         return new EventError(message, { statusCode: 423, attributes })
     }
 
-    public static failedDependency(message?: ErrorLike, attributes?: Record<string, string>): EventError {
+    public static failedDependency(message?: ErrorLike, attributes?: Record<string, unknown>): EventError {
         return new EventError(message, { statusCode: 424, attributes })
     }
 
-    public static tooEarly(message?: ErrorLike, attributes?: Record<string, string>): EventError {
+    public static tooEarly(message?: ErrorLike, attributes?: Record<string, unknown>): EventError {
         return new EventError(message, { statusCode: 425, attributes })
     }
 
-    public static preconditionRequired(message?: ErrorLike, attributes?: Record<string, string>): EventError {
+    public static preconditionRequired(message?: ErrorLike, attributes?: Record<string, unknown>): EventError {
         return new EventError(message, { statusCode: 428, attributes })
     }
 
-    public static tooManyRequests(message?: ErrorLike, attributes?: Record<string, string>): EventError {
+    public static tooManyRequests(message?: ErrorLike, attributes?: Record<string, unknown>): EventError {
         return new EventError(message, { statusCode: 429, attributes })
     }
 
-    public static noResponse(message?: ErrorLike, attributes?: Record<string, string>): EventError {
+    public static noResponse(message?: ErrorLike, attributes?: Record<string, unknown>): EventError {
         return new EventError(message, { statusCode: 444, attributes })
     }
 
-    public static unavailableForLegalReasons(message?: ErrorLike, attributes?: Record<string, string>): EventError {
+    public static unavailableForLegalReasons(message?: ErrorLike, attributes?: Record<string, unknown>): EventError {
         return new EventError(message, { statusCode: 451, attributes })
     }
 
@@ -240,23 +240,27 @@ export class EventError extends Error {
         return new EventError(message, { expose, headers, statusCode, attributes })
     }
 
-    public static notImplemented(message?: ErrorLike, attributes?: Record<string, string>): EventError {
+    public static internalServerError(message?: ErrorLike, attributes?: Record<string, unknown>): EventError {
+        return new EventError(message, { statusCode: 500, attributes })
+    }
+
+    public static notImplemented(message?: ErrorLike, attributes?: Record<string, unknown>): EventError {
         return new EventError(message, { statusCode: 501, attributes })
     }
 
-    public static badGateway(message?: ErrorLike, attributes?: Record<string, string>): EventError {
+    public static badGateway(message?: ErrorLike, attributes?: Record<string, unknown>): EventError {
         return new EventError(message, { statusCode: 502, attributes })
     }
 
-    public static serviceUnavailable(message?: ErrorLike, attributes?: Record<string, string>): EventError {
+    public static serviceUnavailable(message?: ErrorLike, attributes?: Record<string, unknown>): EventError {
         return new EventError(message, { statusCode: 503, attributes })
     }
 
-    public static gatewayTimeout(message?: ErrorLike, attributes?: Record<string, string>): EventError {
+    public static gatewayTimeout(message?: ErrorLike, attributes?: Record<string, unknown>): EventError {
         return new EventError(message, { statusCode: 504, attributes })
     }
 
-    public static loopDetected(message?: ErrorLike, attributes?: Record<string, string>): EventError {
+    public static loopDetected(message?: ErrorLike, attributes?: Record<string, unknown>): EventError {
         return new EventError(message, { statusCode: 508, attributes })
     }
 }
