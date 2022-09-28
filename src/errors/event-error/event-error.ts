@@ -59,7 +59,7 @@ const httpStatusCodes: Record<number, string | undefined> = {
     429: 'Too Many Requests',
     431: 'Request Header Fields Too Large',
     444: 'No Response',
-    449: 'Retry With',
+    449: 'Retryable',
     451: 'Unavailable For Legal Reasons',
 
     500: 'Internal Server Error',
@@ -231,6 +231,10 @@ export class EventError extends Error {
 
     public static unavailableForLegalReasons(message?: ErrorLike, attributes?: Record<string, unknown>): EventError {
         return new EventError(message, { statusCode: 451, attributes })
+    }
+
+    public static retryable(message?: ErrorLike, attributes?: Record<string, unknown>): EventError {
+        return new EventError(message, { statusCode: 449, attributes })
     }
 
     public static internal(
