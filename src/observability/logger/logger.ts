@@ -1,3 +1,5 @@
+import { LogFormatter } from './formatter'
+
 import { serviceName } from '../../constants'
 
 import { Logger as AwsLogger } from '@aws-lambda-powertools/logger'
@@ -19,7 +21,7 @@ export interface Logger {
     setBindings: (bindings: Record<string, unknown>) => void
 }
 
-export function createLogger(instance: AwsLogger = new AwsLogger({ serviceName })): Logger {
+export function createLogger(instance: AwsLogger = new AwsLogger({ serviceName, logFormatter: new LogFormatter() })): Logger {
     function debug(input: LogItem, ...extraInput: LogItemExtra): void {
         instance.debug(input, ...extraInput)
     }
