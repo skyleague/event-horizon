@@ -41,7 +41,7 @@ export async function handleSqsEvent(
         } catch (e: unknown) {
             maybeFailure = errorHandlerFn.onError(event, e)
         }
-        ioLoggerFn.after(undefined, item)
+        ioLoggerFn.after(maybeFailure, item)
 
         if (isJust(maybeFailure)) {
             failures ??= []
