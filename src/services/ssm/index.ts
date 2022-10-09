@@ -1,0 +1,1 @@
+export { createSSM } from './ssm'
