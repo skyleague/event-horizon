@@ -3,6 +3,8 @@ import { LogFormatter } from './formatter'
 import { serviceName } from '../../constants'
 
 import { Logger as AwsLogger } from '@aws-lambda-powertools/logger'
+import type { ConstructorOptions } from '@aws-lambda-powertools/logger/lib/types'
+import { mergeDeep } from '@skyleague/axioms'
 
 export type LogItemObject = {
     [key: string]: unknown
@@ -21,7 +23,11 @@ export interface Logger {
     setBindings: (bindings: Record<string, unknown>) => void
 }
 
-export function createLogger(instance: AwsLogger = new AwsLogger({ serviceName, logFormatter: new LogFormatter() })): Logger {
+export function createLogger(
+    options: AwsLogger | ConstructorOptions = { serviceName, logFormatter: new LogFormatter() }
+): Logger {
+    const instance: AwsLogger = options instanceof AwsLogger ? options : new AwsLogger(options)
+
     function debug(input: LogItem, ...extraInput: LogItemExtra): void {
         instance.debug(input, ...extraInput)
     }
@@ -39,7 +45,12 @@ export function createLogger(instance: AwsLogger = new AwsLogger({ serviceName, 
     }
 
     function child(bindings?: Record<string, unknown>): Logger {
-        return createLogger(instance.createChild(bindings ? { persistentLogAttributes: bindings } : undefined))
+        // pass down the error formatter and attributes properly
+        const parentAttributes = instance.getPersistentLogAttributes()
+        return createLogger({
+            ...options,
+            persistentLogAttributes: bindings ? mergeDeep(bindings, parentAttributes) : parentAttributes,
+        })
     }
 
     function setBindings(bindings: Record<string, unknown>): void {
