@@ -1,10 +1,9 @@
 import type { RawRequest } from '../../handlers/aws'
 
-// @todo
 export function warmup({
-    isWarmingUp = () => false,
+    isWarmingUp = (request) => request === '__WARMER__',
 }: {
-    isWarmingUp?: (request: RawRequest) => boolean
+    isWarmingUp?: (request: RawRequest | string) => boolean
 } = {}) {
     return {
         before: (request: RawRequest) => {
