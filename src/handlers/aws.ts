@@ -12,6 +12,7 @@ import type {
     SecretsManagerRotationHandler,
     SNSHandler,
     SQSHandler,
+    Context,
 } from 'aws-lambda'
 
 export type AWSLambdaHandler =
@@ -29,6 +30,8 @@ export type AWSLambdaHandler =
     | SecretsManagerRotationHandler
     | SNSHandler
     | SQSHandler
+
+export type LambdaHandler = AWSLambdaHandler | ((payload: unknown, context: Context) => Promise<unknown>)
 
 export type RawRequest = Parameters<AWSLambdaHandler>[0]
 export type RawResponse = ReturnType<AWSLambdaHandler> | unknown
