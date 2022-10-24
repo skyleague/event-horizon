@@ -31,7 +31,7 @@ export type AWSLambdaHandler =
     | SNSHandler
     | SQSHandler
 
-export type LambdaHandler = AWSLambdaHandler | ((payload: unknown, context: Context) => unknown)
+export type LambdaHandler = AWSLambdaHandler | ((payload: unknown, context: Context) => Promise<unknown>)
 
 export type RawRequest = Parameters<AWSLambdaHandler>[0]
 export type RawResponse = ReturnType<AWSLambdaHandler> | unknown
