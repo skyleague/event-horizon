@@ -18,7 +18,7 @@ test('batchItemFailures', async () => {
             },
 
             [{ messageId: 'message-x' } as SQSRecord],
-            random(await arbitraryContext({ config: {}, services: {} }))
+            random(await arbitraryContext({}))
         )
     ).resolves.toMatchInlineSnapshot(`
         {
