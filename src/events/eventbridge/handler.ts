@@ -15,7 +15,7 @@ export async function handleEventBridgeEvent(
 ): Promise<unknown> {
     const { eventBridge } = handler
 
-    const parseEventFn = eventBridgeParseEvent(eventBridge)
+    const parseEventFn = eventBridgeParseEvent()
     const ioValidateFn = ioValidate<EventBridgeEvent>({ input: (x) => x.payload })
     const ioLoggerFn = ioLogger({ type: 'eventbridge' }, context)
 
