@@ -117,6 +117,26 @@ export class EventError extends Error {
         }
     }
 
+    public get isInformational(): boolean {
+        return this.statusCode >= 100 && this.statusCode < 200
+    }
+
+    public get isSuccess(): boolean {
+        return this.statusCode >= 200 && this.statusCode < 300
+    }
+
+    public get isRedirection(): boolean {
+        return this.statusCode >= 300 && this.statusCode < 400
+    }
+
+    public get isClientError(): boolean {
+        return this.statusCode >= 400 && this.statusCode < 500
+    }
+
+    public get isServerError(): boolean {
+        return this.statusCode >= 500 && this.statusCode < 600
+    }
+
     public static is<O>(e: EventError | O): e is EventError {
         return e instanceof Error && 'isEventError' in e && e.isEventError === true
     }
