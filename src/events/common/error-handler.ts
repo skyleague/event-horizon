@@ -8,7 +8,11 @@ export function errorHandler({ logger }: LambdaContext) {
         onError: (error: Error | unknown): void => {
             const eventError = EventError.is(error) ? error : isError(error) ? new EventError(error) : new EventError('unknown')
 
-            logger.error(`Uncaught error found`, eventError)
+            if (eventError.isServerError) {
+                logger.error(`Uncaught error found`, eventError)
+            } else if (eventError.isClientError) {
+                logger.warn(`Warning received`, eventError)
+            }
 
             throw error
         },
