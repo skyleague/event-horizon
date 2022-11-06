@@ -14,7 +14,6 @@ export interface EventBridgeEventHandler<C = never, S = never, P = unknown, R = 
         result?: Schema<R>
     }
     handler: (request: EventBridgeEvent<P>, context: LambdaContext<C, S>) => Promise<R> | R
-    payloadType?: 'binary' | 'json' | 'plaintext'
 }
 
 export interface EventBridgeHandler<C = never, S = never, P = unknown, R = unknown> extends EventHandlerDefinition {
