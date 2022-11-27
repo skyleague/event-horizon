@@ -564,7 +564,7 @@ describe('openapiFromHandlers', () => {
                     http: {
                         method,
                         path,
-                        schema: { responses: {}, pathParams: { schema } },
+                        schema: { responses: {}, path: { schema } },
                         bodyType: 'plaintext' as const,
                         handler: h,
                     } as any,

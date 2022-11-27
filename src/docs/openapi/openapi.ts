@@ -197,10 +197,10 @@ export function openapiFromHandlers(handlers: Record<string, unknown>, options: 
                 )
             }
 
-            const pathParams = handler.http.schema.pathParams?.schema as JsonSchema | undefined
-            if (pathParams?.properties !== undefined) {
+            const path = handler.http.schema.path?.schema as JsonSchema | undefined
+            if (path?.properties !== undefined) {
                 parameters.push(
-                    ...entriesOf(pathParams.properties).map(([name, value]) =>
+                    ...entriesOf(path.properties).map(([name, value]) =>
                         omitUndefined({
                             name: name,
                             in: 'path',

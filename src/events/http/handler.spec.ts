@@ -199,13 +199,13 @@ describe('handler', () => {
         })
     })
 
-    test('pathParams schema validation, gives failure', async () => {
+    test('path schema validation, gives failure', async () => {
         const h = jest.fn()
         const handler = httpHandler({
             http: {
                 method,
                 path,
-                schema: { pathParams: neverTrue, responses: {} },
+                schema: { path: neverTrue, responses: {} },
                 handler: h,
             },
         })

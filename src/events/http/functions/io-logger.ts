@@ -13,7 +13,7 @@ export function httpIOLogger({ path }: HTTPEventHandler, { logger, isSensitive }
                     `[http] ${path} start`,
                     isSuccess(request)
                         ? constants.logEventPayload
-                            ? { request: pick(request, ['pathParams', 'query']) }
+                            ? { request: pick(request, ['path', 'query']) }
                             : {}
                         : { error: request }
                 )
