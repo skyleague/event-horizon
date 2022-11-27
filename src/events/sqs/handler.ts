@@ -2,16 +2,14 @@ import { sqsErrorHandler } from './functions/error-handler'
 import { sqsParseEvent } from './functions/parse-event'
 import type { SQSEvent, SQSHandler } from './types'
 
-import { EventError } from '../../errors/event-error'
 import { ioLogger } from '../functions/io-logger'
 import { ioValidate } from '../functions/io-validate'
 import type { LambdaContext } from '../types'
 
-import type { Maybe } from '@skyleague/axioms'
-import { enumerate, isJust, Nothing } from '@skyleague/axioms'
+import { eitherAsValue, enumerate, isLeft, mapLeft, mapTry, tryToEither } from '@skyleague/axioms'
 import type { SQSBatchItemFailure, SQSBatchResponse, SQSRecord } from 'aws-lambda'
 
-export async function handleSqsEvent(
+export async function handleSQSEvent(
     handler: SQSHandler,
     events: SQSRecord[],
     context: LambdaContext
@@ -27,25 +25,23 @@ export async function handleSqsEvent(
     for (const [i, event] of enumerate(events)) {
         const item = { item: i }
 
-        let maybeFailure: Maybe<SQSBatchItemFailure> = Nothing
-        try {
-            const unvalidatedSQSEvent = parseEventFn.before(event)
-            const sqsEvent = ioValidateFn.before(sqs.schema.payload, unvalidatedSQSEvent)
+        const sqsEvent = mapTry(event, (e) => {
+            const unvalidatedSQSEvent = parseEventFn.before(e)
+            return ioValidateFn.before(sqs.schema.payload, unvalidatedSQSEvent)
+        })
 
-            if ('left' in sqsEvent) {
-                throw EventError.badRequest(sqsEvent.left[0].message)
-            }
-            ioLoggerFn.before(sqsEvent, item)
+        ioLoggerFn.before(sqsEvent, item)
 
-            await sqs.handler(sqsEvent.right, context)
-        } catch (e: unknown) {
-            maybeFailure = errorHandlerFn.onError(event, e)
-        }
-        ioLoggerFn.after(maybeFailure, item)
+        const transformed = await mapTry(sqsEvent, (success) => sqs.handler(success, context))
 
-        if (isJust(maybeFailure)) {
+        const eitherTransformed = tryToEither(transformed)
+        const response = mapLeft(eitherTransformed, (e) => errorHandlerFn.onError(event, e))
+
+        ioLoggerFn.after(eitherAsValue(response), item)
+
+        if (isLeft(response)) {
             failures ??= []
-            failures.push(maybeFailure)
+            failures.push(response.left)
         }
     }
     if (failures !== undefined) {

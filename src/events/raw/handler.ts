@@ -4,24 +4,24 @@ import { ioLogger } from '../functions/io-logger'
 import { ioValidate } from '../functions/io-validate'
 import type { LambdaContext } from '../types'
 
-export async function handleRawEvent(handler: EventHandler, event: unknown, context: LambdaContext): Promise<unknown> {
+import type { Try } from '@skyleague/axioms'
+import { mapTry, tryAsValue } from '@skyleague/axioms'
+
+export async function handleRawEvent(handler: EventHandler, event: unknown, context: LambdaContext): Promise<Try<{}>> {
     if (!('raw' in handler) || handler.raw === undefined) {
-        throw EventError.notImplemented()
+        return EventError.notImplemented()
     }
+
     const { raw } = handler
     const ioValidateFn = ioValidate()
     const ioLoggerFn = ioLogger({ type: 'raw' }, context)
 
-    ioLoggerFn.before(raw)
-    const rawEvent = ioValidateFn.before(raw.schema.payload, event)
+    ioLoggerFn.before(event)
 
-    if ('left' in rawEvent) {
-        throw EventError.badRequest(rawEvent.left[0].message)
-    }
+    const rawEvent = mapTry(event, (e) => ioValidateFn.before(raw.schema.payload, e))
+    const response = await mapTry(rawEvent, (e) => raw.handler(e, context))
 
-    const response = await raw.handler(rawEvent.right, context)
-
-    ioLoggerFn.after(response)
+    ioLoggerFn.after(tryAsValue(response))
 
     return response
 }

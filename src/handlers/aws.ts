@@ -20,7 +20,7 @@ export type AWSLambdaHandler =
     | APIGatewayProxyHandlerV2
     | CloudFrontRequestHandler
     | DynamoDBStreamHandler
-    | EventBridgeHandler<string, string, void>
+    | EventBridgeHandler<string, unknown, void>
     | FirehoseTransformationHandler
     | KinesisStreamHandler
     | S3BatchHandler

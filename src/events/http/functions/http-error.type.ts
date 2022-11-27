@@ -1,4 +1,4 @@
-import { isDebug } from '../../../constants'
+import { constants } from '../../../constants'
 
 import type { Schema } from '@skyleague/therefore/src/lib/primitives/restclient/openapi.type'
 
@@ -17,8 +17,9 @@ export const HttpError = {
             properties: {
                 statusCode: { type: 'integer', description: 'The status code of the response.' },
                 message: { type: 'string', description: 'A detailed message of the error.' },
-                stack: { type: 'string', description: 'When debugging is enabled, a stack trace might be exposed.' },
-                ...(isDebug ? { stack: { type: 'string' } } : {}),
+                ...(constants.isDebug
+                    ? { stack: { type: 'string', description: 'When debugging is enabled, a stack trace is exposed.' } }
+                    : {}),
             },
             required: ['statusCode', 'message'] as [string, ...string[]],
         } as const

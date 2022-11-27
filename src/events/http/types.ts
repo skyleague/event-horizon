@@ -1,18 +1,19 @@
 import type { Config, EventHandlerDefinition, LambdaContext, Services } from '../types'
 
+import type { Promisable, Try } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
 import type { APIGatewayProxyEvent, APIGatewayProxyEventV2 } from 'aws-lambda'
 
-export type HttpMethod = 'delete' | 'get' | 'head' | 'options' | 'patch' | 'post' | 'put' | 'trace'
-export type HttpHeaders = Record<string, string | undefined>
-export type HttpQueryParameters = Record<string, string | undefined>
-export type HttpPathParameters = Record<string, string | undefined>
+export type HTTPMethod = 'delete' | 'get' | 'head' | 'options' | 'patch' | 'post' | 'put' | 'trace'
+export type HTTPHeaders = Record<string, string | undefined>
+export type HTTPQueryParameters = Record<string, string | undefined>
+export type HTTPPathParameters = Record<string, string | undefined>
 
-export interface HttpRequest<
+export interface HTTPRequest<
     B = unknown,
-    P = HttpHeaders | undefined,
-    Q = HttpQueryParameters | undefined,
-    H = HttpPathParameters | undefined,
+    P = HTTPHeaders | undefined,
+    Q = HTTPQueryParameters | undefined,
+    H = HTTPPathParameters | undefined,
     GV extends GatewayVersion = 'v1'
 > {
     body: B
@@ -22,7 +23,7 @@ export interface HttpRequest<
     raw: GV extends 'v1' ? APIGatewayProxyEvent : APIGatewayProxyEventV2
 }
 
-export interface HttpResponse<R = unknown> {
+export interface HTTPResponse<R = unknown> {
     statusCode: number
     headers?: Record<string, boolean | number | string> | undefined
     body: R
@@ -30,7 +31,7 @@ export interface HttpResponse<R = unknown> {
 
 export type GatewayVersion = 'v1' | 'v2'
 
-export interface HttpEventHandler<
+export interface HTTPEventHandler<
     C = never,
     S = never,
     B = unknown,
@@ -40,7 +41,7 @@ export interface HttpEventHandler<
     R = unknown,
     GV extends GatewayVersion = 'v1'
 > {
-    method: HttpMethod
+    method: HTTPMethod
     path: `/${string}`
     schema: {
         body?: Schema<B>
@@ -49,14 +50,14 @@ export interface HttpEventHandler<
         headers?: Schema<H>
         responses: Record<PropertyKey, Schema<R>>
     }
-    handler: (request: HttpRequest<B, P, Q, H, GV>, context: LambdaContext<C, S>) => HttpResponse<R> | Promise<HttpResponse<R>>
+    handler: (request: HTTPRequest<B, P, Q, H, GV>, context: LambdaContext<C, S>) => Promisable<Try<HTTPResponse<R>>>
 
     bodyType?: 'binary' | 'json' | 'plaintext'
 
     gatewayVersion?: GV
 }
 
-export interface HttpHandler<
+export interface HTTPHandler<
     C = never,
     S = never,
     HttpB = unknown,
@@ -68,5 +69,5 @@ export interface HttpHandler<
 > extends EventHandlerDefinition {
     config?: Config<C>
     services?: Services<C, S>
-    http: HttpEventHandler<C, S, HttpB, HttpP, HttpQ, HttpH, HttpR, GV>
+    http: HTTPEventHandler<C, S, HttpB, HttpP, HttpQ, HttpH, HttpR, GV>
 }

@@ -1,11 +1,11 @@
-import type { HttpEventHandler, HttpRequest } from '../types'
+import type { HTTPEventHandler, HTTPRequest } from '../types'
 
 import { isString } from '@skyleague/axioms'
 import type { APIGatewayProxyEvent, APIGatewayProxyEventV2 } from 'aws-lambda'
 
-export function httpParseEvent({ bodyType = 'json' }: HttpEventHandler) {
+export function httpParseEvent({ bodyType = 'json' }: HTTPEventHandler) {
     return {
-        before: (event: APIGatewayProxyEvent | APIGatewayProxyEventV2): HttpRequest => {
+        before: (event: APIGatewayProxyEvent | APIGatewayProxyEventV2): HTTPRequest => {
             let body: unknown = event.body
             if (bodyType !== 'binary' && isString(event.body)) {
                 const unencodedBody = event.isBase64Encoded ? Buffer.from(event.body, 'base64').toString() : event.body
@@ -18,7 +18,7 @@ export function httpParseEvent({ bodyType = 'json' }: HttpEventHandler) {
                 headers,
                 query: event.queryStringParameters ?? {},
                 pathParams: event.pathParameters ?? {},
-                raw: event as HttpRequest['raw'],
+                raw: event as HTTPRequest['raw'],
             }
         },
     }

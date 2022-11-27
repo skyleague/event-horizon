@@ -1,9 +1,9 @@
 import * as handlers from '../'
 import { version, name } from '../../../../package.json'
-import type { HttpHandler } from '../../../../src'
+import type { HTTPHandler } from '../../../../src'
 import { httpHandler, openapiFromHandlers } from '../../../../src'
 
-export const handlerJson: HttpHandler = httpHandler({
+export const handlerJson: HTTPHandler = httpHandler({
     http: {
         method: 'get',
         path: '/openapi.json',
@@ -19,7 +19,7 @@ export const handlerJson: HttpHandler = httpHandler({
     },
 })
 
-export const handlerHtml: HttpHandler = httpHandler({
+export const handlerHtml: HTTPHandler = httpHandler({
     http: {
         method: 'get',
         path: '/openapi/index.html',

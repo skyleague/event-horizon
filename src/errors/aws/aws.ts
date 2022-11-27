@@ -7,6 +7,7 @@ export function isAwsError(err: unknown): err is AWSError {
 const errorCodes = {
     ConditionalCheckFailedException: 'ConditionalCheckFailedException',
 } as const
+
 export function isConditionalCheckFailedException(
     err: unknown
 ): err is Omit<AWSError, 'code'> & { code: typeof errorCodes.ConditionalCheckFailedException } {

@@ -1,38 +1,52 @@
+import { kinesisErrorHandler } from './functions/error-handler'
 import { kinesisParseEvent } from './functions/parse-event'
 import type { KinesisEvent, KinesisHandler } from './types'
 
-import { EventError } from '../../errors/event-error'
 import { ioLogger } from '../functions/io-logger'
 import { ioValidate } from '../functions/io-validate'
 import type { LambdaContext } from '../types'
 
-import { enumerate } from '@skyleague/axioms'
-import type { KinesisStreamBatchResponse, KinesisStreamRecord } from 'aws-lambda'
+import type { Try } from '@skyleague/axioms'
+import { enumerate, isLeft, mapLeft, mapTry, tryToEither, tryAsValue } from '@skyleague/axioms'
+import type { KinesisStreamBatchItemFailure, KinesisStreamBatchResponse, KinesisStreamRecord } from 'aws-lambda'
 
 export async function handleKinesisEvent(
     handler: KinesisHandler,
     events: KinesisStreamRecord[],
     context: LambdaContext
-): Promise<KinesisStreamBatchResponse | void> {
+): Promise<Try<KinesisStreamBatchResponse | void>> {
     const { kinesis } = handler
 
+    const errorHandlerFn = kinesisErrorHandler(context)
     const parseEventFn = kinesisParseEvent(kinesis)
     const ioValidateFn = ioValidate<KinesisEvent>({ input: (e) => e.payload })
-    const ioLoggerFn = ioLogger({ type: 'sns' }, context)
+    const ioLoggerFn = ioLogger({ type: 'kinesis' }, context)
+
+    let failures: KinesisStreamBatchItemFailure[] | undefined = undefined
 
     for (const [i, event] of enumerate(events)) {
         const item = { item: i }
 
-        const unvalidatedKinesisEvent = parseEventFn.before(event)
-        const kinesisEvent = ioValidateFn.before(kinesis.schema.payload, unvalidatedKinesisEvent)
+        const kinesisEvent = mapTry(event, (e) => {
+            const unvalidatedKinesisEvent = parseEventFn.before(e)
+            return ioValidateFn.before(kinesis.schema.payload, unvalidatedKinesisEvent)
+        })
 
-        if ('left' in kinesisEvent) {
-            throw EventError.badRequest(kinesisEvent.left[0].message)
+        ioLoggerFn.before(tryAsValue(kinesisEvent), item)
+
+        const transformed = await mapTry(kinesisEvent, (e) => kinesis.handler(e, context))
+
+        const response = mapLeft(tryToEither(transformed), (e) => errorHandlerFn.onError(event, e))
+
+        if (isLeft(response)) {
+            ioLoggerFn.after(response.left, item)
+            failures ??= []
+            failures.push(response.left)
+        } else {
+            ioLoggerFn.after(undefined, item)
         }
-        ioLoggerFn.before(kinesisEvent, item)
-
-        await kinesis.handler(kinesisEvent.right, context)
-
-        ioLoggerFn.after(undefined, item)
+    }
+    if (failures !== undefined) {
+        return { batchItemFailures: failures }
     }
 }

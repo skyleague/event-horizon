@@ -1,11 +1,11 @@
-import type { HttpResponse } from '../types'
+import type { HTTPResponse } from '../types'
 
 import { isString } from '@skyleague/axioms'
 import type { APIGatewayProxyResult, APIGatewayProxyResultV2 } from 'aws-lambda'
 
 export function httpSerializeResponse() {
     return {
-        onAfter: (response: HttpResponse): APIGatewayProxyResult | APIGatewayProxyResultV2 => {
+        onAfter: (response: HTTPResponse): APIGatewayProxyResult | APIGatewayProxyResultV2 => {
             // if the response is JSON we add the content type to the headers
             const contentType = !isString(response.body) ? { 'Content-Type': 'application/json' } : {}
 

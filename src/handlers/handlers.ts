@@ -2,20 +2,20 @@ import type { LambdaHandler } from './aws'
 import { eventHandler } from './event'
 import type { EventHandler } from './types'
 
-import { requestIdHeader, traceIdHeader } from '../constants'
+import { constants } from '../constants'
 import type {
+    EventBridgeHandler,
+    FirehoseTransformationHandler,
     GatewayVersion,
-    HttpHandler,
+    HTTPHandler,
     KinesisHandler,
     RawHandler,
-    SnsHandler,
-    SecretRotationServices,
-    SecretRotationHandler,
-    FirehoseTransformationHandler,
-    EventBridgeHandler,
-    SQSHandler,
     S3BatchHandler,
     S3Handler,
+    SecretRotationHandler,
+    SecretRotationServices,
+    SNSHandler,
+    SQSHandler,
 } from '../events'
 
 import type { APIGatewayProxyEvent, APIGatewayProxyEventV2 } from 'aws-lambda'
@@ -31,21 +31,19 @@ export function eventBridgeHandler<C, S, EbP, EbR, D>(definition: D & EventBridg
 }
 
 export function httpHandler<C, S, HttpB, HttpP, HttpQ, HttpH, HttpR, GV extends GatewayVersion, D>(
-    definition: D & HttpHandler<C, S, HttpB, HttpP, HttpQ, HttpH, HttpR, GV>
+    definition: D & HTTPHandler<C, S, HttpB, HttpP, HttpQ, HttpH, HttpR, GV>
 ): D & LambdaHandler {
     function findHeader(name: string) {
         return (request: APIGatewayProxyEvent | APIGatewayProxyEventV2) =>
             Object.entries(request.headers ?? {}).find(([n]) => n.toLowerCase() === name.toLowerCase())?.[1]
     }
     return eventHandler(definition as unknown as EventHandler, {
-        requestId: findHeader(requestIdHeader),
-        traceId: findHeader(traceIdHeader),
+        requestId: findHeader(constants.requestIdHeader),
+        traceId: findHeader(constants.traceIdHeader),
     }) as D & LambdaHandler
 }
 
-export function kinesisHandler<C, S, KinesisP, KinesisR, D>(
-    definition: D & KinesisHandler<C, S, KinesisP, KinesisR>
-): D & LambdaHandler {
+export function kinesisHandler<C, S, KinesisP, D>(definition: D & KinesisHandler<C, S, KinesisP>): D & LambdaHandler {
     return eventHandler(definition as unknown as EventHandler) as D & LambdaHandler
 }
 
@@ -53,7 +51,7 @@ export function rawHandler<C, S, RawP, RawR, D>(definition: D & RawHandler<C, S,
     return eventHandler(definition as unknown as EventHandler) as D & LambdaHandler
 }
 
-export function snsHandler<C, S, SnsP, D>(definition: D & SnsHandler<C, S, SnsP>): D & LambdaHandler {
+export function snsHandler<C, S, SnsP, D>(definition: D & SNSHandler<C, S, SnsP>): D & LambdaHandler {
     return eventHandler(definition as unknown as EventHandler) as D & LambdaHandler
 }
 

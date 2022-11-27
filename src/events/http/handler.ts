@@ -3,18 +3,19 @@ import { httpIOLogger } from './functions/io-logger'
 import { httpIOValidate } from './functions/io-validate'
 import { httpParseEvent } from './functions/parse-event'
 import { httpSerializeResponse } from './functions/serialize-response'
-import type { HttpHandler, HttpResponse } from './types'
+import type { HTTPHandler } from './types'
 
-import { EventError } from '../../errors/event-error'
 import type { LambdaContext } from '../types'
 
+import type { Try } from '@skyleague/axioms'
+import { mapTry, recoverTry } from '@skyleague/axioms'
 import type { APIGatewayProxyEvent, APIGatewayProxyEventV2, APIGatewayProxyResult, APIGatewayProxyResultV2 } from 'aws-lambda'
 
-export async function handleHttpEvent(
-    handler: HttpHandler,
+export async function handleHTTPEvent(
+    handler: HTTPHandler,
     event: APIGatewayProxyEvent | APIGatewayProxyEventV2,
     context: LambdaContext
-): Promise<APIGatewayProxyResult | APIGatewayProxyResultV2> {
+): Promise<Try<APIGatewayProxyResult | APIGatewayProxyResultV2>> {
     const { http } = handler
     const parseEventFn = httpParseEvent(http)
     const ioValidateFn = httpIOValidate()
@@ -22,22 +23,18 @@ export async function handleHttpEvent(
     const errorHandlerFn = httpErrorHandler(context)
     const inputOutputFn = httpIOLogger(http, context)
 
-    let response: HttpResponse
-    try {
-        const unvalidatedHttpEvent = parseEventFn.before(event)
-        inputOutputFn.before(unvalidatedHttpEvent)
-        const httpEvent = ioValidateFn.before(http, unvalidatedHttpEvent)
+    parseEventFn.before(event)
+    const httpEvent = mapTry(event, (e) => {
+        const unvalidatedHttpEvent = parseEventFn.before(e)
+        return ioValidateFn.before(http, unvalidatedHttpEvent)
+    })
 
-        if ('left' in httpEvent) {
-            throw EventError.badRequest(`in ${httpEvent.in}: ${httpEvent.left[0]?.message ?? 'validation failed'}`, {
-                in: httpEvent.in,
-            })
-        }
+    inputOutputFn.before(httpEvent)
 
-        response = await http.handler(httpEvent.right, context)
-    } catch (e: unknown) {
-        response = errorHandlerFn.onError(e)
-    }
+    const transform = await mapTry(httpEvent, (e) => http.handler(e, context))
+    const response = recoverTry(transform, (f) => errorHandlerFn.onError(f))
+
     inputOutputFn.after(response)
-    return serializeResponseFn.onAfter(response)
+
+    return mapTry(response, (r) => serializeResponseFn.onAfter(r))
 }
