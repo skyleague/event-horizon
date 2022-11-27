@@ -12,8 +12,8 @@ export function httpIOValidate() {
             if (http.schema.query?.is(event.query) === false) {
                 return EventError.validation({ errors: http.schema.query.errors, location: 'query' })
             }
-            if (http.schema.pathParams?.is(event.pathParams) === false) {
-                return EventError.validation({ errors: http.schema.pathParams.errors, location: 'path' })
+            if (http.schema.path?.is(event.path) === false) {
+                return EventError.validation({ errors: http.schema.path.errors, location: 'path' })
             }
             if (http.schema.headers?.is(event.headers) === false) {
                 return EventError.validation({ errors: http.schema.headers.errors, location: 'headers' })

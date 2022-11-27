@@ -17,7 +17,7 @@ export function httpParseEvent({ bodyType = 'json' }: HTTPEventHandler) {
                 body,
                 headers,
                 query: event.queryStringParameters ?? {},
-                pathParams: event.pathParameters ?? {},
+                path: event.pathParameters ?? {},
                 raw: event as HTTPRequest['raw'],
             }
         },
