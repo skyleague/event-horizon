@@ -1,22 +1,34 @@
-import { logEventPayload, logResultPayload } from '../../../constants'
+import { constants } from '../../../constants'
 import type { LambdaContext } from '../../types'
-import type { HttpEventHandler, HttpRequest, HttpResponse } from '../types'
+import type { HTTPEventHandler, HTTPRequest, HTTPResponse } from '../types'
 
-import { pick } from '@skyleague/axioms'
+import type { Try } from '@skyleague/axioms'
+import { isSuccess, pick } from '@skyleague/axioms'
 
-export function httpIOLogger({ path }: HttpEventHandler, { logger, isSensitive }: LambdaContext) {
+export function httpIOLogger({ path }: HTTPEventHandler, { logger, isSensitive }: LambdaContext) {
     return {
-        before: (request: HttpRequest) => {
-            if (!isSensitive) {
-                logger.info(`[request] ${path} start`, logEventPayload ? { request: pick(request, ['pathParams', 'query']) } : {})
-            }
-        },
-        after: (response: HttpResponse) => {
+        before: (request: Try<HTTPRequest>) => {
             if (!isSensitive) {
                 logger.info(
-                    `[response] ${path} sent ${response.statusCode}`,
-                    logResultPayload ? { response: pick(response, ['statusCode']) } : {}
+                    `[http] ${path} start`,
+                    isSuccess(request)
+                        ? constants.logEventPayload
+                            ? { request: pick(request, ['pathParams', 'query']) }
+                            : {}
+                        : { error: request }
                 )
+            }
+        },
+        after: (response: Try<HTTPResponse>) => {
+            if (!isSensitive) {
+                if (isSuccess(response)) {
+                    logger.info(
+                        `[http] ${path} sent ${response.statusCode}`,
+                        constants.logResultPayload ? { response: pick(response, ['statusCode']) } : {}
+                    )
+                } else {
+                    logger.info(`[http] ${path} sent`, { error: response })
+                }
             }
         },
     }

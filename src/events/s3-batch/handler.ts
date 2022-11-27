@@ -3,18 +3,19 @@ import { s3BatchParseEvent } from './functions/parse-event'
 import { s3BatchSerializeResult } from './functions/serialize-result'
 import type { S3BatchHandler, S3BatchTaskResult } from './types'
 
-import { EventError } from '../../errors/event-error'
 import { ioLogger } from '../functions/io-logger'
 import { ioValidate } from '../functions/io-validate'
 import type { LambdaContext } from '../types'
 
-import { enumerate } from '@skyleague/axioms'
+import type { Try } from '@skyleague/axioms'
+import { enumerate, mapTry, transformTry, isSuccess } from '@skyleague/axioms'
 import type { S3BatchEvent, S3BatchResult, S3BatchResultResult } from 'aws-lambda'
+
 export async function handleS3Batch(
     handler: S3BatchHandler,
     event: S3BatchEvent,
     context: LambdaContext
-): Promise<S3BatchResult> {
+): Promise<Try<S3BatchResult>> {
     const { s3Batch } = handler
 
     const errorHandlerFn = s3BatchErrorHandler(handler, context)
@@ -27,25 +28,25 @@ export async function handleS3Batch(
     for (const [i, task] of enumerate(event.tasks)) {
         const item = { item: i }
 
-        let result: S3BatchResultResult
-        try {
-            const s3BatchTask = parseEventFn.before(event, task)
-            ioLoggerFn.before(s3BatchTask, item)
+        const s3BatchTask = parseEventFn.before(event, task)
+        ioLoggerFn.before(s3BatchTask, item)
 
-            const unvalidatedResponse = await s3Batch.handler(s3BatchTask, context)
+        const unvalidatedResponse = await mapTry(s3BatchTask, (t) => s3Batch.handler(t, context))
+        const response = mapTry(unvalidatedResponse, (v) => ioValidateFn.after(s3Batch.schema.result, v))
 
-            const response = ioValidateFn.after(s3Batch.schema.result, unvalidatedResponse)
-            if ('left' in response) {
-                throw EventError.badRequest(response.left[0].message)
-            }
+        const result = transformTry(
+            response,
+            (x) => serializeResult.onAfter(task, x),
+            (e) => errorHandlerFn.onError(task, e)
+        )
 
-            result = serializeResult.onAfter(task, response.right)
-        } catch (e: unknown) {
-            result = errorHandlerFn.onError(task, e)
-        }
         ioLoggerFn.after(result, item)
 
-        results.push(result)
+        if (isSuccess(result)) {
+            results.push(result)
+        } else {
+            return result
+        }
     }
 
     return {

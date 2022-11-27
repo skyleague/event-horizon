@@ -1,5 +1,6 @@
 import type { Config, EventHandlerDefinition, LambdaContext, Services } from '../types'
 
+import type { Promisable, Try } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
 import type { FirehoseRecordTransformationStatus, FirehoseTransformationEventRecord } from 'aws-lambda'
 
@@ -21,7 +22,7 @@ export interface FirehoseTransformationEventHandler<C = never, S = never, P = un
     handler: (
         request: FirehoseTransformationEvent<P>,
         context: LambdaContext<C, S>
-    ) => FirehoseTransformationResult<R> | Promise<FirehoseTransformationResult<R>>
+    ) => Promisable<Try<FirehoseTransformationResult<R>>>
     payloadType?: 'binary' | 'json' | 'plaintext'
 }
 

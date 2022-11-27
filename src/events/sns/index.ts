@@ -1,1 +1,1 @@
-export { SNSEvent, SnsEventHandler, SnsHandler } from './types'
+export { SNSEvent, SNSEventHandler, SNSHandler } from './types'

@@ -16,10 +16,13 @@ export const Category = {
     get schema() {
         return Category.validate.schema
     },
+    get errors() {
+        return Category.validate.errors ?? undefined
+    },
     is: (o: unknown): o is Category => Category.validate(o) === true,
     assert: (o: unknown) => {
         if (!Category.validate(o)) {
-            throw new AjvValidator.ValidationError(Category.validate.errors ?? [])
+            throw new AjvValidator.ValidationError(Category.errors ?? [])
         }
     },
 } as const
@@ -34,10 +37,13 @@ export const Tag = {
     get schema() {
         return Tag.validate.schema
     },
+    get errors() {
+        return Tag.validate.errors ?? undefined
+    },
     is: (o: unknown): o is Tag => Tag.validate(o) === true,
     assert: (o: unknown) => {
         if (!Tag.validate(o)) {
-            throw new AjvValidator.ValidationError(Tag.validate.errors ?? [])
+            throw new AjvValidator.ValidationError(Tag.errors ?? [])
         }
     },
 } as const
@@ -49,10 +55,13 @@ export const Status = {
     get schema() {
         return Status.validate.schema
     },
+    get errors() {
+        return Status.validate.errors ?? undefined
+    },
     is: (o: unknown): o is Status => Status.validate(o) === true,
     assert: (o: unknown) => {
         if (!Status.validate(o)) {
-            throw new AjvValidator.ValidationError(Status.validate.errors ?? [])
+            throw new AjvValidator.ValidationError(Status.errors ?? [])
         }
     },
 } as const
@@ -74,10 +83,13 @@ export const Pet = {
     get schema() {
         return Pet.validate.schema
     },
+    get errors() {
+        return Pet.validate.errors ?? undefined
+    },
     is: (o: unknown): o is Pet => Pet.validate(o) === true,
     assert: (o: unknown) => {
         if (!Pet.validate(o)) {
-            throw new AjvValidator.ValidationError(Pet.validate.errors ?? [])
+            throw new AjvValidator.ValidationError(Pet.errors ?? [])
         }
     },
 } as const
@@ -92,10 +104,13 @@ export const PetArray = {
     get schema() {
         return PetArray.validate.schema
     },
+    get errors() {
+        return PetArray.validate.errors ?? undefined
+    },
     is: (o: unknown): o is PetArray => PetArray.validate(o) === true,
     assert: (o: unknown) => {
         if (!PetArray.validate(o)) {
-            throw new AjvValidator.ValidationError(PetArray.validate.errors ?? [])
+            throw new AjvValidator.ValidationError(PetArray.errors ?? [])
         }
     },
 } as const

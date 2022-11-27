@@ -1,26 +1,25 @@
-import type { HttpEventHandler, HttpRequest } from '../types'
+import { EventError } from '../../../errors'
+import type { HTTPEventHandler, HTTPRequest } from '../types'
 
-import type { ErrorObject } from 'ajv'
+import type { Try } from '@skyleague/axioms'
 
 export function httpIOValidate() {
     return {
-        before: (http: HttpEventHandler, event: HttpRequest): { left: ErrorObject[]; in: string } | { right: HttpRequest } => {
+        before: (http: HTTPEventHandler, event: HTTPRequest): Try<HTTPRequest> => {
             if (http.schema.body?.is(event.body) === false) {
-                return { left: http.schema.body.validate.errors ?? [], in: 'body' }
+                return EventError.validation({ errors: http.schema.body.errors, location: 'body' })
             }
             if (http.schema.query?.is(event.query) === false) {
-                return { left: http.schema.query.validate.errors ?? [], in: 'query' }
+                return EventError.validation({ errors: http.schema.query.errors, location: 'query' })
             }
             if (http.schema.pathParams?.is(event.pathParams) === false) {
-                return { left: http.schema.pathParams.validate.errors ?? [], in: 'path' }
+                return EventError.validation({ errors: http.schema.pathParams.errors, location: 'path' })
             }
             if (http.schema.headers?.is(event.headers) === false) {
-                return { left: http.schema.headers.validate.errors ?? [], in: 'headers' }
+                return EventError.validation({ errors: http.schema.headers.errors, location: 'headers' })
             }
 
-            return {
-                right: event,
-            }
+            return event
         },
     }
 }

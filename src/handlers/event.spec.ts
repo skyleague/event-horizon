@@ -1,0 +1,634 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import type { LambdaHandler } from './aws'
+import type { allHandlers } from './event'
+import { createLambdaContext, eventHandler, handleEvent } from './event'
+import {
+    eventBridgeHandler,
+    firehoseHandler,
+    httpHandler,
+    kinesisHandler,
+    rawHandler,
+    s3BatchHandler,
+    s3Handler,
+    secretRotationHandler,
+    snsHandler,
+    sqsHandler,
+} from './handlers'
+
+import type { Logger, Metrics, Tracer } from '../observability'
+import { logger, metrics, tracer } from '../observability'
+import { createLogger } from '../observability/logger/logger'
+import { createMetrics } from '../observability/metrics/metrics'
+import { createTracer } from '../observability/tracer/tracer'
+
+import {
+    alpha,
+    asyncForAll,
+    constant,
+    dict,
+    failure,
+    forAll,
+    oneOf,
+    random,
+    sleep,
+    string,
+    tuple,
+    unknown,
+} from '@skyleague/axioms'
+import {
+    context,
+    eventBridgeEvent,
+    FirehoseTransformationEvent,
+    httpEvent,
+    KinesisStreamEvent,
+    mock,
+    S3BatchEvent,
+    S3Event,
+    secretRotationEvent,
+    SNSEvent,
+    SQSEvent,
+} from '@skyleague/event-horizon-dev'
+import { arbitrary } from '@skyleague/therefore'
+import type { SNSEvent as LambdaSnsEvent } from 'aws-lambda'
+import type { SecretsManager } from 'aws-sdk'
+
+describe('handleEvent', () => {
+    const eventHandlers = mock<typeof allHandlers>()
+
+    const method = random(oneOf(constant('get'), constant('put')))
+    const path = `/${random(alpha())}` as const
+
+    beforeEach(() => eventHandlers.mockClear())
+
+    test('http', async () => {
+        const handler = httpHandler({
+            http: {
+                method,
+                path,
+                schema: { responses: {} },
+                bodyType: 'plaintext' as const,
+                handler: jest.fn(),
+            },
+        })
+        await asyncForAll(tuple(httpEvent(handler), unknown(), await context()), async ([event, ret, ctx]) => {
+            eventHandlers.mockClear()
+            eventHandlers.http.mockReturnValue(ret as any)
+
+            expect(await handleEvent({ definition: handler, request: event.raw, context: ctx, handlers: eventHandlers })).toBe(
+                ret
+            )
+
+            expect(eventHandlers.http).toHaveBeenCalledWith(handler, event.raw, ctx)
+        })
+    })
+
+    test('eventBridge', async () => {
+        const handler = eventBridgeHandler({ eventBridge: { schema: {}, handler: jest.fn() } })
+        await asyncForAll(tuple(eventBridgeEvent(handler), unknown(), await context()), async ([event, ret, ctx]) => {
+            eventHandlers.mockClear()
+            eventHandlers.eventBridge.mockReturnValue(ret as any)
+
+            expect(await handleEvent({ definition: handler, request: event.raw, context: ctx, handlers: eventHandlers })).toBe(
+                ret
+            )
+
+            expect(eventHandlers.eventBridge).toHaveBeenCalledWith(handler, event.raw, ctx)
+        })
+    })
+
+    test('secretRotation', async () => {
+        const services = { secretManager: mock<SecretsManager>() as SecretsManager }
+        const handler = secretRotationHandler({
+            services,
+            secretRotation: { handler: jest.fn() },
+        })
+        await asyncForAll(tuple(secretRotationEvent(), unknown(), await context()), async ([event, ret, ctx]) => {
+            eventHandlers.mockClear()
+            eventHandlers.secretRotation.mockReturnValue(ret as any)
+
+            expect(
+                await handleEvent({ definition: handler as any, request: event.raw, context: ctx, handlers: eventHandlers })
+            ).toBe(ret)
+
+            expect(eventHandlers.secretRotation).toHaveBeenCalledWith(handler, event.raw, ctx)
+        })
+    })
+
+    test('sqs', async () => {
+        const handler = sqsHandler({
+            sqs: { handler: jest.fn(), schema: {} },
+        })
+        await asyncForAll(tuple(arbitrary(SQSEvent), unknown(), await context()), async ([event, ret, ctx]) => {
+            eventHandlers.mockClear()
+            eventHandlers.sqs.mockReturnValue(ret as any)
+
+            const response = await handleEvent({
+                definition: handler as any,
+                request: event,
+                context: ctx,
+                handlers: eventHandlers,
+            })
+            if (event.Records.length > 0) {
+                expect(response).toBe(ret)
+                expect(eventHandlers.sqs).toHaveBeenCalledWith(handler, event.Records, ctx)
+            } else {
+                expect(response).toBe(undefined)
+                expect(eventHandlers.sqs).not.toHaveBeenCalled()
+            }
+        })
+    })
+
+    test('sns', async () => {
+        const handler = snsHandler({
+            sns: { handler: jest.fn(), schema: {} },
+        })
+        await asyncForAll(tuple(arbitrary(SNSEvent), unknown(), await context()), async ([event, ret, ctx]) => {
+            eventHandlers.mockClear()
+            eventHandlers.sns.mockReturnValue(ret as any)
+
+            const response = await handleEvent({
+                definition: handler as any,
+                request: event as LambdaSnsEvent,
+                context: ctx,
+                handlers: eventHandlers,
+            })
+            if (event.Records.length > 0) {
+                expect(response).toBe(ret)
+                expect(eventHandlers.sns).toHaveBeenCalledWith(handler, event.Records, ctx)
+            } else {
+                expect(response).toBe(undefined)
+                expect(eventHandlers.sns).not.toHaveBeenCalled()
+            }
+        })
+    })
+
+    test('kinesis', async () => {
+        const handler = kinesisHandler({
+            kinesis: { handler: jest.fn(), schema: {} },
+        })
+        await asyncForAll(tuple(arbitrary(KinesisStreamEvent), unknown(), await context()), async ([event, ret, ctx]) => {
+            eventHandlers.mockClear()
+            eventHandlers.kinesis.mockReturnValue(ret as any)
+
+            const response = await handleEvent({
+                definition: handler as any,
+                request: event,
+                context: ctx,
+                handlers: eventHandlers,
+            })
+            if (event.Records.length > 0) {
+                expect(response).toBe(ret)
+                expect(eventHandlers.kinesis).toHaveBeenCalledWith(handler, event.Records, ctx)
+            } else {
+                expect(response).toBe(undefined)
+                expect(eventHandlers.kinesis).not.toHaveBeenCalled()
+            }
+        })
+    })
+
+    test('s3', async () => {
+        const handler = s3Handler({
+            s3: { handler: jest.fn() },
+        })
+        await asyncForAll(tuple(arbitrary(S3Event), unknown(), await context()), async ([event, ret, ctx]) => {
+            eventHandlers.mockClear()
+            eventHandlers.s3.mockReturnValue(ret as any)
+
+            const response = await handleEvent({
+                definition: handler as any,
+                request: event,
+                context: ctx,
+                handlers: eventHandlers,
+            })
+            if (event.Records.length > 0) {
+                expect(response).toBe(ret)
+                expect(eventHandlers.s3).toHaveBeenCalledWith(handler, event.Records, ctx)
+            } else {
+                expect(response).toBe(undefined)
+                expect(eventHandlers.s3).not.toHaveBeenCalled()
+            }
+        })
+    })
+
+    test('firehose', async () => {
+        const handler = firehoseHandler({
+            firehose: { handler: jest.fn(), schema: {} },
+        })
+        await asyncForAll(
+            tuple(arbitrary(FirehoseTransformationEvent), unknown(), await context()),
+            async ([event, ret, ctx]) => {
+                eventHandlers.mockClear()
+                eventHandlers.firehose.mockReturnValue(ret as any)
+
+                const response = await handleEvent({
+                    definition: handler as any,
+                    request: event,
+                    context: ctx,
+                    handlers: eventHandlers,
+                })
+                if (event.records.length > 0) {
+                    expect(response).toBe(ret)
+                    expect(eventHandlers.firehose).toHaveBeenCalledWith(handler, event.records, ctx)
+                } else {
+                    expect(response).toBe(undefined)
+                    expect(eventHandlers.firehose).not.toHaveBeenCalled()
+                }
+            }
+        )
+    })
+
+    test('s3Batch', async () => {
+        const handler = s3BatchHandler({
+            s3Batch: { handler: jest.fn(), schema: {} },
+        })
+        await asyncForAll(tuple(arbitrary(S3BatchEvent), unknown(), await context()), async ([event, ret, ctx]) => {
+            eventHandlers.mockClear()
+            eventHandlers.s3Batch.mockReturnValue(ret as any)
+
+            const response = await handleEvent({
+                definition: handler as any,
+                request: event,
+                context: ctx,
+                handlers: eventHandlers,
+            })
+            if (event.tasks.length > 0) {
+                expect(response).toBe(ret)
+                expect(eventHandlers.s3Batch).toHaveBeenCalledWith(handler, event, ctx)
+            } else {
+                expect(response).toBe(undefined)
+                expect(eventHandlers.s3Batch).not.toHaveBeenCalled()
+            }
+        })
+    })
+
+    test.each([{ Records: [{ foo: 'bar' }] }, { records: [{ foo: 'bar' }] }])('unprocessable $event', async (event) => {
+        const handler = rawHandler({
+            raw: { handler: jest.fn(), schema: {} },
+        })
+        await asyncForAll(tuple(unknown(), await context()), async ([ret, ctx]) => {
+            eventHandlers.mockClear()
+            eventHandlers.raw.mockReturnValue(ret as any)
+
+            const records = event.records ?? event.Records
+
+            const response = await handleEvent({
+                definition: handler as any,
+                request: event as any,
+                context: ctx,
+                handlers: eventHandlers,
+            })
+            // @todo: is this what we want?
+            if (records.length > 0) {
+                expect(response).toBe(ret)
+                expect(eventHandlers.raw).toHaveBeenCalledWith(handler, event, ctx)
+            } else {
+                expect(response).toBe(undefined)
+                expect(eventHandlers.raw).not.toHaveBeenCalled()
+            }
+        })
+    })
+
+    test('raw', async () => {
+        const handler = rawHandler({ raw: { schema: {}, handler: jest.fn() } })
+        await asyncForAll(tuple(unknown(), unknown(), await context()), async ([event, ret, ctx]) => {
+            eventHandlers.mockClear()
+            eventHandlers.raw.mockReturnValue(ret as any)
+
+            expect(await handleEvent({ definition: handler, request: event as any, context: ctx, handlers: eventHandlers })).toBe(
+                ret
+            )
+
+            expect(eventHandlers.raw).toHaveBeenCalledWith(handler, event, ctx)
+        })
+    })
+})
+
+describe('createLambdaContext', () => {
+    test('minimal', async () => {
+        await asyncForAll(await context(), async (ctx) => {
+            const lCtx = await createLambdaContext({
+                definition: { raw: { handler: jest.fn(), schema: {} } },
+                context: ctx.raw,
+                services: undefined,
+                config: undefined,
+                traceId: undefined,
+                requestId: undefined,
+            })
+            expect(lCtx.logger).toBe(logger)
+            expect(lCtx.metrics).toBe(metrics)
+            expect(lCtx.tracer).toBe(tracer)
+            expect(lCtx.raw).toBe(ctx.raw)
+            expect(lCtx.isSensitive).toBe(false)
+            expect(lCtx.traceId).toContain('-')
+            expect(lCtx.requestId).toContain('-')
+            expect(lCtx.services).toBe(undefined)
+            expect(lCtx.config).toBe(undefined)
+        })
+    })
+
+    test('set manual observability', async () => {
+        await asyncForAll(await context(), async (ctx) => {
+            const l = mock<Logger>()
+            const m = mock<Metrics>()
+            const t = mock<Tracer>()
+            const lCtx = await createLambdaContext({
+                definition: { raw: { handler: jest.fn(), schema: {} } },
+                context: ctx.raw,
+                services: undefined,
+                config: undefined,
+                traceId: undefined,
+                requestId: undefined,
+                logger: l,
+                metrics: m,
+                tracer: t,
+            })
+            expect(lCtx.logger).toBe(l)
+            expect(lCtx.metrics).toBe(m)
+            expect(lCtx.tracer).toBe(t)
+            expect(lCtx.raw).toBe(ctx.raw)
+            expect(lCtx.isSensitive).toBe(false)
+            expect(lCtx.traceId).toContain('-')
+            expect(lCtx.requestId).toContain('-')
+            expect(lCtx.services).toBe(undefined)
+            expect(lCtx.config).toBe(undefined)
+        })
+    })
+
+    test('set trace and request', async () => {
+        await asyncForAll(tuple(await context(), string(), string()), async ([ctx, traceId, requestId]) => {
+            const lCtx = await createLambdaContext({
+                definition: { raw: { handler: jest.fn(), schema: {} } },
+                context: ctx.raw,
+                services: undefined,
+                config: undefined,
+                traceId,
+                requestId,
+            })
+            expect(lCtx.logger).toBe(logger)
+            expect(lCtx.metrics).toBe(metrics)
+            expect(lCtx.tracer).toBe(tracer)
+            expect(lCtx.raw).toBe(ctx.raw)
+            expect(lCtx.isSensitive).toBe(false)
+            expect(lCtx.traceId).toEqual(traceId)
+            expect(lCtx.requestId).toEqual(requestId)
+            expect(lCtx.services).toBe(undefined)
+            expect(lCtx.config).toBe(undefined)
+        })
+    })
+
+    test('set trace and request from unknown generator', async () => {
+        await asyncForAll(
+            tuple(await context(), string({ minLength: 4 }), string({ minLength: 4 })),
+            async ([ctx, traceId, requestId]) => {
+                const lCtx = await createLambdaContext({
+                    definition: { raw: { handler: jest.fn(), schema: {} } },
+                    context: ctx.raw,
+                    services: undefined,
+                    config: undefined,
+                    traceId: undefined,
+                    requestId: undefined,
+                    traceIdGenerator: traceId,
+                    requestIdGenerator: requestId,
+                })
+                expect(lCtx.logger).toBe(logger)
+                expect(lCtx.metrics).toBe(metrics)
+                expect(lCtx.tracer).toBe(tracer)
+                expect(lCtx.raw).toBe(ctx.raw)
+                expect(lCtx.isSensitive).toBe(false)
+                expect(lCtx.traceId).toContain('-')
+                expect(lCtx.requestId).toContain('-')
+                expect(lCtx.services).toBe(undefined)
+                expect(lCtx.config).toBe(undefined)
+            }
+        )
+    })
+})
+
+describe('eventHandler', () => {
+    test('handler is definition', () => {
+        forAll(dict(unknown()), (meta) => {
+            const handler = eventHandler({
+                raw: { schema: {}, handler: jest.fn() },
+                ...meta,
+            })
+            expect(handler).toEqual(expect.objectContaining(meta))
+        })
+    })
+
+    test('eager init calls config and services, sync', async () => {
+        await asyncForAll(tuple(unknown(), unknown()), async ([c, s]) => {
+            const config = jest.fn().mockReturnValue(c)
+            const services = jest.fn().mockReturnValue(s)
+            eventHandler(
+                {
+                    config,
+                    services,
+                    raw: { schema: {}, handler: jest.fn() },
+                },
+                { eagerHandlerInitialization: true }
+            )
+            // force event loop switching
+            await sleep(10)
+            expect(config).toHaveBeenCalledTimes(1)
+            expect(config).toHaveBeenCalledWith()
+            expect(services).toHaveBeenCalledTimes(1)
+            expect(services).toHaveBeenCalledWith(c)
+        })
+    })
+
+    test('eager init calls config and services, async', async () => {
+        await asyncForAll(tuple(unknown(), unknown()), async ([c, s]) => {
+            const config = jest.fn().mockResolvedValue(c)
+            const services = jest.fn().mockResolvedValue(s)
+            eventHandler(
+                {
+                    config,
+                    services,
+                    raw: { schema: {}, handler: jest.fn() },
+                },
+                { eagerHandlerInitialization: true }
+            )
+            // force event loop switching
+            await sleep(10)
+            expect(config).toHaveBeenCalledTimes(1)
+            expect(config).toHaveBeenCalledWith()
+            expect(services).toHaveBeenCalledTimes(1)
+            expect(services).toHaveBeenCalledWith(c)
+        })
+    })
+
+    test('lazy init calls not config and not services, async', async () => {
+        await asyncForAll(tuple(unknown(), unknown()), async ([c, s]) => {
+            const config = jest.fn().mockResolvedValue(c)
+            const services = jest.fn().mockResolvedValue(s)
+            eventHandler(
+                {
+                    config,
+                    services,
+                    raw: { schema: {}, handler: jest.fn() },
+                },
+                { eagerHandlerInitialization: false }
+            )
+            // force event loop switching
+            await sleep(10)
+            expect(config).not.toHaveBeenCalled()
+            expect(services).not.toHaveBeenCalled()
+        })
+    })
+
+    test('default init calls not config and not services, async', async () => {
+        await asyncForAll(tuple(unknown(), unknown()), async ([c, s]) => {
+            const config = jest.fn().mockResolvedValue(c)
+            const services = jest.fn().mockResolvedValue(s)
+            eventHandler({
+                config,
+                services,
+                raw: { schema: {}, handler: jest.fn() },
+            })
+            // force event loop switching
+            await sleep(10)
+            expect(config).not.toHaveBeenCalled()
+            expect(services).not.toHaveBeenCalled()
+        })
+    })
+
+    test('default init calls with literals', () => {
+        forAll(tuple(unknown(), unknown()), ([c, s]) => {
+            eventHandler({
+                config: c as never,
+                services: s as never,
+                raw: { schema: {}, handler: jest.fn() },
+            })
+        })
+    })
+
+    test('early exit fully resolved on warmer', async () => {
+        const warmer = '__WARMER__'
+        await asyncForAll(tuple(unknown(), unknown(), await context()), async ([c, s, ctx]) => {
+            const handlerImpl = jest.fn()
+            const config = jest.fn().mockResolvedValue(c)
+            const services = jest.fn().mockResolvedValue(s)
+            const handler = eventHandler(
+                {
+                    config,
+                    services,
+                    raw: { schema: {}, handler: jest.fn() },
+                },
+                { eventHandler: handlerImpl }
+            ) as LambdaHandler
+
+            expect(await handler(warmer, ctx.raw)).toBe(undefined)
+            expect(config).toHaveBeenCalledTimes(1)
+            expect(config).toHaveBeenCalledWith()
+            expect(services).toHaveBeenCalledTimes(1)
+            expect(services).toHaveBeenCalledWith(c)
+
+            expect(handlerImpl).not.toHaveBeenCalled()
+        })
+    })
+
+    test('success resolves to success', async () => {
+        await asyncForAll(
+            tuple(unknown(), unknown(), unknown(), unknown(), await context()),
+            async ([request, c, s, ret, ctx]) => {
+                const l = createLogger({ instance: mock() })
+                const setbinding = jest.spyOn(l, 'setBindings')
+                const m = createMetrics(mock())
+                const t = createTracer(mock())
+
+                const getSegment = mock<any>()
+                ;(t.instance.isTracingEnabled as any).mockReturnValue(true)
+                ;(t.instance.getSegment as any).mockReturnValue(getSegment)
+
+                const handlerImpl = jest.fn().mockResolvedValue(ret)
+                const config = jest.fn().mockResolvedValue(c)
+                const services = jest.fn().mockResolvedValue(s)
+                const definition = {
+                    config,
+                    services,
+                    raw: { schema: {}, handler: jest.fn() },
+                }
+                const handler = eventHandler(definition, {
+                    eventHandler: handlerImpl,
+                    logger: l,
+                    metrics: m,
+                    tracer: t,
+                }) as LambdaHandler
+
+                expect(await handler(request, ctx.raw)).toBe(ret)
+                expect(config).toHaveBeenCalledTimes(1)
+                expect(config).toHaveBeenCalledWith()
+                expect(services).toHaveBeenCalledTimes(1)
+                expect(services).toHaveBeenCalledWith(c)
+
+                expect(handlerImpl).toHaveBeenCalledWith({
+                    definition,
+                    request,
+                    context: expect.objectContaining({ raw: ctx.raw }),
+                })
+
+                const rCtx = handlerImpl.mock.calls[0][0].context
+                expect(setbinding).toBeCalledWith({ requestId: rCtx.requestId, traceId: rCtx.traceId })
+                expect(rCtx.logger).not.toBe(l)
+                expect(m.instance.publishStoredMetrics).toHaveBeenCalled()
+
+                expect(getSegment.addNewSubsegment).toHaveBeenLastCalledWith('## ')
+                expect(getSegment.close).toHaveBeenCalled()
+            }
+        )
+    })
+
+    test('failure resolves to failure', async () => {
+        await asyncForAll(
+            tuple(unknown(), unknown(), unknown(), unknown().map(failure), await context()),
+            async ([request, c, s, ret, ctx]) => {
+                const l = createLogger({ instance: mock() })
+                const setbinding = jest.spyOn(l, 'setBindings')
+
+                const m = createMetrics(mock())
+                const t = createTracer(mock())
+
+                const getSegment = mock<any>()
+                ;(t.instance.isTracingEnabled as any).mockReturnValue(true)
+                ;(t.instance.getSegment as any).mockReturnValue(getSegment)
+
+                const handlerImpl = jest.fn().mockResolvedValue(ret)
+                const config = jest.fn().mockResolvedValue(c)
+                const services = jest.fn().mockResolvedValue(s)
+                const definition = {
+                    config,
+                    services,
+                    raw: { schema: {}, handler: jest.fn() },
+                }
+                const handler = eventHandler(definition, {
+                    eventHandler: handlerImpl,
+                    logger: l,
+                    metrics: m,
+                    tracer: t,
+                }) as LambdaHandler
+
+                await expect(() => handler(request, ctx.raw)).rejects.toThrowError(ret)
+                expect(config).toHaveBeenCalledTimes(1)
+                expect(config).toHaveBeenCalledWith()
+                expect(services).toHaveBeenCalledTimes(1)
+                expect(services).toHaveBeenCalledWith(c)
+
+                expect(handlerImpl).toHaveBeenCalledWith({
+                    definition,
+                    request,
+                    context: expect.objectContaining({ raw: ctx.raw }),
+                })
+
+                const rCtx = handlerImpl.mock.calls[0][0].context
+                expect(setbinding).toBeCalledWith({ requestId: rCtx.requestId, traceId: rCtx.traceId })
+                expect(rCtx.logger).not.toBe(l)
+                expect(m.instance.publishStoredMetrics).toHaveBeenCalled()
+
+                expect(getSegment.addNewSubsegment).toHaveBeenLastCalledWith('## ')
+                expect(getSegment.close).toHaveBeenCalled()
+            }
+        )
+    })
+})

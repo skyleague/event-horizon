@@ -1,15 +1,15 @@
 import { snsParseEvent } from './functions/parse-event'
-import type { SNSEvent, SnsHandler } from './types'
+import type { SNSEvent, SNSHandler } from './types'
 
-import { EventError } from '../../errors/event-error'
 import { ioLogger } from '../functions/io-logger'
 import { ioValidate } from '../functions/io-validate'
 import type { LambdaContext } from '../types'
 
-import { enumerate } from '@skyleague/axioms'
+import type { Try } from '@skyleague/axioms'
+import { enumerate, isFailure, mapTry } from '@skyleague/axioms'
 import type { SNSEventRecord } from 'aws-lambda'
 
-export async function handleSnsEvent(handler: SnsHandler, events: SNSEventRecord[], context: LambdaContext): Promise<void> {
+export async function handleSNSEvent(handler: SNSHandler, events: SNSEventRecord[], context: LambdaContext): Promise<Try<void>> {
     const { sns } = handler
     const parseEventFn = snsParseEvent(sns)
     const ioValidateFn = ioValidate<SNSEvent>({ input: (x) => x.payload })
@@ -18,17 +18,19 @@ export async function handleSnsEvent(handler: SnsHandler, events: SNSEventRecord
     for (const [i, event] of enumerate(events)) {
         const item = { item: i }
 
-        const unvalidatedSnsEvent = parseEventFn.before(event)
-        const snsEvent = ioValidateFn.before(sns.schema.payload, unvalidatedSnsEvent)
+        const snsEvent = mapTry(event, (e) => {
+            const unvalidatedSnsEvent = parseEventFn.before(e)
+            return ioValidateFn.before(sns.schema.payload, unvalidatedSnsEvent)
+        })
 
-        if ('left' in snsEvent) {
-            throw EventError.badRequest(snsEvent.left[0].message)
-        }
+        ioLoggerFn.before(snsEvent, item)
 
-        ioLoggerFn.before(sns, item)
-
-        await sns.handler(snsEvent.right, context)
+        const response = await mapTry(snsEvent, (success) => sns.handler(success, context))
 
         ioLoggerFn.after(undefined, item)
+
+        if (isFailure(response)) {
+            return response
+        }
     }
 }

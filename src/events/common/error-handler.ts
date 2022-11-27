@@ -13,8 +13,6 @@ export function errorHandler({ logger }: LambdaContext) {
             } else if (eventError.isClientError) {
                 logger.warn(`Warning received`, eventError)
             }
-
-            throw error
         },
     }
 }

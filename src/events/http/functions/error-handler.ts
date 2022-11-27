@@ -1,13 +1,13 @@
-import { isDebug } from '../../../constants'
+import { constants } from '../../../constants'
 import { EventError } from '../../../errors/event-error'
 import type { LambdaContext } from '../../types'
-import type { HttpResponse } from '../types'
+import type { HTTPResponse } from '../types'
 
 import { isError } from '@skyleague/axioms'
 
 export function httpErrorHandler({ logger, isSensitive }: LambdaContext) {
     return {
-        onError: (error: Error | unknown): HttpResponse => {
+        onError: (error: Error | unknown): HTTPResponse => {
             const eventError = EventError.is(error) ? error : isError(error) ? new EventError(error) : new EventError('unknown')
 
             if (!isSensitive) {
@@ -25,7 +25,10 @@ export function httpErrorHandler({ logger, isSensitive }: LambdaContext) {
                 body: {
                     statusCode: eventError.statusCode,
                     message: eventError.expose && !isSensitive ? eventError.message : eventError.name,
-                    stack: isDebug && eventError.expose && !isSensitive ? eventError.stack : undefined,
+                    stack:
+                        constants.isDebug && eventError.expose && eventError.isServerError && !isSensitive
+                            ? eventError.stack
+                            : undefined,
                 },
             }
         },

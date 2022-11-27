@@ -1,34 +1,34 @@
 import { eventBridgeParseEvent } from './functions/parse-event'
 import type { EventBridgeEvent, EventBridgeHandler } from './types'
 
-import { EventError } from '../../errors/event-error'
 import { ioLogger } from '../functions/io-logger'
 import { ioValidate } from '../functions/io-validate'
 import type { LambdaContext } from '../types'
 
+import type { Try } from '@skyleague/axioms'
+import { mapTry } from '@skyleague/axioms'
 import type { EventBridgeEvent as AWSEventBridgeEvent } from 'aws-lambda'
 
 export async function handleEventBridgeEvent(
     handler: EventBridgeHandler,
     event: AWSEventBridgeEvent<string, unknown>,
     context: LambdaContext
-): Promise<unknown> {
+): Promise<Try<unknown>> {
     const { eventBridge } = handler
 
     const parseEventFn = eventBridgeParseEvent()
     const ioValidateFn = ioValidate<EventBridgeEvent>({ input: (x) => x.payload })
     const ioLoggerFn = ioLogger({ type: 'eventbridge' }, context)
 
-    const unvalidatedEbEvent = parseEventFn.before(event)
-    const ebEvent = ioValidateFn.before(eventBridge.schema.payload, unvalidatedEbEvent)
+    const ebEvent = mapTry(event, (e) => {
+        const unvalidatedEbEvent = parseEventFn.before(e)
+        return ioValidateFn.before(eventBridge.schema.payload, unvalidatedEbEvent)
+    })
 
-    if ('left' in ebEvent) {
-        throw EventError.badRequest(ebEvent.left[0].message)
-    }
+    ioLoggerFn.before(ebEvent)
 
-    ioLoggerFn.before(ebEvent.right)
-
-    const response = await eventBridge.handler(ebEvent.right, context)
+    const unvalidatedResponse = await mapTry(ebEvent, (e) => eventBridge.handler(e, context))
+    const response = mapTry(unvalidatedResponse, (t) => ioValidateFn.after(eventBridge.schema.result, t))
 
     ioLoggerFn.after(response)
 

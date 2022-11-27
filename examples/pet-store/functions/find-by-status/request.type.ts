@@ -16,10 +16,13 @@ export const Query = {
     get schema() {
         return Query.validate.schema
     },
+    get errors() {
+        return Query.validate.errors ?? undefined
+    },
     is: (o: unknown): o is Query => Query.validate(o) === true,
     assert: (o: unknown) => {
         if (!Query.validate(o)) {
-            throw new AjvValidator.ValidationError(Query.validate.errors ?? [])
+            throw new AjvValidator.ValidationError(Query.errors ?? [])
         }
     },
 } as const

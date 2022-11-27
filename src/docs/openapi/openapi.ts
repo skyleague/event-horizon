@@ -17,9 +17,13 @@ interface JsonSchemaContext {
     openapi: OpenapiV3
 }
 
-export function addComponent(ctx: JsonSchemaContext, schema: JsonSchema | Schema): string {
+export function jsonptrToName(ptr: string) {
+    return ptr.replace(/#((.*?)\/)*/, '')
+}
+
+export function addComponent(ctx: JsonSchemaContext, schema: JsonSchema | Schema, name?: string): string {
     const { openapi } = ctx
-    const name = schema.title!
+    name = schema.title ?? name!
     openapi.components ??= {}
     openapi.components.schemas ??= {}
     openapi.components.schemas[name] ??= schema as Schema
@@ -36,7 +40,7 @@ export function ensureTarget(
     ctx.openapi.components[target] ??= {}
     const targetSchemas = ctx.openapi.components[target]
     if (targetSchemas !== undefined && target !== 'schemas') {
-        const name = ptr.replace(/#\/((.*?)\/)+/, '')
+        const name = jsonptrToName(ptr)
         if (['requestBodies', 'responses'].includes(target)) {
             targetSchemas[name] = {
                 description: (ctx.openapi.components?.schemas?.[name] as Schema)?.description as string,
@@ -60,29 +64,29 @@ export function normalizeSchema({
     ctx,
     schema,
     target = 'schemas',
-    defsOnly: defsOnly = false,
+    defsOnly = false,
 }: {
     ctx: JsonSchemaContext
     schema: JsonSchema | Reference | Schema
     target?: 'parameters' | 'requestBodies' | 'responses' | 'schemas'
     defsOnly?: boolean
 }): JsonSchema | Reference {
-    if ('$ref' in schema) {
-        ensureTarget(ctx, schema.$ref, target)
-        return { $ref: schema.$ref.replace('#/$defs/', `#/components/${target}/`) }
-    }
-
     const jsonschema = cloneDeep(schema) as unknown as JsonSchema
-    const title = schema.title
     delete jsonschema.$schema
 
     if (jsonschema.$defs !== undefined) {
-        for (const def of valuesOf(jsonschema.$defs)) {
-            addComponent(ctx, def)
+        for (const [name, def] of entriesOf(jsonschema.$defs)) {
+            addComponent(ctx, normalizeSchema({ ctx, schema: def }), name)
         }
 
         delete jsonschema.$defs
     }
+
+    if ('$ref' in jsonschema) {
+        ensureTarget(ctx, jsonschema.$ref, target)
+        return { ...jsonschema, $ref: jsonschema.$ref.replace('#/$defs/', `#/components/${target}/`) }
+    }
+
     if (defsOnly) {
         return {}
     }
@@ -111,7 +115,7 @@ export function normalizeSchema({
         }
     }
 
-    if (title !== undefined) {
+    if (jsonschema.title !== undefined) {
         const name = addComponent(ctx, jsonschema)
         ensureTarget(ctx, `#/components/${target}/${name}`, target)
         return { $ref: `#/components/${target}/${name}` }
