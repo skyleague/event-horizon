@@ -3,9 +3,10 @@ import type { Metrics } from '../observability/metrics/metrics'
 import type { Tracer } from '../observability/tracer/tracer'
 
 import type { Try } from '@skyleague/axioms'
+import type { Schema } from '@skyleague/therefore'
 import type { Context } from 'aws-lambda'
 
-export interface LambdaContext<C = never, S = never> {
+export interface LambdaContext<Configuration = never, Service = never, Profile = never> {
     logger: Logger
     tracer: Tracer
     metrics: Metrics
@@ -14,13 +15,17 @@ export interface LambdaContext<C = never, S = never> {
     traceId: string
     requestId: string
 
-    services: S
-    config: C
+    services: Service
+    config: Configuration
+    profile: Profile
 
     raw: Context
 }
 
-export interface EventHandlerDefinition {
+export interface EventHandlerDefinition<Configuration = never, Service = never, Profile = never> {
+    config?: Config<Configuration>
+    services?: Services<Configuration, Service>
+    profile?: Schema<Profile>
     operationId?: string
     summary?: string
     description?: string

@@ -16,7 +16,9 @@ import {
     snsHandler,
     sqsHandler,
 } from './handlers'
+import type { EventHandler } from './types'
 
+import { EventError } from '../errors'
 import type { Logger, Metrics, Tracer } from '../observability'
 import { logger, metrics, tracer } from '../observability'
 import { createLogger } from '../observability/logger/logger'
@@ -30,6 +32,7 @@ import {
     dict,
     failure,
     forAll,
+    json,
     oneOf,
     random,
     sleep,
@@ -53,6 +56,7 @@ import {
 import { arbitrary } from '@skyleague/therefore'
 import type { SNSEvent as LambdaSnsEvent } from 'aws-lambda'
 import type { SecretsManager } from 'aws-sdk'
+import { AppConfigData } from 'aws-sdk'
 
 describe('handleEvent', () => {
     const eventHandlers = mock<typeof allHandlers>()
@@ -529,6 +533,121 @@ describe('eventHandler', () => {
         })
     })
 
+    test('configuration is loaded into profile successfully', async () => {
+        const appConfigData = new AppConfigData()
+        const s = { appConfigData }
+        await asyncForAll(
+            tuple(unknown(), unknown(), unknown(), await context(), string(), dict(json())),
+            async ([request, c, ret, ctx, token, profile]) => {
+                jest.clearAllMocks()
+                jest.spyOn(appConfigData, 'startConfigurationSession').mockReturnValue({
+                    promise: () => ({ InitialConfigurationToken: token }),
+                } as any)
+                jest.spyOn(appConfigData, 'getLatestConfiguration').mockReturnValue({
+                    promise: () => ({ Configuration: JSON.stringify(profile) }),
+                } as any)
+
+                const l = createLogger({ instance: mock() })
+                const setbinding = jest.spyOn(l, 'setBindings')
+                const m = createMetrics(mock())
+                const t = createTracer(mock())
+
+                const getSegment = mock<any>()
+                ;(t.instance.isTracingEnabled as any).mockReturnValue(true)
+                ;(t.instance.getSegment as any).mockReturnValue(getSegment)
+
+                const handlerImpl = jest.fn().mockResolvedValue(ret)
+                const config = jest.fn().mockResolvedValue(c)
+                const services = jest.fn().mockResolvedValue(s)
+                const definition = {
+                    config,
+                    services,
+                    raw: { schema: {}, handler: jest.fn() },
+                    profile: { schema: { schema: { type: 'object' }, is: () => true } },
+                }
+                const handler = eventHandler(definition as unknown as EventHandler, {
+                    eventHandler: handlerImpl,
+                    logger: l,
+                    metrics: m,
+                    tracer: t,
+                }) as LambdaHandler
+
+                expect(await handler(request, ctx.raw)).toBe(ret)
+                expect(config).toHaveBeenCalledTimes(1)
+                expect(config).toHaveBeenCalledWith()
+                expect(services).toHaveBeenCalledTimes(1)
+                expect(services).toHaveBeenCalledWith(c)
+
+                expect(handlerImpl).toHaveBeenCalledWith({
+                    definition,
+                    request,
+                    context: expect.objectContaining({ raw: ctx.raw }),
+                })
+
+                const rCtx = handlerImpl.mock.calls[0][0].context
+                expect(setbinding).toBeCalledWith({ requestId: rCtx.requestId, traceId: rCtx.traceId })
+                expect(rCtx.logger).not.toBe(l)
+                expect(rCtx.profile).toEqual(profile)
+                expect(m.instance.publishStoredMetrics).toHaveBeenCalled()
+
+                expect(getSegment.addNewSubsegment).toHaveBeenLastCalledWith('## ')
+                expect(getSegment.close).toHaveBeenCalled()
+            }
+        )
+    })
+
+    test('invalidating configuration is loaded into profile as failure', async () => {
+        const appConfigData = new AppConfigData()
+        const s = { appConfigData }
+        await asyncForAll(
+            tuple(unknown(), unknown(), unknown(), await context(), string(), dict(json())),
+            async ([request, c, ret, ctx, token, profile]) => {
+                jest.clearAllMocks()
+                jest.spyOn(appConfigData, 'startConfigurationSession').mockReturnValue({
+                    promise: () => ({ InitialConfigurationToken: token }),
+                } as any)
+                jest.spyOn(appConfigData, 'getLatestConfiguration').mockReturnValue({
+                    promise: () => ({ Configuration: JSON.stringify(profile) }),
+                } as any)
+
+                const l = createLogger({ instance: mock() })
+                const m = createMetrics(mock())
+                const t = createTracer(mock())
+
+                const getSegment = mock<any>()
+                ;(t.instance.isTracingEnabled as any).mockReturnValue(true)
+                ;(t.instance.getSegment as any).mockReturnValue(getSegment)
+
+                const handlerImpl = jest.fn().mockResolvedValue(ret)
+                const config = jest.fn().mockResolvedValue(c)
+                const services = jest.fn().mockResolvedValue(s)
+                const definition = {
+                    config,
+                    services,
+                    raw: { schema: {}, handler: jest.fn() },
+                    profile: { schema: { schema: { type: 'object' }, is: () => false } },
+                }
+                const handler = eventHandler(definition as unknown as EventHandler, {
+                    eventHandler: handlerImpl,
+                    logger: l,
+                    metrics: m,
+                    tracer: t,
+                }) as LambdaHandler
+
+                await expect(() => handler(request, ctx.raw)).rejects.toThrowError(expect.any(EventError))
+                expect(config).toHaveBeenCalledTimes(1)
+                expect(config).toHaveBeenCalledWith()
+                expect(services).toHaveBeenCalledTimes(1)
+                expect(services).toHaveBeenCalledWith(c)
+
+                expect(handlerImpl).not.toHaveBeenCalled()
+                expect(m.instance.publishStoredMetrics).toHaveBeenCalled()
+
+                expect(getSegment.addNewSubsegment).toHaveBeenLastCalledWith('## ')
+                expect(getSegment.close).toHaveBeenCalled()
+            }
+        )
+    })
     test('success resolves to success', async () => {
         await asyncForAll(
             tuple(unknown(), unknown(), unknown(), unknown(), await context()),

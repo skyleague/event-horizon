@@ -1,33 +1,43 @@
-import type { Config, EventHandlerDefinition, LambdaContext, Services } from '../types'
+import type { EventHandlerDefinition, LambdaContext } from '../types'
 
 import type { Promisable, Try } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
 import type { FirehoseRecordTransformationStatus, FirehoseTransformationEventRecord } from 'aws-lambda'
 
-export interface FirehoseTransformationResult<R = unknown> {
+export interface FirehoseTransformationResult<Payload = unknown> {
     status: FirehoseRecordTransformationStatus
-    payload: R
+    payload: Payload
 }
 
-export interface FirehoseTransformationEvent<P = unknown> {
-    payload: P
+export interface FirehoseTransformationEvent<Payload = unknown> {
+    payload: Payload
     raw: FirehoseTransformationEventRecord
 }
 
-export interface FirehoseTransformationEventHandler<C = never, S = never, P = unknown, R = unknown> {
+export interface FirehoseTransformationEventHandler<
+    Configuration = never,
+    Service = never,
+    Profile = never,
+    Payload = unknown,
+    Result = unknown
+> {
     schema: {
-        payload?: Schema<P>
-        result?: Schema<R>
+        payload?: Schema<Payload>
+        result?: Schema<Result>
     }
     handler: (
-        request: FirehoseTransformationEvent<P>,
-        context: LambdaContext<C, S>
-    ) => Promisable<Try<FirehoseTransformationResult<R>>>
+        request: FirehoseTransformationEvent<Payload>,
+        context: LambdaContext<Configuration, Service, Profile>
+    ) => Promisable<Try<FirehoseTransformationResult<Result>>>
     payloadType?: 'binary' | 'json' | 'plaintext'
 }
 
-export interface FirehoseTransformationHandler<C = never, S = never, P = unknown, R = unknown> extends EventHandlerDefinition {
-    config?: Config<C>
-    services?: Services<C, S>
-    firehose: FirehoseTransformationEventHandler<C, S, P, R>
+export interface FirehoseTransformationHandler<
+    Configuration = never,
+    Service = never,
+    Profile = never,
+    Payload = unknown,
+    Result = unknown
+> extends EventHandlerDefinition<Configuration, Service, Profile> {
+    firehose: FirehoseTransformationEventHandler<Configuration, Service, Profile, Payload, Result>
 }

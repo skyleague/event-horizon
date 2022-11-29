@@ -12,7 +12,7 @@ import type {
     S3Handler,
 } from '../events'
 
-export type EventHandler<C = never, S = never> =
+export type EventHandler<Service = never> =
     | EventBridgeHandler
     | FirehoseTransformationHandler
     | HTTPHandler
@@ -22,4 +22,4 @@ export type EventHandler<C = never, S = never> =
     | S3Handler
     | SNSHandler
     | SQSHandler
-    | (S extends SecretRotationServices ? SecretRotationHandler<C, S> : never)
+    | (Service extends SecretRotationServices ? SecretRotationHandler<unknown, Service> : never)

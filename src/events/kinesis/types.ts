@@ -1,24 +1,26 @@
-import type { Config, EventHandlerDefinition, LambdaContext, Services } from '../types'
+import type { EventHandlerDefinition, LambdaContext } from '../types'
 
 import type { Promisable, Try } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
 import type { KinesisStreamRecord } from 'aws-lambda'
 
-export interface KinesisEvent<P = unknown> {
-    payload: P
+export interface KinesisEvent<Payload = unknown> {
+    payload: Payload
     raw: KinesisStreamRecord
 }
 
-export interface KinesisEventHandler<C = never, S = never, P = unknown> {
+export interface KinesisEventHandler<Configuration = never, Service = never, Profile = never, Payload = unknown> {
     schema: {
-        payload?: Schema<P>
+        payload?: Schema<Payload>
     }
-    handler: (request: KinesisEvent<P>, context: LambdaContext<C, S>) => Promisable<Try<{} | void>>
+    handler: (
+        request: KinesisEvent<Payload>,
+        context: LambdaContext<Configuration, Service, Profile>
+    ) => Promisable<Try<{} | void>>
     payloadType?: 'binary' | 'json' | 'plaintext'
 }
 
-export interface KinesisHandler<C = never, S = never, P = unknown> extends EventHandlerDefinition {
-    config?: Config<C>
-    services?: Services<C, S>
-    kinesis: KinesisEventHandler<C, S, P>
+export interface KinesisHandler<Configuration = never, Service = never, Profile = never, Payload = unknown>
+    extends EventHandlerDefinition<Configuration, Service, Profile> {
+    kinesis: KinesisEventHandler<Configuration, Service, Profile, Payload>
 }

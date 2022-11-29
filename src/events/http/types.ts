@@ -1,4 +1,4 @@
-import type { Config, EventHandlerDefinition, LambdaContext, Services } from '../types'
+import type { EventHandlerDefinition, LambdaContext } from '../types'
 
 import type { Promisable, Try } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
@@ -10,47 +10,51 @@ export type HTTPQueryParameters = Record<string, string | undefined>
 export type HTTPPathParameters = Record<string, string | undefined>
 
 export interface HTTPRequest<
-    B = unknown,
-    P = HTTPHeaders | undefined,
-    Q = HTTPQueryParameters | undefined,
-    H = HTTPPathParameters | undefined,
+    Body = unknown,
+    Path = HTTPPathParameters | undefined,
+    Query = HTTPQueryParameters | undefined,
+    Headers = HTTPHeaders | undefined,
     GV extends GatewayVersion = 'v1'
 > {
-    body: B
-    headers: H
-    query: Q
-    path: P
+    body: Body
+    headers: Headers
+    query: Query
+    path: Path
     raw: GV extends 'v1' ? APIGatewayProxyEvent : APIGatewayProxyEventV2
 }
 
-export interface HTTPResponse<R = unknown> {
+export interface HTTPResponse<Result = unknown> {
     statusCode: number
     headers?: Record<string, boolean | number | string> | undefined
-    body: R
+    body: Result
 }
 
 export type GatewayVersion = 'v1' | 'v2'
 
 export interface HTTPEventHandler<
-    C = never,
-    S = never,
-    B = unknown,
-    P = unknown,
-    Q = unknown,
-    H = unknown,
-    R = unknown,
+    Configuration = never,
+    Service = never,
+    Profile = never,
+    Body = unknown,
+    Path = unknown,
+    Query = unknown,
+    Headers = unknown,
+    Result = unknown,
     GV extends GatewayVersion = 'v1'
 > {
     method: HTTPMethod
     path: `/${string}`
     schema: {
-        body?: Schema<B>
-        path?: Schema<P>
-        query?: Schema<Q>
-        headers?: Schema<H>
-        responses: Record<PropertyKey, Schema<R>>
+        body?: Schema<Body>
+        path?: Schema<Path>
+        query?: Schema<Query>
+        headers?: Schema<Headers>
+        responses: Record<PropertyKey, Schema<Result>>
     }
-    handler: (request: HTTPRequest<B, P, Q, H, GV>, context: LambdaContext<C, S>) => Promisable<Try<HTTPResponse<R>>>
+    handler: (
+        request: HTTPRequest<Body, Path, Query, Headers, GV>,
+        context: LambdaContext<Configuration, Service, Profile>
+    ) => Promisable<Try<HTTPResponse<Result>>>
 
     bodyType?: 'binary' | 'json' | 'plaintext'
 
@@ -58,16 +62,15 @@ export interface HTTPEventHandler<
 }
 
 export interface HTTPHandler<
-    C = never,
-    S = never,
-    HttpB = unknown,
-    HttpP = unknown,
-    HttpQ = unknown,
-    HttpH = unknown,
-    HttpR = unknown,
+    Configuration = never,
+    Service = never,
+    Profile = never,
+    Body = unknown,
+    Path = unknown,
+    Query = unknown,
+    Headers = unknown,
+    Result = unknown,
     GV extends GatewayVersion = 'v1'
-> extends EventHandlerDefinition {
-    config?: Config<C>
-    services?: Services<C, S>
-    http: HTTPEventHandler<C, S, HttpB, HttpP, HttpQ, HttpH, HttpR, GV>
+> extends EventHandlerDefinition<Configuration, Service, Profile> {
+    http: HTTPEventHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, GV>
 }

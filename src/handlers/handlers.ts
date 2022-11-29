@@ -20,18 +20,20 @@ import type {
 
 import type { APIGatewayProxyEvent, APIGatewayProxyEventV2 } from 'aws-lambda'
 
-export function firehoseHandler<C, S, FirehoseP, FirehoseR, D>(
-    definition: D & FirehoseTransformationHandler<C, S, FirehoseP, FirehoseR>
+export function firehoseHandler<Configuration, Service, Profile, Payload, Result, D>(
+    definition: D & FirehoseTransformationHandler<Configuration, Service, Profile, Payload, Result>
 ): D & LambdaHandler {
     return eventHandler(definition as unknown as EventHandler) as D & LambdaHandler
 }
 
-export function eventBridgeHandler<C, S, EbP, EbR, D>(definition: D & EventBridgeHandler<C, S, EbP, EbR>): D & LambdaHandler {
+export function eventBridgeHandler<Configuration, Service, Profile, Payload, Result, D>(
+    definition: D & EventBridgeHandler<Configuration, Service, Profile, Payload, Result>
+): D & LambdaHandler {
     return eventHandler(definition as unknown as EventHandler) as D & LambdaHandler
 }
 
-export function httpHandler<C, S, HttpB, HttpP, HttpQ, HttpH, HttpR, GV extends GatewayVersion, D>(
-    definition: D & HTTPHandler<C, S, HttpB, HttpP, HttpQ, HttpH, HttpR, GV>
+export function httpHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, GV extends GatewayVersion, D>(
+    definition: D & HTTPHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, GV>
 ): D & LambdaHandler {
     function findHeader(name: string) {
         return (request: APIGatewayProxyEvent | APIGatewayProxyEventV2) =>
@@ -43,32 +45,44 @@ export function httpHandler<C, S, HttpB, HttpP, HttpQ, HttpH, HttpR, GV extends 
     }) as D & LambdaHandler
 }
 
-export function kinesisHandler<C, S, KinesisP, D>(definition: D & KinesisHandler<C, S, KinesisP>): D & LambdaHandler {
-    return eventHandler(definition as unknown as EventHandler) as D & LambdaHandler
-}
-
-export function rawHandler<C, S, RawP, RawR, D>(definition: D & RawHandler<C, S, RawP, RawR>): D & LambdaHandler {
-    return eventHandler(definition as unknown as EventHandler) as D & LambdaHandler
-}
-
-export function snsHandler<C, S, SnsP, D>(definition: D & SNSHandler<C, S, SnsP>): D & LambdaHandler {
-    return eventHandler(definition as unknown as EventHandler) as D & LambdaHandler
-}
-
-export function secretRotationHandler<C extends {}, S extends SecretRotationServices, D>(
-    definition: D & SecretRotationHandler<C, S>
+export function kinesisHandler<Configuration, Service, Profile, Payload, D>(
+    definition: D & KinesisHandler<Configuration, Service, Profile, Payload>
 ): D & LambdaHandler {
     return eventHandler(definition as unknown as EventHandler) as D & LambdaHandler
 }
 
-export function sqsHandler<C, S, SqsP, D>(definition: D & SQSHandler<C, S, SqsP>): D & LambdaHandler {
+export function rawHandler<Configuration, Service, Profile, Payload, Result, D>(
+    definition: D & RawHandler<Configuration, Service, Profile, Payload, Result>
+): D & LambdaHandler {
     return eventHandler(definition as unknown as EventHandler) as D & LambdaHandler
 }
 
-export function s3BatchHandler<C, S, S3BatchR, D>(definition: D & S3BatchHandler<C, S, S3BatchR>): D & LambdaHandler {
+export function snsHandler<Configuration, Service, Profile, Payload, D>(
+    definition: D & SNSHandler<Configuration, Service, Profile, Payload>
+): D & LambdaHandler {
     return eventHandler(definition as unknown as EventHandler) as D & LambdaHandler
 }
 
-export function s3Handler<C, S, D>(definition: D & S3Handler<C, S>): D & LambdaHandler {
+export function secretRotationHandler<Configuration extends {}, Service extends SecretRotationServices, Profile, D>(
+    definition: D & SecretRotationHandler<Configuration, Service, Profile>
+): D & LambdaHandler {
+    return eventHandler(definition as unknown as EventHandler) as D & LambdaHandler
+}
+
+export function sqsHandler<Configuration, Service, Profile, Payload, D>(
+    definition: D & SQSHandler<Configuration, Service, Profile, Payload>
+): D & LambdaHandler {
+    return eventHandler(definition as unknown as EventHandler) as D & LambdaHandler
+}
+
+export function s3BatchHandler<Configuration, Service, Profile, Result, D>(
+    definition: D & S3BatchHandler<Configuration, Service, Profile, Result>
+): D & LambdaHandler {
+    return eventHandler(definition as unknown as EventHandler) as D & LambdaHandler
+}
+
+export function s3Handler<Configuration, Service, Profile, D>(
+    definition: D & S3Handler<Configuration, Service, Profile>
+): D & LambdaHandler {
     return eventHandler(definition as unknown as EventHandler) as D & LambdaHandler
 }

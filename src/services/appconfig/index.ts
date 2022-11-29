@@ -1,0 +1,1 @@
+export { createAppConfigData } from './appconfig'
