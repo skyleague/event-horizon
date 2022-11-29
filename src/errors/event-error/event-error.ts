@@ -153,16 +153,18 @@ export class EventError extends Error {
         location,
         attributes,
         cause,
+        statusCode = 400,
     }: {
         errors?: ErrorObject[] | null | undefined
         location?: string
         attributes?: Record<string, unknown>
         cause?: unknown
+        statusCode?: number
     } = {}): EventError {
         const message =
             location !== undefined ? `${errors?.[0]?.message ?? 'validation failed'} in ${location}` : errors?.[0]?.message
         return new EventError(message, {
-            statusCode: 400,
+            statusCode,
             attributes: { ...attributes, location, errors },
             cause,
             ctor: EventError.validation,
