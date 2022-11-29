@@ -1,0 +1,1 @@
+export { parseJSON } from './json'
