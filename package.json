@@ -50,6 +50,7 @@
     "@aws-lambda-powertools/tracer": "^1.5.0",
     "@skyleague/axioms": "^1.9.0",
     "@types/aws-lambda": "^8.10.109",
+    "secure-json-parse": "^2.5.0",
     "tslib": "^2.4.1"
   },
   "devDependencies": {
