@@ -1,24 +1,32 @@
-import type { Config, EventHandlerDefinition, LambdaContext, ResponseType, Services } from '../types'
+import type { EventHandlerDefinition, LambdaContext, ResponseType } from '../types'
 
 import type { Promisable } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
 import type { EventBridgeEvent as AWSEventBridgeEvent } from 'aws-lambda/trigger/eventbridge'
 
-export interface EventBridgeEvent<P = unknown> {
-    payload: P
-    raw: AWSEventBridgeEvent<string, P>
+export interface EventBridgeEvent<Payload = unknown> {
+    payload: Payload
+    raw: AWSEventBridgeEvent<string, Payload>
 }
 
-export interface EventBridgeEventHandler<C = never, S = never, P = unknown, R = unknown> {
+export interface EventBridgeEventHandler<
+    Configuration = never,
+    Service = never,
+    Profile = never,
+    Payload = unknown,
+    Result = unknown
+> {
     schema: {
-        payload?: Schema<P>
-        result?: Schema<R>
+        payload?: Schema<Payload>
+        result?: Schema<Result>
     }
-    handler: (request: EventBridgeEvent<P>, context: LambdaContext<C, S>) => Promisable<ResponseType<R>>
+    handler: (
+        request: EventBridgeEvent<Payload>,
+        context: LambdaContext<Configuration, Service, Profile>
+    ) => Promisable<ResponseType<Result>>
 }
 
-export interface EventBridgeHandler<C = never, S = never, P = unknown, R = unknown> extends EventHandlerDefinition {
-    config?: Config<C>
-    services?: Services<C, S>
-    eventBridge: EventBridgeEventHandler<C, S, P, R>
+export interface EventBridgeHandler<Configuration = never, Service = never, Profile = never, Payload = unknown, Result = unknown>
+    extends EventHandlerDefinition<Configuration, Service, Profile> {
+    eventBridge: EventBridgeEventHandler<Configuration, Service, Profile, Payload, Result>
 }

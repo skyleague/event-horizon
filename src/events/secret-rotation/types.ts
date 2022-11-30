@@ -1,4 +1,4 @@
-import type { EventHandlerDefinition, LambdaContext, Services, Config } from '../types'
+import type { EventHandlerDefinition, LambdaContext } from '../types'
 
 import type { Promisable } from '@skyleague/axioms'
 import type { SecretsManagerRotationEvent } from 'aws-lambda'
@@ -11,17 +11,22 @@ export interface SecretRotationRequest {
     raw: SecretsManagerRotationEvent
 }
 
-export interface SecretRotationEventHandler<C = never, S extends SecretRotationServices = SecretRotationServices> {
-    handler: (request: SecretRotationRequest, context: LambdaContext<C, S>) => Promisable<void>
+export interface SecretRotationEventHandler<
+    Configuration = never,
+    Service extends SecretRotationServices = SecretRotationServices,
+    Profile = never
+> {
+    handler: (request: SecretRotationRequest, context: LambdaContext<Configuration, Service, Profile>) => Promisable<void>
 }
 
 export interface SecretRotationServices {
     secretManager: SecretsManager
 }
 
-export interface SecretRotationHandler<C = never, S extends SecretRotationServices = SecretRotationServices>
-    extends EventHandlerDefinition {
-    config?: Config<C>
-    services: Services<C, S>
-    secretRotation: SecretRotationEventHandler<C, S>
+export interface SecretRotationHandler<
+    Configuration = never,
+    Service extends SecretRotationServices = SecretRotationServices,
+    Profile = never
+> extends EventHandlerDefinition<Configuration, Service, Profile> {
+    secretRotation: SecretRotationEventHandler<Configuration, Service, Profile>
 }

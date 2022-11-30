@@ -1,12 +1,12 @@
-import type { Config, EventHandlerDefinition, LambdaContext, Services } from '../types'
+import type { EventHandlerDefinition, LambdaContext } from '../types'
 
 import type { Promisable, Try } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
 import type { S3BatchEvent, S3BatchResultResultCode, S3BatchEventTask } from 'aws-lambda'
 
-export interface S3BatchTaskResult<R = unknown> {
+export interface S3BatchTaskResult<Result = unknown> {
     status: S3BatchResultResultCode
-    payload: R
+    payload: Result
 }
 
 export interface S3BatchTask {
@@ -17,17 +17,19 @@ export interface S3BatchTask {
     raw: { task: S3BatchEventTask; job: Omit<S3BatchEvent, 'tasks'> }
 }
 
-export interface S3BatchEventHandler<C = never, S = never, R = unknown> {
+export interface S3BatchEventHandler<Configuration = never, Service = never, Profile = never, Result = unknown> {
     schema: {
-        result?: Schema<R>
+        result?: Schema<Result>
     }
-    handler: (request: S3BatchTask, context: LambdaContext<C, S>) => Promisable<Try<S3BatchTaskResult<R>>>
+    handler: (
+        request: S3BatchTask,
+        context: LambdaContext<Configuration, Service, Profile>
+    ) => Promisable<Try<S3BatchTaskResult<Result>>>
     treatMissingKeysAs?: S3BatchResultResultCode
     treatErrorsAs?: S3BatchResultResultCode
 }
 
-export interface S3BatchHandler<C = never, S = never, R = unknown> extends EventHandlerDefinition {
-    config?: Config<C>
-    services?: Services<C, S>
-    s3Batch: S3BatchEventHandler<C, S, R>
+export interface S3BatchHandler<Configuration = never, Service = never, Profile = never, Result = unknown>
+    extends EventHandlerDefinition<Configuration, Service, Profile> {
+    s3Batch: S3BatchEventHandler<Configuration, Service, Profile, Result>
 }

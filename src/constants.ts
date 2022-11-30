@@ -4,6 +4,7 @@ const logResultPayload = process.env.EH_LOG_RESULT_PAYLOAD ?? process.env.LOG_RE
 export const constants = {
     serviceName: process.env.EH_SERVICE_NAME ?? process.env.SERVICE_NAME ?? 'unknown-service',
     namespace: process.env.EH_SERVICE_NAMESPACE ?? process.env.SERVICE_NAMESPACE ?? 'unknown-service',
+    environment: process.env.EH_ENVIRONMENT ?? process.env.ENVIRONMENT ?? 'dev',
     isDebug,
     logEventPayload: logEventPayload === 'true' || (isDebug && logEventPayload !== 'false'),
     logResultPayload: logResultPayload === 'true' || (isDebug && logResultPayload !== 'false'),

@@ -1,15 +1,12 @@
 {
   "name": "@skyleague/event-horizon",
   "description": "A standardized boilerplate for lambda handlers.",
-  "version": "1.0.0",
+  "version": "2.1.0",
   "license": "MIT",
   "author": "SkyLeague Technologies B.V. <technologies@skyleague.io> (https://skyleague.io)",
   "main": ".main.js",
   "types": "index.d.ts",
   "sideEffects": false,
-  "bin": {
-    "event-horizon": "bin/run"
-  },
   "node-standards": {
     "type": "library"
   },
@@ -54,7 +51,8 @@
     "tslib": "^2.4.1"
   },
   "devDependencies": {
-    "@skyleague/event-horizon-dev": "^1.12.1",
+    "@skyleague/event-horizon": "file:./",
+    "@skyleague/event-horizon-dev": "^1.12.3",
     "@skyleague/node-standards": "^1.10.0",
     "@skyleague/therefore": "^1.20.2",
     "@types/node": "^18.11.9",

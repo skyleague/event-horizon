@@ -5,6 +5,7 @@ import { constants } from '../constants'
 import { errorHandler } from '../events/common/error-handler'
 import { loggerContext } from '../events/common/logger-context'
 import { metricsContext } from '../events/common/metrics-context'
+import { profileHandler } from '../events/common/profile-handler'
 import { traceInvocation } from '../events/common/trace-invocation'
 import { warmup } from '../events/common/warmup'
 import { handleEventBridgeEvent } from '../events/eventbridge/handler'
@@ -27,7 +28,7 @@ import type { Tracer } from '../observability/tracer/tracer'
 import { tracer as globalTracer } from '../observability/tracer/tracer'
 
 import type { Try } from '@skyleague/axioms'
-import { asTry, isFunction, memoize, transformTry, tryToError } from '@skyleague/axioms'
+import { isFunction, mapTry, memoize, transformTry, tryToError } from '@skyleague/axioms'
 import type {
     Context,
     FirehoseTransformationEventRecord,
@@ -190,6 +191,7 @@ export async function createLambdaContext({
         raw: context,
         services: (await services) as never,
         config: (await config) as never,
+        profile: {} as never,
     }
 }
 
@@ -226,6 +228,7 @@ export function eventHandler<H extends EventHandler, R>(definition: H, options: 
     }
 
     const warmupFn = warmup()
+    const profileFn = profileHandler(definition as never, services as never)
 
     async function handler(request: RawRequest, context: Context): Promise<RawResponse> {
         const lambdaContext: LambdaContext = await createLambdaContext({
@@ -252,11 +255,15 @@ export function eventHandler<H extends EventHandler, R>(definition: H, options: 
         metricsFn.before()
         loggerContextFn.before(request, context)
 
-        // isolate the context logger
-        lambdaContext.logger = lambdaContext.logger.child()
+        const ctx = await mapTry(lambdaContext, async (c) => {
+            // isolate the context logger
+            c.logger = c.logger.child()
+            c.profile = (await profileFn.before()) as never
+            return c
+        })
 
-        const tryResponse = await asTry(() =>
-            eventHandlerImpl({ definition: definition as unknown as EventHandler, request, context: lambdaContext })
+        const tryResponse = await mapTry(ctx, (c) =>
+            eventHandlerImpl({ definition: definition as unknown as EventHandler, request, context: c })
         )
 
         const response = transformTry(

@@ -1,18 +1,17 @@
-import type { Config, EventHandlerDefinition, LambdaContext, Services } from '../types'
+import type { EventHandlerDefinition, LambdaContext } from '../types'
 
 import type { Promisable, Try } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
 
-export interface RawEventHandler<C = never, S = never, P = unknown, R = {}> {
+export interface RawEventHandler<Configuration = never, Service = never, Profile = never, Payload = unknown, Result = {}> {
     schema: {
-        payload?: Schema<P>
-        result?: Schema<R>
+        payload?: Schema<Payload>
+        result?: Schema<Result>
     }
-    handler: (request: P, context: LambdaContext<C, S>) => Promisable<Try<R>>
+    handler: (request: Payload, context: LambdaContext<Configuration, Service, Profile>) => Promisable<Try<Result>>
 }
 
-export interface RawHandler<C = never, S = never, P = unknown, R = {}> extends EventHandlerDefinition {
-    config?: Config<C>
-    services?: Services<C, S>
-    raw: RawEventHandler<C, S, P, R>
+export interface RawHandler<Configuration = never, Service = never, Profile = never, Payload = unknown, Result = {}>
+    extends EventHandlerDefinition<Configuration, Service, Profile> {
+    raw: RawEventHandler<Configuration, Service, Profile, Payload, Result>
 }
