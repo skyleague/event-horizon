@@ -1,9 +1,10 @@
+import type { ProfileSchema } from './common/profile-handler'
+
 import type { Logger } from '../observability/logger/logger'
 import type { Metrics } from '../observability/metrics/metrics'
 import type { Tracer } from '../observability/tracer/tracer'
 
 import type { Try } from '@skyleague/axioms'
-import type { Schema } from '@skyleague/therefore'
 import type { Context } from 'aws-lambda'
 
 export interface LambdaContext<Configuration = never, Service = never, Profile = never> {
@@ -25,7 +26,7 @@ export interface LambdaContext<Configuration = never, Service = never, Profile =
 export interface EventHandlerDefinition<Configuration = never, Service = never, Profile = never> {
     config?: Config<Configuration>
     services?: Services<Configuration, Service>
-    profile?: Schema<Profile>
+    profile?: ProfileSchema<Profile>
     operationId?: string
     summary?: string
     description?: string

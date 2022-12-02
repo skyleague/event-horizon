@@ -12,8 +12,10 @@ export interface ProfileServices {
     appConfigData?: AppConfigData
 }
 
+export type ProfileSchema<T> = { schema: Schema<T>; maxAge?: number }
+
 export interface ProfileOptions<T> {
-    profile?: { schema: Schema<T>; maxAge?: number }
+    profile?: ProfileSchema<T>
     application?: string
     environment?: string
     name?: string
