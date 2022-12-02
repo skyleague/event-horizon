@@ -1,6 +1,6 @@
 import type { EventHandlerDefinition, LambdaContext } from '../types'
 
-import type { Promisable } from '@skyleague/axioms'
+import type { Promisable, Try } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
 import type { SQSRecord } from 'aws-lambda'
 
@@ -13,7 +13,7 @@ export interface SQSEventHandler<Configuration = never, Service = never, Profile
     schema: {
         payload?: Schema<Payload>
     }
-    handler: (payload: SQSEvent<Payload>, context: LambdaContext<Configuration, Service, Profile>) => Promisable<void>
+    handler: (payload: SQSEvent<Payload>, context: LambdaContext<Configuration, Service, Profile>) => Promisable<Try<void>>
     payloadType?: 'json' | 'plaintext'
 }
 
