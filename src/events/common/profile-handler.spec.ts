@@ -1,14 +1,22 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/require-await */
 import { profileHandler } from './profile-handler'
 
+import 'aws-sdk-client-mock-jest'
 import { EventError } from '../../errors'
 
+import {
+    AppConfigData,
+    AppConfigDataClient,
+    GetLatestConfigurationCommand,
+    StartConfigurationSessionCommand,
+} from '@aws-sdk/client-appconfigdata'
 import { asyncForAll, dict, json, string, tuple } from '@skyleague/axioms'
-import AppConfigData from 'aws-sdk/clients/appconfigdata'
+import { mockClient } from 'aws-sdk-client-mock'
 
 describe('profile handler', () => {
-    const appConfigData = new AppConfigData()
-    const services = { appConfigData }
+    const appConfigDataMock = mockClient(AppConfigDataClient)
+    const services = { appConfigData: new AppConfigData({}) }
 
     test('skips retrieving when not properly configured', async () => {
         await asyncForAll(dict(json()), async (x) => {
@@ -20,13 +28,9 @@ describe('profile handler', () => {
 
     test('retrieve initial configuration, and validates', async () => {
         await asyncForAll(tuple(string(), dict(json())), async ([token, config]) => {
-            jest.clearAllMocks()
-            jest.spyOn(appConfigData, 'startConfigurationSession').mockReturnValue({
-                promise: () => ({ InitialConfigurationToken: token }),
-            } as any)
-            jest.spyOn(appConfigData, 'getLatestConfiguration').mockReturnValue({
-                promise: () => ({ Configuration: JSON.stringify(config) }),
-            } as any)
+            appConfigDataMock.reset()
+            appConfigDataMock.on(StartConfigurationSessionCommand).resolvesOnce({ InitialConfigurationToken: token })
+            appConfigDataMock.on(GetLatestConfigurationCommand).resolvesOnce({ Configuration: JSON.stringify(config) as any })
 
             const handler = profileHandler(
                 { profile: { schema: { schema: { type: 'object' }, is: () => true } } } as any,
@@ -34,21 +38,17 @@ describe('profile handler', () => {
             )
 
             expect(await handler.before()).toEqual(config)
-            expect(appConfigData.startConfigurationSession).toHaveBeenCalledTimes(1)
-            expect(appConfigData.getLatestConfiguration).toHaveBeenCalledTimes(1)
-            expect(appConfigData.getLatestConfiguration).toHaveBeenCalledWith({ ConfigurationToken: token })
+            expect(appConfigDataMock).toReceiveCommandTimes(StartConfigurationSessionCommand, 1)
+            expect(appConfigDataMock).toReceiveCommandTimes(GetLatestConfigurationCommand, 1)
+            expect(appConfigDataMock).toReceiveCommandWith(GetLatestConfigurationCommand, { ConfigurationToken: token })
         })
     })
 
     test('retrieve initial configuration, and validates - caches results', async () => {
         await asyncForAll(tuple(string(), dict(json())), async ([token, config]) => {
-            jest.clearAllMocks()
-            jest.spyOn(appConfigData, 'startConfigurationSession').mockReturnValue({
-                promise: () => ({ InitialConfigurationToken: token }),
-            } as any)
-            jest.spyOn(appConfigData, 'getLatestConfiguration').mockReturnValue({
-                promise: () => ({ Configuration: JSON.stringify(config) }),
-            } as any)
+            appConfigDataMock.reset()
+            appConfigDataMock.on(StartConfigurationSessionCommand).resolvesOnce({ InitialConfigurationToken: token })
+            appConfigDataMock.on(GetLatestConfigurationCommand).resolvesOnce({ Configuration: JSON.stringify(config) as any })
 
             const handler = profileHandler(
                 { profile: { schema: { schema: { type: 'object' }, is: () => true } } } as any,
@@ -57,53 +57,56 @@ describe('profile handler', () => {
 
             expect(await handler.before()).toEqual(config)
             expect(await handler.before()).toEqual(config)
-            expect(appConfigData.startConfigurationSession).toHaveBeenCalledTimes(1)
-            expect(appConfigData.getLatestConfiguration).toHaveBeenCalledTimes(1)
-            expect(appConfigData.getLatestConfiguration).toHaveBeenCalledWith({ ConfigurationToken: token })
+
+            expect(appConfigDataMock).toReceiveCommandTimes(StartConfigurationSessionCommand, 1)
+            expect(appConfigDataMock).toReceiveCommandTimes(GetLatestConfigurationCommand, 1)
+            expect(appConfigDataMock).toReceiveCommandWith(GetLatestConfigurationCommand, { ConfigurationToken: token })
         })
     })
 
     test('retrieve initial configuration and updates, and validates', async () => {
-        await asyncForAll(tuple(string(), string(), dict(json())), async ([token1, token2, config]) => {
-            jest.clearAllMocks()
-            jest.spyOn(appConfigData, 'startConfigurationSession').mockReturnValue({
-                promise: () => ({ InitialConfigurationToken: token1 }),
-            } as any)
-            jest.spyOn(appConfigData, 'getLatestConfiguration').mockReturnValue({
-                promise: () => ({ Configuration: JSON.stringify(config), NextPollConfigurationToken: token2 }),
-            } as any)
+        await asyncForAll(
+            tuple(string(), string(), string(), dict(json())),
+            async ([token1, token2, token3, config]) => {
+                appConfigDataMock.reset()
+                appConfigDataMock.on(StartConfigurationSessionCommand).resolvesOnce({ InitialConfigurationToken: token1 })
+                appConfigDataMock
+                    .on(GetLatestConfigurationCommand)
+                    .resolvesOnce({ Configuration: JSON.stringify(config) as any, NextPollConfigurationToken: token2 })
+                    .resolvesOnce({ Configuration: JSON.stringify(config) as any, NextPollConfigurationToken: token3 })
 
-            const handler = profileHandler(
-                { profile: { maxAge: 0, schema: { schema: { type: 'object' }, is: () => true } } } as any,
-                async () => services
-            )
+                const handler = profileHandler(
+                    { profile: { maxAge: 0, schema: { schema: { type: 'object' }, is: () => true } } } as any,
+                    async () => services
+                )
 
-            expect(await handler.before()).toEqual(config)
+                expect(await handler.before()).toEqual(config)
 
-            jest.setSystemTime(new Date().getTime() + 10)
+                jest.setSystemTime(new Date().getTime() + 10)
 
-            expect(await handler.before()).toEqual(config)
+                expect(await handler.before()).toEqual(config)
 
-            expect(appConfigData.startConfigurationSession).toHaveBeenCalledTimes(1)
-            expect(appConfigData.getLatestConfiguration).toHaveBeenCalledTimes(2)
-            expect(appConfigData.getLatestConfiguration).toHaveBeenNthCalledWith(1, { ConfigurationToken: token1 })
-            expect(appConfigData.getLatestConfiguration).toHaveBeenNthCalledWith(2, { ConfigurationToken: token2 })
-        })
+                expect(appConfigDataMock).toReceiveCommandTimes(StartConfigurationSessionCommand, 1)
+                expect(appConfigDataMock).toReceiveNthCommandWith(1, StartConfigurationSessionCommand, {})
+                expect(appConfigDataMock).toReceiveNthCommandWith(2, GetLatestConfigurationCommand, {
+                    ConfigurationToken: token1,
+                })
+                expect(appConfigDataMock).toReceiveNthCommandWith(3, GetLatestConfigurationCommand, {
+                    ConfigurationToken: token2,
+                })
+            },
+            { counterExample: ['', '', '', {}] }
+        )
     })
 
     test('retrieve initial configuration and ignores empty configurations, and validates', async () => {
         await asyncForAll(tuple(string(), string(), string(), dict(json())), async ([token1, token2, token3, config]) => {
-            jest.clearAllMocks()
-            jest.spyOn(appConfigData, 'startConfigurationSession').mockReturnValue({
-                promise: () => ({ InitialConfigurationToken: token1 }),
-            } as any)
-            jest.spyOn(appConfigData, 'getLatestConfiguration')
-                .mockReturnValueOnce({
-                    promise: () => ({ Configuration: JSON.stringify(config), NextPollConfigurationToken: token2 }),
-                } as any)
-                .mockReturnValueOnce({
-                    promise: () => ({ Configuration: '', NextPollConfigurationToken: token3 }),
-                } as any)
+            appConfigDataMock.reset()
+            appConfigDataMock.on(StartConfigurationSessionCommand).resolvesOnce({ InitialConfigurationToken: token1 })
+            appConfigDataMock
+                .on(GetLatestConfigurationCommand)
+                .resolvesOnce({ Configuration: JSON.stringify(config) as any, NextPollConfigurationToken: token2 })
+                .resolvesOnce({ Configuration: '' as any, NextPollConfigurationToken: token3 })
 
             const handler = profileHandler(
                 { profile: { maxAge: 0, schema: { schema: { type: 'object' }, is: () => true } } } as any,
@@ -116,22 +119,19 @@ describe('profile handler', () => {
 
             expect(await handler.before()).toEqual(config)
 
-            expect(appConfigData.startConfigurationSession).toHaveBeenCalledTimes(1)
-            expect(appConfigData.getLatestConfiguration).toHaveBeenCalledTimes(2)
-            expect(appConfigData.getLatestConfiguration).toHaveBeenNthCalledWith(1, { ConfigurationToken: token1 })
-            expect(appConfigData.getLatestConfiguration).toHaveBeenNthCalledWith(2, { ConfigurationToken: token2 })
+            expect(appConfigDataMock).toReceiveCommandTimes(StartConfigurationSessionCommand, 1)
+            expect(appConfigDataMock).toReceiveCommandTimes(GetLatestConfigurationCommand, 2)
+            expect(appConfigDataMock).toReceiveNthCommandWith(1, StartConfigurationSessionCommand, {})
+            expect(appConfigDataMock).toReceiveNthCommandWith(2, GetLatestConfigurationCommand, { ConfigurationToken: token1 })
+            expect(appConfigDataMock).toReceiveNthCommandWith(3, GetLatestConfigurationCommand, { ConfigurationToken: token2 })
         })
     })
 
     test('retrieve initial configuration, and not validates', async () => {
         await asyncForAll(tuple(string(), dict(json())), async ([token, config]) => {
-            jest.clearAllMocks()
-            jest.spyOn(appConfigData, 'startConfigurationSession').mockReturnValue({
-                promise: () => ({ InitialConfigurationToken: token }),
-            } as any)
-            jest.spyOn(appConfigData, 'getLatestConfiguration').mockReturnValue({
-                promise: () => ({ Configuration: JSON.stringify(config) }),
-            } as any)
+            appConfigDataMock.reset()
+            appConfigDataMock.on(StartConfigurationSessionCommand).resolvesOnce({ InitialConfigurationToken: token })
+            appConfigDataMock.on(GetLatestConfigurationCommand).resolvesOnce({ Configuration: JSON.stringify(config) as any })
 
             const handler = profileHandler(
                 { profile: { schema: { schema: { type: 'object' }, is: () => false } } } as any,
@@ -139,9 +139,11 @@ describe('profile handler', () => {
             )
 
             await expect(handler.before()).rejects.toEqual(expect.any(EventError))
-            expect(appConfigData.startConfigurationSession).toHaveBeenCalledTimes(1)
-            expect(appConfigData.getLatestConfiguration).toHaveBeenCalledTimes(1)
-            expect(appConfigData.getLatestConfiguration).toHaveBeenCalledWith({ ConfigurationToken: token })
+
+            expect(appConfigDataMock).toReceiveCommandTimes(StartConfigurationSessionCommand, 1)
+            expect(appConfigDataMock).toReceiveCommandTimes(GetLatestConfigurationCommand, 1)
+            expect(appConfigDataMock).toReceiveNthCommandWith(1, StartConfigurationSessionCommand, {})
+            expect(appConfigDataMock).toReceiveNthCommandWith(2, GetLatestConfigurationCommand, { ConfigurationToken: token })
         })
     })
 })

@@ -1,9 +1,9 @@
 import { tracer } from '../../observability/tracer/tracer'
 
+import { S3 } from '@aws-sdk/client-s3'
 import { memoize } from '@skyleague/axioms'
-import S3 from 'aws-sdk/clients/s3'
 
 /**
  * @group Services
  */
-export const createS3 = memoize<S3>(() => tracer.captureAWSClient(new S3()))
+export const createS3 = memoize<S3>(() => tracer.captureAWSv3Client(new S3({})))

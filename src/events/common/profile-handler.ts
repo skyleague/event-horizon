@@ -3,10 +3,10 @@ import { EventError } from '../../errors'
 import { parseJSON } from '../../parsers/json'
 import { createAppConfigData } from '../../services/appconfig'
 
+import type { AppConfigData } from '@aws-sdk/client-appconfigdata'
 import type { Try } from '@skyleague/axioms'
 import { memoize, ttlCacheResolver } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
-import type { AppConfigData } from 'aws-sdk'
 
 export interface ProfileServices {
     appConfigData?: AppConfigData
@@ -42,16 +42,14 @@ export function profileHandler<T>(options: ProfileOptions<T>, services: () => Pr
     async function getRawConfiguration(): Promise<string> {
         const appConfig = await appConfigData()
         if (nextToken === undefined) {
-            const response = await appConfig
-                .startConfigurationSession({
-                    ApplicationIdentifier: application,
-                    EnvironmentIdentifier: environment,
-                    ConfigurationProfileIdentifier: name,
-                })
-                .promise()
+            const response = await appConfig.startConfigurationSession({
+                ApplicationIdentifier: application,
+                EnvironmentIdentifier: environment,
+                ConfigurationProfileIdentifier: name,
+            })
             nextToken = response.InitialConfigurationToken!
         }
-        const response = await appConfig.getLatestConfiguration({ ConfigurationToken: nextToken }).promise()
+        const response = await appConfig.getLatestConfiguration({ ConfigurationToken: nextToken })
 
         nextToken = response.NextPollConfigurationToken
         const returnedConfiguration = response.Configuration?.toString() ?? ''

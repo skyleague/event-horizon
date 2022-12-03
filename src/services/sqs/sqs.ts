@@ -1,9 +1,9 @@
 import { tracer } from '../../observability/tracer/tracer'
 
+import { SQS } from '@aws-sdk/client-sqs'
 import { memoize } from '@skyleague/axioms'
-import SQS from 'aws-sdk/clients/sqs'
 
 /**
  * @group Services
  */
-export const createSQS = memoize<SQS>(() => tracer.captureAWSClient(new SQS()))
+export const createSQS = memoize<SQS>(() => tracer.captureAWSv3Client(new SQS({})))

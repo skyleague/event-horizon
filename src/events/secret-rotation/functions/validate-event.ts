@@ -12,7 +12,7 @@ export function secretValidateEvent({ logger, services: { secretsManager } }: La
             logger.setBindings({ secretId, step, clientRequestToken })
             logger.info(`Starting secret rotation ${step}`)
 
-            const metadata = await secretsManager.describeSecret({ SecretId: secretId }).promise()
+            const metadata = await secretsManager.describeSecret({ SecretId: secretId })
             if (metadata.RotationEnabled !== true) {
                 logger.error('Secret does not have rotation enabled')
                 return EventError.preconditionFailed()
