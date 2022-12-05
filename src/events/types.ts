@@ -4,7 +4,6 @@ import type { Logger } from '../observability/logger/logger'
 import type { Metrics } from '../observability/metrics/metrics'
 import type { Tracer } from '../observability/tracer/tracer'
 
-import type { Try } from '@skyleague/axioms'
 import type { Context } from 'aws-lambda'
 
 export interface LambdaContext<Configuration = never, Service = never, Profile = never> {
@@ -37,5 +36,3 @@ export interface EventHandlerDefinition<Configuration = never, Service = never, 
 
 export type Config<C> = C | (() => C | Promise<C>)
 export type Services<C, S> = S | ((config: C) => Promise<S> | S)
-
-export type ResponseType<R> = R | Try<R>
