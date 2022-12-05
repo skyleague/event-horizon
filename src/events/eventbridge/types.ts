@@ -1,6 +1,6 @@
-import type { EventHandlerDefinition, LambdaContext, ResponseType } from '../types'
+import type { EventHandlerDefinition, LambdaContext } from '../types'
 
-import type { Promisable } from '@skyleague/axioms'
+import type { Promisable, Try } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
 import type { EventBridgeEvent as AWSEventBridgeEvent } from 'aws-lambda/trigger/eventbridge'
 
@@ -23,7 +23,7 @@ export interface EventBridgeEventHandler<
     handler: (
         request: EventBridgeEvent<Payload>,
         context: LambdaContext<Configuration, Service, Profile>
-    ) => Promisable<ResponseType<Result>>
+    ) => Promisable<Try<Result>>
 }
 
 export interface EventBridgeHandler<Configuration = never, Service = never, Profile = never, Payload = unknown, Result = unknown>

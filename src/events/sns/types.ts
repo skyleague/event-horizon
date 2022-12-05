@@ -1,6 +1,6 @@
 import type { LambdaContext, EventHandlerDefinition } from '../types'
 
-import type { Promisable } from '@skyleague/axioms'
+import type { Promisable, Try } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
 import type { SNSEventRecord } from 'aws-lambda'
 
@@ -13,7 +13,7 @@ export interface SNSEventHandler<Configuration = never, Service = never, Profile
     schema: {
         payload?: Schema<Payload>
     }
-    handler: (request: SNSEvent<Payload>, context: LambdaContext<Configuration, Service, Profile>) => Promisable<void>
+    handler: (request: SNSEvent<Payload>, context: LambdaContext<Configuration, Service, Profile>) => Promisable<Try<void>>
     payloadType?: 'binary' | 'json' | 'plaintext'
 }
 
