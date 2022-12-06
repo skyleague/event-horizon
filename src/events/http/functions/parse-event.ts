@@ -12,7 +12,7 @@ export function httpParseEvent({ bodyType = 'json' }: HTTPEventHandler) {
                 const unencodedBody = event.isBase64Encoded ? Buffer.from(event.body, 'base64').toString() : event.body
                 body = bodyType === 'json' ? parseJSON(unencodedBody) : unencodedBody
             }
-            const headers = Object.fromEntries(Object.entries(event.headers ?? {}).map(([h, v]) => [h.toLowerCase(), v]))
+            const headers = Object.fromEntries(Object.entries(event.headers).map(([h, v]) => [h.toLowerCase(), v]))
 
             return {
                 body,

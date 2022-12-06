@@ -6,7 +6,7 @@ import { Logger as AwsLogger } from '@aws-lambda-powertools/logger'
 import type { ConstructorOptions } from '@aws-lambda-powertools/logger/lib/types'
 import { mergeDeep } from '@skyleague/axioms'
 
-export type LogItemObject = {
+export interface LogItemObject {
     [key: string]: unknown
     message: string
 }

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/unbound-method */
 import { EventError, httpStatusCodes } from './event-error'
 
 import { forAll, string } from '@skyleague/axioms'
@@ -50,7 +49,7 @@ test.each([
         expect(EventError.is(e)).toBeTruthy()
         expect(e.statusCode).toEqual(statusCode)
         expect(e.name).toEqual(error.name)
-        expect(e.error).toEqual(httpStatusCodes[statusCode as keyof typeof httpStatusCodes])
+        expect(e.error).toEqual(httpStatusCodes[statusCode])
         expect(e.stack).not.toMatch(/\/event-error\.ts/)
 
         expect(e.isInformational).toEqual(e.statusCode.toString().startsWith('1'))

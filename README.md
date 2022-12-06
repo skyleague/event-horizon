@@ -1,7 +1,5 @@
-<!-- ABOUT-->
-A standardized boilerplate for lambda handlers.
+## Event Horizon (@skyleague/event-horizon)
 
-## Event Horizon (@skyleague/event-horizon) 
 <p>
   <img alt="Lines of code" src="https://img.shields.io/tokei/lines/github/skyleague/event-horizon"/>
   <img alt="Version" src="https://img.shields.io/github/package-json/v/skyleague/event-horizon"/>
@@ -10,23 +8,23 @@ A standardized boilerplate for lambda handlers.
   <a href="#license">
     <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
   </a>
-</p> 
+</p>
 
 > I propose that the information is stored not in the interior of the black hole as one might expect, but on its boundary, the event horizon
-> 
-> - Stephen Hawking
+>
+> -   Stephen Hawking
 
-Event Horizon simplifies doing _the right_ thing with AWS lambda handlers. It tries to do *as little* as possible, and adds little functionality:
+Event Horizon simplifies doing _the right_ thing with AWS lambda handlers. It tries to do _as little_ as possible, and adds little functionality:
 
- * Typing & validation on handler input and output.
- * Sane and configurable error handling depending on the event source.
- * Exposes loggers, tracing and metrics functionality.
- * A standardized way of injecting dependencies in the cold start of lambdas.
- * Out of the box [AWS X-Ray](https://docs.aws.amazon.com/xray/latest/devguide/aws-xray.html) integration.
- * OpenAPI documentation generation.
- * Tries to stay out of your way as much as possible.
+-   Typing & validation on handler input and output.
+-   Sane and configurable error handling depending on the event source.
+-   Exposes loggers, tracing and metrics functionality.
+-   A standardized way of injecting dependencies in the cold start of lambdas.
+-   Out of the box [AWS X-Ray](https://docs.aws.amazon.com/xray/latest/devguide/aws-xray.html) integration.
+-   OpenAPI documentation generation.
+-   Tries to stay out of your way as much as possible.
 
- Notably, Event Horizon is *not* an http framework. Routing is outside of the scope of this library. Replacing the library with something else shouldn't be hard due to its limited functionality.
+Notably, Event Horizon is _not_ an http framework. Routing is outside of the scope of this library. Replacing the library with something else shouldn't be hard due to its limited functionality.
 
 <!-- GETTING STARTED -->
 
@@ -34,15 +32,16 @@ Event Horizon simplifies doing _the right_ thing with AWS lambda handlers. It tr
 
 Use npm to install event-horizon and the event-horizon-cli
 
-  ```sh
-  npm i @skyleague/event-horizon
-  ```
+```sh
+npm i @skyleague/event-horizon
+```
 
 ## Handlers
 
 ### HTTP
 
 An example http handler:
+
 ```
 export const handler = httpHandler({
     http: {
@@ -72,24 +71,23 @@ export const handler = httpHandler({
 
 Install [Event Horizon CLI module](https://github.com/skyleague/event-horizon-cli)
 
-  ```sh
-  npm i @skyleague/event-horizon-cli
-  ```
+```sh
+npm i @skyleague/event-horizon-cli
+```
 
 <!-- USAGE EXAMPLES -->
 
-## Usage 
+## Usage
 
 In the examples folder you will find a pet-store application which you can run.
 
-  ```sh
+```sh
 event-horizon-cli start examples/pet-store/functions/index.ts | npx pino-pretty -m message
-  ```
+```
 
-Two local endpoints will become available on http://localhost:3000 
+Two local endpoints will become available on http://localhost:3000
 
-[http://localhost:3000/pet](http://localhost:3000/pet) and [http://localhost:3000/pet/findByStatus
-](http://localhost:3000/pet/findByStatus?status=sold)
+[http://localhost:3000/pet](http://localhost:3000/pet) and [http://localhost:3000/pet/findByStatus ](http://localhost:3000/pet/findByStatus?status=sold)
 
 Logs will be available in your terminal.
 
@@ -97,9 +95,9 @@ Logs will be available in your terminal.
 
 In no particular order, the following libraries try to solve similar problems (albeit very differently):
 
-- [`Middy`](https://middy.js.org/)
-- [`Serverless Express`](https://github.com/vendia/serverless-express)
-- The list goes on...
+-   [`Middy`](https://middy.js.org/)
+-   [`Serverless Express`](https://github.com/vendia/serverless-express)
+-   The list goes on...
 
 PR's are very welcome if you think your project is missing here.
 
@@ -117,7 +115,6 @@ If you using this SDK without Enterprise Support, please note this (partial) MIT
 
 > THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND
 
-Copyright (c) 2022, SkyLeague Technologies B.V..
-'SkyLeague' and the astronaut logo are trademarks of SkyLeague Technologies, registered at Chamber of Commerce in The Netherlands under number 86650564.
+Copyright (c) 2022, SkyLeague Technologies B.V.. 'SkyLeague' and the astronaut logo are trademarks of SkyLeague Technologies, registered at Chamber of Commerce in The Netherlands under number 86650564.
 
 All product names, logos, brands, trademarks and registered trademarks are property of their respective owners. All company, product and service names used in this website are for identification purposes only. Use of these names, trademarks and brands does not imply endorsement.
