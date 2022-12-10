@@ -300,7 +300,7 @@ describe('handler', () => {
                         statusCode: 500,
                     },
                 })
-                expect(ctx.logger.error).toHaveBeenCalledWith(`Uncaught error found`, expect.any(EventError))
+                expect(ctx.logger.error).toHaveBeenCalledWith(`Error found`, expect.any(EventError))
             })
         }
     )
@@ -339,7 +339,7 @@ describe('handler', () => {
                         statusCode: 500,
                     },
                 })
-                expect(ctx.logger.error).toHaveBeenCalledWith(`Uncaught error found`, expect.any(EventError))
+                expect(ctx.logger.error).toHaveBeenCalledWith(`Error found`, expect.any(EventError))
             })
         }
     )

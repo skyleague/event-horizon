@@ -1,1 +1,1 @@
-export { EventError, EventErrorOptions, ErrorLike } from './event-error'
+export { EventError, EventOptions, ErrorLike } from './event-error'

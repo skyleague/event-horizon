@@ -2,6 +2,7 @@ import type { AWSLambdaHandler, RawRequest, RawResponse } from './aws'
 import type { EventHandler } from './types'
 
 import { constants } from '../constants'
+import type { EventError } from '../errors'
 import { errorHandler } from '../events/common/error-handler'
 import { loggerContext } from '../events/common/logger-context'
 import { metricsContext } from '../events/common/metrics-context'
@@ -272,9 +273,9 @@ export function eventHandler<H extends EventHandler, R>(definition: H, options: 
             },
             (f) => {
                 for (const eh of [errorHandlerFn.onError, tracerFn.onError, metricsFn.onError]) {
-                    eh(f)
+                    f = (eh(f) as EventError | undefined) ?? f
                 }
-                return f
+                return errorHandlerFn.onExit(f)
             }
         )
 

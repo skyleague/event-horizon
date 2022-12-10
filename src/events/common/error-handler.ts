@@ -5,14 +5,26 @@ import { isError } from '@skyleague/axioms'
 
 export function errorHandler({ logger }: LambdaContext) {
     return {
-        onError: (error: Error | unknown): void => {
-            const eventError = EventError.is(error) ? error : isError(error) ? new EventError(error) : new EventError('unknown')
+        onError: (error: Error | unknown): EventError => {
+            const eventError = EventError.from(error)
 
-            if (eventError.isServerError) {
+            if (eventError.level === 'error') {
                 logger.error(`Uncaught error found`, eventError)
-            } else if (eventError.isClientError) {
-                logger.warn(`Warning received`, eventError)
+            } else if (eventError.level === 'warning') {
+                logger.warn('Warning found', eventError)
+            } else {
+                logger.info(`Warning found`, eventError)
             }
+            return eventError
+        },
+        onExit: (response: Error): unknown => {
+            if (isError(response)) {
+                const eventError = EventError.from(response)
+                if (eventError.errorHandling === 'graceful') {
+                    return {}
+                }
+            }
+            return response
         },
     }
 }
