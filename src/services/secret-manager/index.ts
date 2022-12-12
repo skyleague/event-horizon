@@ -1,1 +1,1 @@
-export { createSecretManager } from './secret-manager'
+export { createSecretsManager } from './secret-manager'
