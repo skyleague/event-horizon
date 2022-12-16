@@ -7,8 +7,16 @@
   "main": ".main.js",
   "types": "index.d.ts",
   "sideEffects": false,
+  "homepage": "https://skyleague.github.io/event-horizon/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/skyleague/event-horizon.git"
+  },
   "node-standards": {
-    "type": "library"
+    "type": "library",
+    "template": {
+      "documentation": "docusaurus"
+    }
   },
   "engines": {
     "node": ">=14"
@@ -21,7 +29,7 @@
   "scripts": {
     "build": "npx ts-node esbuild.config.ts",
     "build:clean": "npx tsc --build --clean && rm .main.js && rm .main.js.map",
-    "build:docs": "npx typedoc",
+    "build:docs": "(cd docs; npm install; npm run build)",
     "check:cost": "npx cost-of-modules --no-install --include-dev",
     "check:coverage": "npx jest --collectCoverage=true",
     "check:full": "npm run lint && npm run check:types && npm run check:coverage && npm run build && npm run check:project",

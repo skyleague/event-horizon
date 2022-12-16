@@ -79,6 +79,9 @@ export const httpStatusCodes: Record<number, string | undefined> = {
 
 export type ErrorLike = Error | string
 
+/**
+ * @group Errors
+ */
 export interface EventOptions {
     level?: 'error' | 'info' | 'warning'
     errorHandling?: 'graceful' | 'throw'
@@ -92,6 +95,9 @@ export interface EventOptions {
     name?: string
 }
 
+/**
+ * @group Errors
+ */
 export class EventError extends Error {
     public isEventError = true
     public level: 'error' | 'info' | 'warning'

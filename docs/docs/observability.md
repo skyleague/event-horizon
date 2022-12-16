@@ -1,0 +1,19 @@
+# Observability
+
+## XRay
+
+AWS X-Ray is a powerful tool for debugging and optimizing applications that run on Amazon Web Services (AWS). It provides a way to trace requests as they flow through your application, and collect data about performance and errors.
+
+One of the key benefits of using X-Ray is that it allows you to see the end-to-end request path, from the initial client request all the way through to the final response. This makes it easy to identify bottlenecks and latency issues, and to understand how different components of your application are interacting with each other.
+
+X-Ray also integrates with other AWS services, such as Elastic Load Balancing, Amazon S3, and Amazon DynamoDB. This means that you can get a complete picture of how your application is performing, even if it relies on multiple AWS services.
+
+In addition to providing visibility into the performance of your application, X-Ray also makes it easy to find and fix errors. It provides detailed information about any exceptions or errors that occur during a request, including the line of code where the error occurred and the input that caused it. This makes it easy to reproduce and debug issues in your application
+
+## CloudWatch
+
+CloudWatch Metrics is a monitoring service offered by Amazon Web Services (AWS). It provides a way to collect and track key performance metrics for your applications, as well as for the underlying AWS resources that they use.
+
+One of the key benefits of using CloudWatch Metrics is that it allows you to track the performance of your applications in real-time. This means that you can quickly identify any issues or trends that may be impacting the performance of your application, and take corrective action if necessary.
+
+CloudWatch Metrics also makes it easy to set alarms that will notify you when a metric exceeds a specified threshold. This allows you to proactively monitor your applications and take action before any issues become critical.

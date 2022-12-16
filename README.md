@@ -1,4 +1,4 @@
-## Event Horizon (@skyleague/event-horizon)
+# Event Horizon [(@skyleague/event-horizon)](https://skyleague.github.io/event-horizon/)
 
 <p>
   <img alt="Lines of code" src="https://img.shields.io/tokei/lines/github/skyleague/event-horizon"/>
@@ -25,6 +25,10 @@ Event Horizon simplifies doing _the right_ thing with AWS lambda handlers. It tr
 -   Tries to stay out of your way as much as possible.
 
 Notably, Event Horizon is _not_ an http framework. Routing is outside of the scope of this library. Replacing the library with something else shouldn't be hard due to its limited functionality.
+
+## [Documentation](https://skyleague.github.io/event-horizon/)
+
+The documentation can be found [here](https://skyleague.github.io/event-horizon/).
 
 <!-- GETTING STARTED -->
 
@@ -72,7 +76,7 @@ export const handler = httpHandler({
 Install [Event Horizon CLI module](https://github.com/skyleague/event-horizon-cli)
 
 ```sh
-npm i @skyleague/event-horizon-cli
+npm i @skyleague/event-horizon-dev
 ```
 
 <!-- USAGE EXAMPLES -->
@@ -82,7 +86,7 @@ npm i @skyleague/event-horizon-cli
 In the examples folder you will find a pet-store application which you can run.
 
 ```sh
-event-horizon-cli start examples/pet-store/functions/index.ts | npx pino-pretty -m message
+event-horizon-dev start examples/pet-store/functions/index.ts | npx pino-pretty -m message
 ```
 
 Two local endpoints will become available on http://localhost:3000
