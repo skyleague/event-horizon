@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { handleSNSEvent } from './handler'
 
 import { EventError } from '../../errors/event-error'

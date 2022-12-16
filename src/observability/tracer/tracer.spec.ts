@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/unbound-method */
 import { createTracer } from './tracer'
 
 import type { Tracer as AWSTracer } from '@aws-lambda-powertools/tracer'

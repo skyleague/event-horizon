@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 import type { LambdaHandler } from './aws'
 import type { allHandlers } from './event'
 import { createLambdaContext, eventHandler, handleEvent } from './event'

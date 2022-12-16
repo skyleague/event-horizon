@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { addComponent, ensureTarget, jsonptrToName, normalizeSchema, openapiFromHandlers } from './openapi'
 
 import { HttpError } from '../../events/http/functions/http-error.type'
@@ -52,6 +51,7 @@ describe('ensureTarget', () => {
                 openapi = {}
                 ensureTarget({ openapi } as any, `#/${ptr}/${name}`, target)
                 expect(openapi.components[target][name]).toEqual({
+                    description: '',
                     content: {
                         'application/json': {
                             schema: {
@@ -73,7 +73,7 @@ describe('ensureTarget', () => {
             ([ptr, name]) => {
                 openapi = {}
                 ensureTarget({ openapi } as any, `#/${ptr}/${name}`, 'parameters')
-                expect(openapi.components['parameters'][name]).toEqual({
+                expect(openapi.components.parameters[name]).toEqual({
                     $ref: `#/components/schemas/${name}`,
                 })
             }
@@ -89,7 +89,7 @@ describe('ensureTarget', () => {
             ([ptr, name]) => {
                 openapi = {}
                 ensureTarget({ openapi } as any, `#/${ptr}/${name}`, 'schemas')
-                expect(openapi.components['schemas']).toEqual({})
+                expect(openapi.components.schemas).toEqual({})
             },
             { counterExample: ['a', 'a'] }
         )
@@ -111,7 +111,7 @@ describe('normalizeSchema', () => {
                     ...jsonschema,
                     $ref: `#/${ptr}/${name}`,
                 })
-                expect(openapi.components['schemas']).toEqual({})
+                expect(openapi.components.schemas).toEqual({})
             }
         )
     })
@@ -129,7 +129,7 @@ describe('normalizeSchema', () => {
                     ...jsonschema,
                     $ref: `#/${ptr}/${name}`,
                 })
-                expect(openapi.components['parameters'][name]).toEqual({
+                expect(openapi.components.parameters[name]).toEqual({
                     $ref: `#/components/schemas/${name}`,
                 })
             }
@@ -150,6 +150,7 @@ describe('normalizeSchema', () => {
                     $ref: `#/${ptr}/${name}`,
                 })
                 expect(openapi.components[target][name]).toEqual({
+                    description: '',
                     content: {
                         'application/json': {
                             schema: {
@@ -180,7 +181,7 @@ describe('normalizeSchema', () => {
                         $ref: `#/components/schemas/${name}`,
                     },
                 })
-                expect(openapi.components['schemas']).toEqual({ [name]: definition })
+                expect(openapi.components.schemas).toEqual({ [name]: definition })
             }
         )
     })
@@ -205,7 +206,7 @@ describe('normalizeSchema', () => {
                         },
                     ],
                 })
-                expect(openapi.components['schemas']).toEqual({ [name]: definition })
+                expect(openapi.components.schemas).toEqual({ [name]: definition })
             }
         )
     })
@@ -231,7 +232,7 @@ describe('normalizeSchema', () => {
                     ...omit(jsonschema, ['$defs']),
                     properties: { [name]: { $ref: `#/components/schemas/${name}` } },
                 })
-                expect(openapi.components['schemas']).toEqual({ [name]: definition })
+                expect(openapi.components.schemas).toEqual({ [name]: definition })
             }
         )
     })
@@ -257,7 +258,7 @@ describe('normalizeSchema', () => {
                     ...omit(jsonschema, ['$defs']),
                     patternProperties: { [name]: { $ref: `#/components/schemas/${name}` } },
                 })
-                expect(openapi.components['schemas']).toEqual({ [name]: definition })
+                expect(openapi.components.schemas).toEqual({ [name]: definition })
             }
         )
     })
@@ -283,7 +284,7 @@ describe('normalizeSchema', () => {
                     ...omit(jsonschema, ['$defs']),
                     additionalProperties: { $ref: `#/components/schemas/${name}` },
                 })
-                expect(openapi.components['schemas']).toEqual({ [name]: definition })
+                expect(openapi.components.schemas).toEqual({ [name]: definition })
             }
         )
     })
@@ -310,7 +311,7 @@ describe('normalizeSchema', () => {
                 expect(normalizeSchema({ ctx: { openapi } as any, schema: jsonschema as any })).toEqual({
                     $ref: `#/components/schemas/${title}`,
                 })
-                expect(openapi.components['schemas']).toEqual({
+                expect(openapi.components.schemas).toEqual({
                     [name]: definition,
                     [title]: {
                         ...omit(jsonschema, ['$defs']),
@@ -339,7 +340,7 @@ describe('normalizeSchema', () => {
             ([jsonschema, definition, name]) => {
                 openapi = {}
                 expect(normalizeSchema({ ctx: { openapi } as any, schema: jsonschema as any, defsOnly: true })).toEqual({})
-                expect(openapi.components['schemas']).toEqual({ [name]: definition })
+                expect(openapi.components.schemas).toEqual({ [name]: definition })
             }
         )
     })
@@ -536,7 +537,7 @@ describe('openapiFromHandlers', () => {
                                     omitUndefined({
                                         name: name,
                                         in: 'header',
-                                        required: schema.required?.includes(name),
+                                        required: schema.required.includes(name),
                                         description: value.description,
                                         deprecated: value.deprecated,
                                         schema: value,
@@ -648,7 +649,7 @@ describe('openapiFromHandlers', () => {
                                     omitUndefined({
                                         name: name,
                                         in: 'query',
-                                        required: schema.required?.includes(name),
+                                        required: schema.required.includes(name),
                                         description: value.description,
                                         deprecated: value.deprecated,
                                         schema: value,

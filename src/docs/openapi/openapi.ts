@@ -43,7 +43,7 @@ export function ensureTarget(
         const name = jsonptrToName(ptr)
         if (['requestBodies', 'responses'].includes(target)) {
             targetSchemas[name] = {
-                description: (ctx.openapi.components?.schemas?.[name] as Schema)?.description as string,
+                description: (ctx.openapi.components.schemas?.[name] as Schema | undefined)?.description ?? '',
                 content: {
                     'application/json': {
                         schema: {

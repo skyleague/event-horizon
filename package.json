@@ -1,7 +1,7 @@
 {
   "name": "@skyleague/event-horizon",
   "description": "A standardized boilerplate for lambda handlers.",
-  "version": "2.1.0",
+  "version": "2.2.2",
   "license": "MIT",
   "author": "SkyLeague Technologies B.V. <technologies@skyleague.io> (https://skyleague.io)",
   "main": ".main.js",
@@ -17,13 +17,7 @@
     "registry": "https://registry.npmjs.org",
     "access": "public"
   },
-  "files": [
-    ".main.js",
-    ".main.js.map",
-    "index.d.ts",
-    "src/**/*.d.ts",
-    "package.json"
-  ],
+  "files": [".main.js", ".main.js.map", "index.d.ts", "src/**/*.d.ts", "package.json"],
   "scripts": {
     "build": "npx ts-node esbuild.config.ts",
     "build:clean": "npx tsc --build --clean && rm .main.js && rm .main.js.map",
@@ -33,9 +27,9 @@
     "check:full": "npm run lint && npm run check:types && npm run check:coverage && npm run build && npm run check:project",
     "check:project": "npx node-standards lint",
     "check:types": "npx tsc -p tsconfig.json",
-    "fix": "npm run lint -- --fix",
-    "format": "npx prettier \"**/*.{ts,js,json,yml,yaml}\" --ignore-path .gitignore --write",
+    "format": "npx prettier \"**/*.{ts,js,json,yml,yaml,md}\" --ignore-path .gitignore --write",
     "lint": "npx eslint \"{src,test,typing}/**/*.ts\" --no-eslintrc --cache -c .eslintrc.js --ignore-path .gitignore",
+    "lint:fix": "npm run lint -- --fix",
     "lint:full": "bash -c \"FULL_LINT=true npm run lint\"",
     "package": "rm -rf .dist && npm run build",
     "prepare": "npx husky install || true",
@@ -45,18 +39,18 @@
     "@aws-lambda-powertools/logger": "^1.5.0",
     "@aws-lambda-powertools/metrics": "^1.5.0",
     "@aws-lambda-powertools/tracer": "^1.5.0",
-    "@skyleague/axioms": "^1.9.0",
+    "@skyleague/axioms": "^1.10.1",
     "@types/aws-lambda": "^8.10.109",
-    "secure-json-parse": "^2.5.0",
+    "secure-json-parse": "^2.6.0",
     "tslib": "^2.4.1"
   },
   "devDependencies": {
     "@skyleague/event-horizon": "file:./",
-    "@skyleague/event-horizon-dev": "^1.12.3",
-    "@skyleague/node-standards": "^1.10.0",
-    "@skyleague/therefore": "^1.20.2",
-    "@types/node": "^18.11.9",
-    "aws-sdk": "^2.1264.0",
+    "@skyleague/event-horizon-dev": "^1.13.2",
+    "@skyleague/node-standards": "^1.11.2",
+    "@skyleague/therefore": "^1.21.0",
+    "@types/node": "^18.11.12",
+    "aws-sdk": "^2.1272.0",
     "got": "^11.8.5",
     "nock": "^13.2.9",
     "typescript": "^4.9.3"

@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable @typescript-eslint/naming-convention */
 
 import type { HTTPHeaders, HTTPMethod } from '../../events/http/types'
 
@@ -7,7 +6,7 @@ import type { UndefinedFields } from '@skyleague/axioms'
 import { asArray, isError } from '@skyleague/axioms'
 import type { ErrorObject } from 'ajv'
 
-export const httpStatusCodes = {
+export const httpStatusCodes: Record<number, string | undefined> = {
     100: 'Continue',
     101: 'Switching Protocols',
     102: 'Processing',
@@ -110,7 +109,7 @@ export class EventError extends Error {
         this.expose = expose ?? this.statusCode < 500
         this.headers = headers
         this.attributes = attributes
-        this.error = httpStatusCodes[this.statusCode as keyof typeof httpStatusCodes] ?? 'Unknown'
+        this.error = httpStatusCodes[this.statusCode] ?? 'Unknown'
         this.name = ctor.name
         this.cause = cause
         if (isError(message)) {
@@ -145,7 +144,7 @@ export class EventError extends Error {
     }
 
     public static is<O>(e: EventError | O): e is EventError {
-        return e instanceof Error && 'isEventError' in e && e.isEventError === true
+        return e instanceof Error && 'isEventError' in e && e.isEventError
     }
 
     public static validation({

@@ -8,7 +8,7 @@ import type { Try } from '@skyleague/axioms'
 import { mapTry, tryAsValue } from '@skyleague/axioms'
 
 export async function handleRawEvent(handler: EventHandler, event: unknown, context: LambdaContext): Promise<Try<{}>> {
-    if (!('raw' in handler) || handler.raw === undefined) {
+    if (!('raw' in handler)) {
         return EventError.notImplemented()
     }
 

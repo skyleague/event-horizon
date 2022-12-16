@@ -16,7 +16,7 @@ import { handleRawEvent } from '../events/raw/handler'
 import { handleS3Batch } from '../events/s3-batch/handler'
 import { handleS3Event } from '../events/s3/handler'
 import { handleSecretRotationEvent } from '../events/secret-rotation/handler'
-import type { SecretRotationHandler, SecretRotationServices } from '../events/secret-rotation/types'
+import type { SecretRotationHandler } from '../events/secret-rotation/types'
 import { handleSNSEvent } from '../events/sns/handler'
 import { handleSQSEvent } from '../events/sqs/handler'
 import type { LambdaContext } from '../events/types'
@@ -61,11 +61,11 @@ export async function handleEvent({
     handlers = allHandlers,
 }: {
     definition: EventHandler
-    request: RawRequest
+    request: RawRequest | null | undefined
     context: LambdaContext
     handlers?: typeof allHandlers
 }): Promise<Try<unknown>> {
-    if (typeof request === 'object' && request !== null && request !== undefined) {
+    if (typeof request === 'object' && request !== null) {
         if ('headers' in request) {
             if ('http' in definition) {
                 return handlers.http(definition, request, context)
@@ -76,11 +76,7 @@ export async function handleEvent({
             }
         } else if ('SecretId' in request && 'Step' in request) {
             if ('secretRotation' in definition) {
-                return handlers.secretRotation(
-                    definition as SecretRotationHandler<never, SecretRotationServices>,
-                    request,
-                    context
-                )
+                return handlers.secretRotation(definition as SecretRotationHandler, request, context)
             }
         } else if ('Records' in request) {
             if (request.Records.length === 0) {
@@ -180,7 +176,7 @@ export async function createLambdaContext({
     logger?: Logger | undefined
     metrics?: Metrics | undefined
     tracer?: Tracer | undefined
-}): Promise<LambdaContext<never, never>> {
+}): Promise<LambdaContext> {
     return {
         logger,
         metrics,
@@ -236,8 +232,8 @@ export function eventHandler<H extends EventHandler, R>(definition: H, options: 
             context,
             services: services(),
             config: config(),
-            requestId: options?.requestId?.(request as R),
-            traceId: options?.traceId?.(request as R),
+            requestId: options.requestId?.(request as R),
+            traceId: options.traceId?.(request as R),
             logger,
             metrics,
             tracer,

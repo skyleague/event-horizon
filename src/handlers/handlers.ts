@@ -37,7 +37,7 @@ export function httpHandler<Configuration, Service, Profile, Body, Path, Query, 
 ): D & LambdaHandler {
     function findHeader(name: string) {
         return (request: APIGatewayProxyEvent | APIGatewayProxyEventV2) =>
-            Object.entries(request.headers ?? {}).find(([n]) => n.toLowerCase() === name.toLowerCase())?.[1]
+            Object.entries(request.headers).find(([n]) => n.toLowerCase() === name.toLowerCase())?.[1]
     }
     return eventHandler(definition as unknown as EventHandler, {
         requestId: findHeader(constants.requestIdHeader),

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { handleS3Batch } from './handler'
 
 import { EventError } from '../../errors'
