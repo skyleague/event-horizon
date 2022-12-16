@@ -20,7 +20,7 @@ export interface SecretRotationEventHandler<
 }
 
 export interface SecretRotationServices {
-    secretManager: SecretsManager
+    secretsManager: SecretsManager
 }
 
 export interface SecretRotationHandler<

@@ -102,7 +102,7 @@ describe('handleEvent', () => {
     })
 
     test('secretRotation', async () => {
-        const services = { secretManager: mock<SecretsManager>() as SecretsManager }
+        const services = { secretsManager: mock<SecretsManager>() as SecretsManager }
         const handler = secretRotationHandler({
             services,
             secretRotation: { handler: jest.fn() },
