@@ -21,7 +21,7 @@ export interface ProfileOptions<T> {
     name?: string
 }
 
-export function profileHandler<T>(options: ProfileOptions<T>, services: () => Promise<ProfileServices>) {
+export function profileHandler<T>(options: ProfileOptions<T>, services: () => Promise<ProfileServices | undefined>) {
     const {
         application = constants.namespace,
         environment = constants.environment,
@@ -31,7 +31,7 @@ export function profileHandler<T>(options: ProfileOptions<T>, services: () => Pr
     const maxAge = profile?.maxAge ?? 5
     const appConfigData = memoize(async () => {
         const s = await services()
-        return s.appConfigData ?? createAppConfigData()
+        return s?.appConfigData ?? createAppConfigData()
     })
 
     let nextToken: string | undefined
