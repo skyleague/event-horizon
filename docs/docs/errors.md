@@ -1,3 +1,7 @@
+---
+sidebar_position: 20
+---
+
 # Event Errors
 
 Event Horizon provides a utility to communicate errors with AWS Services. For some requests like HTTP these wil be neatly converted into something that can be parsed by the client - for others this impacts on how requests are processed. For specific details you can reference the handler documentation.

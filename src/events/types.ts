@@ -30,7 +30,6 @@ export interface EventHandlerDefinition<Configuration = never, Service = never, 
     summary?: string
     description?: string
     tags?: string[]
-    logEvent?: boolean
     isSensitive?: boolean
 }
 

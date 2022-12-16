@@ -1,3 +1,7 @@
+---
+sidebar_position: 50
+---
+
 # Best Practices
 
 ## [Reusing connections](https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/node-reusing-connections.html)
