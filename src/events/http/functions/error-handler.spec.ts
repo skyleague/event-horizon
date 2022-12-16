@@ -2,21 +2,26 @@ import { httpErrorHandler } from './error-handler'
 
 import { EventError } from '../../../errors/event-error'
 
-import { forAll, string, tuple, unknown } from '@skyleague/axioms'
+import { forAll, random, string, tuple, unknown } from '@skyleague/axioms'
 import { context } from '@skyleague/event-horizon-dev'
 
 test('unrelated error becomes internal server event error', async () => {
-    forAll(tuple(await context(), unknown()), ([ctx, error]) => {
-        ctx.mockClear()
-        const handler = httpErrorHandler(ctx)
+    const ctx = random(await context())
+    forAll(
+        unknown(),
+        (error) => {
+            ctx.mockClear()
+            const handler = httpErrorHandler(ctx)
 
-        expect(handler.onError(error)).toEqual({
-            body: { message: 'EventError', stack: undefined, statusCode: 500 },
-            statusCode: 500,
-        })
+            expect(handler.onError(error)).toEqual({
+                body: { message: 'EventError', stack: undefined, statusCode: 500 },
+                statusCode: 500,
+            })
 
-        expect(ctx.logger.error).toHaveBeenCalledWith('Uncaught error found', expect.any(EventError))
-    })
+            expect(ctx.logger.error).toHaveBeenCalledWith('Error found', expect.any(EventError))
+        },
+        { counterExample: 0 }
+    )
 })
 
 test('server event error becomes error', async () => {
@@ -34,7 +39,7 @@ test('server event error becomes error', async () => {
                 statusCode: 500,
             })
 
-            expect(ctx.logger.error).toHaveBeenCalledWith('Uncaught error found', expect.any(EventError))
+            expect(ctx.logger.error).toHaveBeenCalledWith('Error found', expect.any(EventError))
         }
     )
 })

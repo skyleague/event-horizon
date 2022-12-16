@@ -42,7 +42,7 @@ test('client event error becomes warning', async () => {
             const handler = errorHandler(ctx)
             handler.onError(error)
 
-            expect(ctx.logger.warn).toHaveBeenCalledWith('Warning received', expect.any(EventError))
+            expect(ctx.logger.warn).toHaveBeenCalledWith('Warning found', expect.any(EventError))
         }
     )
 })

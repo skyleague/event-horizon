@@ -79,7 +79,9 @@ export const httpStatusCodes: Record<number, string | undefined> = {
 
 export type ErrorLike = Error | string
 
-export interface EventErrorOptions {
+export interface EventOptions {
+    level?: 'error' | 'info' | 'warning'
+    errorHandling?: 'graceful' | 'throw'
     expose?: boolean
     headers?: HTTPHeaders
     statusCode?: number
@@ -87,10 +89,13 @@ export interface EventErrorOptions {
     cause?: unknown
     // eslint-disable-next-line @typescript-eslint/ban-types
     ctor?: Function
+    name?: string
 }
 
 export class EventError extends Error {
     public isEventError = true
+    public level: 'error' | 'info' | 'warning'
+    public errorHandling: 'graceful' | 'throw'
     public error: string
     public expose: boolean
     public headers: HTTPHeaders | undefined
@@ -100,18 +105,30 @@ export class EventError extends Error {
 
     public constructor(
         message?: ErrorLike,
-        { expose, headers, statusCode = 500, attributes, cause, ctor = EventError }: UndefinedFields<EventErrorOptions> = {}
+        {
+            expose,
+            headers,
+            statusCode = 500,
+            attributes,
+            cause,
+            level,
+            errorHandling,
+            ctor = EventError,
+            name,
+        }: UndefinedFields<EventOptions> = {}
     ) {
         super(isError(message) ? message.message : message, isError(message) ? { cause: message } : undefined)
-        Error.captureStackTrace(this, ctor)
         // cleanup stack trace
+        Error.captureStackTrace(this, ctor)
         this.statusCode = statusCode
         this.expose = expose ?? this.statusCode < 500
         this.headers = headers
         this.attributes = attributes
         this.error = httpStatusCodes[this.statusCode] ?? 'Unknown'
-        this.name = ctor.name
+        this.name = name ?? ctor.name
         this.cause = cause
+        this.level = level ?? (this.isServerError ? 'error' : this.isClientError ? 'warning' : 'info')
+        this.errorHandling = errorHandling ?? 'throw'
         if (isError(message)) {
             this.message = message.message
             this.name = message.name
@@ -147,196 +164,186 @@ export class EventError extends Error {
         return e instanceof Error && 'isEventError' in e && e.isEventError
     }
 
-    public static validation({
-        errors,
-        location,
-        attributes,
-        cause,
-        statusCode = 400,
-    }: {
-        errors?: ErrorObject[] | null | undefined
-        location?: string
-        attributes?: Record<string, unknown>
-        cause?: unknown
-        statusCode?: number
-    } = {}): EventError {
+    public static from(error: EventError | unknown): EventError {
+        return EventError.is(error)
+            ? error
+            : isError(error)
+            ? new EventError(error, { cause: error, ctor: EventError.from, name: 'EventError' })
+            : new EventError('unknown', { cause: error, ctor: EventError.from, name: 'EventError' })
+    }
+
+    public static validation(
+        options: EventOptions & {
+            errors?: ErrorObject[] | null | undefined
+            location?: string
+        } = {}
+    ): EventError {
+        const { errors, location, statusCode = 400 } = options
         const message =
             location !== undefined ? `${errors?.[0]?.message ?? 'validation failed'} in ${location}` : errors?.[0]?.message
         return new EventError(message, {
             statusCode,
-            attributes: { ...attributes, location, errors },
-            cause,
+            attributes: { ...options.attributes, location, errors },
             ctor: EventError.validation,
+            ...options,
         })
     }
 
-    public static badRequest(message?: ErrorLike, attributes?: Record<string, unknown>, cause?: unknown): EventError {
+    public static badRequest(message?: ErrorLike, options: EventOptions = {}): EventError {
         return new EventError(message, {
             statusCode: 400,
-            attributes,
-            cause,
             ctor: EventError.badRequest,
+            ...options,
         })
     }
 
-    public static unauthorized(message: ErrorLike, attributes?: Record<string, unknown>, cause?: unknown): EventError {
-        return new EventError(message, { statusCode: 401, attributes, cause, ctor: EventError.unauthorized })
+    public static unauthorized(message: ErrorLike, options: EventOptions = {}): EventError {
+        return new EventError(message, { statusCode: 401, ctor: EventError.unauthorized, ...options })
     }
 
-    public static paymentRequired(message?: ErrorLike, attributes?: Record<string, unknown>, cause?: unknown): EventError {
-        return new EventError(message, { statusCode: 402, attributes, cause, ctor: EventError.paymentRequired })
+    public static paymentRequired(message?: ErrorLike, options: EventOptions = {}): EventError {
+        return new EventError(message, { statusCode: 402, ctor: EventError.paymentRequired, ...options })
     }
 
-    public static forbidden(message?: ErrorLike, attributes?: Record<string, unknown>, cause?: unknown): EventError {
-        return new EventError(message, { statusCode: 403, attributes, cause, ctor: EventError.forbidden })
+    public static forbidden(message?: ErrorLike, options: EventOptions = {}): EventError {
+        return new EventError(message, { statusCode: 403, ctor: EventError.forbidden, ...options })
     }
 
-    public static notFound(message?: ErrorLike, attributes?: Record<string, unknown>, cause?: unknown): EventError {
-        return new EventError(message, { statusCode: 404, attributes, cause, ctor: EventError.notFound })
+    public static notFound(message?: ErrorLike, options: EventOptions = {}): EventError {
+        return new EventError(message, { statusCode: 404, ctor: EventError.notFound, ...options })
     }
 
-    public static methodNotAllowed({
-        allow,
-        message,
-        attributes,
-        cause,
-    }: {
-        allow: HTTPMethod[]
-        message?: ErrorLike
-        attributes?: Record<string, unknown>
-        cause?: unknown
-    }): EventError {
+    public static methodNotAllowed(
+        options: EventOptions & {
+            allow: HTTPMethod[]
+            message?: ErrorLike
+        }
+    ): EventError {
+        const { allow, message } = options
         return new EventError(message, {
             statusCode: 405,
-            attributes,
             headers: {
                 Allow: asArray(allow).join(', '),
+                ...options.headers,
             },
-            cause,
             ctor: EventError.methodNotAllowed,
+            ...options,
         })
     }
 
-    public static notAcceptable(message?: ErrorLike, attributes?: Record<string, unknown>, cause?: unknown): EventError {
-        return new EventError(message, { statusCode: 406, attributes, cause, ctor: EventError.notAcceptable })
+    public static notAcceptable(message?: ErrorLike, options: EventOptions = {}): EventError {
+        return new EventError(message, { statusCode: 406, ctor: EventError.notAcceptable, ...options })
     }
 
-    public static proxyAuthRequired(message?: ErrorLike, attributes?: Record<string, unknown>, cause?: unknown): EventError {
-        return new EventError(message, { statusCode: 407, attributes, cause, ctor: EventError.proxyAuthRequired })
+    public static proxyAuthRequired(message?: ErrorLike, options: EventOptions = {}): EventError {
+        return new EventError(message, { statusCode: 407, ctor: EventError.proxyAuthRequired, ...options })
     }
 
-    public static requestTimeout(message?: ErrorLike, attributes?: Record<string, unknown>, cause?: unknown): EventError {
-        return new EventError(message, { statusCode: 408, attributes, cause, ctor: EventError.requestTimeout })
+    public static requestTimeout(message?: ErrorLike, options: EventOptions = {}): EventError {
+        return new EventError(message, { statusCode: 408, ctor: EventError.requestTimeout, ...options })
     }
 
-    public static conflict(message?: ErrorLike, attributes?: Record<string, unknown>, cause?: unknown): EventError {
-        return new EventError(message, { statusCode: 409, attributes, cause, ctor: EventError.conflict })
+    public static conflict(message?: ErrorLike, options: EventOptions = {}): EventError {
+        return new EventError(message, { statusCode: 409, ctor: EventError.conflict, ...options })
     }
 
-    public static gone(message?: ErrorLike, attributes?: Record<string, unknown>, cause?: unknown): EventError {
-        return new EventError(message, { statusCode: 410, attributes, cause, ctor: EventError.gone })
+    public static gone(message?: ErrorLike, options: EventOptions = {}): EventError {
+        return new EventError(message, { statusCode: 410, ctor: EventError.gone, ...options })
     }
 
-    public static lengthRequired(message?: ErrorLike, attributes?: Record<string, unknown>, cause?: unknown): EventError {
-        return new EventError(message, { statusCode: 411, attributes, cause, ctor: EventError.lengthRequired })
+    public static lengthRequired(message?: ErrorLike, options: EventOptions = {}): EventError {
+        return new EventError(message, { statusCode: 411, ctor: EventError.lengthRequired, ...options })
     }
 
-    public static preconditionFailed(message?: ErrorLike, attributes?: Record<string, unknown>, cause?: unknown): EventError {
-        return new EventError(message, { statusCode: 412, attributes, cause, ctor: EventError.preconditionFailed })
+    public static preconditionFailed(message?: ErrorLike, options: EventOptions = {}): EventError {
+        return new EventError(message, { statusCode: 412, ctor: EventError.preconditionFailed, ...options })
     }
 
-    public static payloadTooLarge(message?: ErrorLike, attributes?: Record<string, unknown>, cause?: unknown): EventError {
-        return new EventError(message, { statusCode: 413, attributes, cause, ctor: EventError.payloadTooLarge })
+    public static payloadTooLarge(message?: ErrorLike, options: EventOptions = {}): EventError {
+        return new EventError(message, { statusCode: 413, ctor: EventError.payloadTooLarge, ...options })
     }
 
-    public static uriTooLong(message?: ErrorLike, attributes?: Record<string, unknown>, cause?: unknown): EventError {
-        return new EventError(message, { statusCode: 414, attributes, cause, ctor: EventError.uriTooLong })
+    public static uriTooLong(message?: ErrorLike, options: EventOptions = {}): EventError {
+        return new EventError(message, { statusCode: 414, ctor: EventError.uriTooLong, ...options })
     }
 
-    public static unsupportedMediaType(message?: ErrorLike, attributes?: Record<string, unknown>, cause?: unknown): EventError {
-        return new EventError(message, { statusCode: 415, attributes, cause, ctor: EventError.unsupportedMediaType })
+    public static unsupportedMediaType(message?: ErrorLike, options: EventOptions = {}): EventError {
+        return new EventError(message, { statusCode: 415, ctor: EventError.unsupportedMediaType, ...options })
     }
 
-    public static rangeNotSatisfiable(message?: ErrorLike, attributes?: Record<string, unknown>, cause?: unknown): EventError {
-        return new EventError(message, { statusCode: 416, attributes, cause, ctor: EventError.rangeNotSatisfiable })
+    public static rangeNotSatisfiable(message?: ErrorLike, options: EventOptions = {}): EventError {
+        return new EventError(message, { statusCode: 416, ctor: EventError.rangeNotSatisfiable, ...options })
     }
 
-    public static expectationFailed(message?: ErrorLike, attributes?: Record<string, unknown>, cause?: unknown): EventError {
-        return new EventError(message, { statusCode: 417, attributes, cause, ctor: EventError.expectationFailed })
+    public static expectationFailed(message?: ErrorLike, options: EventOptions = {}): EventError {
+        return new EventError(message, { statusCode: 417, ctor: EventError.expectationFailed, ...options })
     }
 
-    public static teapot(message?: ErrorLike, attributes?: Record<string, unknown>, cause?: unknown): EventError {
-        return new EventError(message, { statusCode: 418, attributes, cause, ctor: EventError.teapot })
+    public static teapot(message?: ErrorLike, options: EventOptions = {}): EventError {
+        return new EventError(message, { statusCode: 418, ctor: EventError.teapot, ...options })
     }
 
-    public static unprocessableEntity(message?: ErrorLike, attributes?: Record<string, unknown>, cause?: unknown): EventError {
-        return new EventError(message, { statusCode: 422, attributes, cause, ctor: EventError.unprocessableEntity })
+    public static unprocessableEntity(message?: ErrorLike, options: EventOptions = {}): EventError {
+        return new EventError(message, { statusCode: 422, ctor: EventError.unprocessableEntity, ...options })
     }
 
-    public static locked(message?: ErrorLike, attributes?: Record<string, unknown>, cause?: unknown): EventError {
-        return new EventError(message, { statusCode: 423, attributes, cause, ctor: EventError.locked })
+    public static locked(message?: ErrorLike, options: EventOptions = {}): EventError {
+        return new EventError(message, { statusCode: 423, ctor: EventError.locked, ...options })
     }
 
-    public static failedDependency(message?: ErrorLike, attributes?: Record<string, unknown>, cause?: unknown): EventError {
-        return new EventError(message, { statusCode: 424, attributes, cause, ctor: EventError.failedDependency })
+    public static failedDependency(message?: ErrorLike, options: EventOptions = {}): EventError {
+        return new EventError(message, { statusCode: 424, ctor: EventError.failedDependency, ...options })
     }
 
-    public static tooEarly(message?: ErrorLike, attributes?: Record<string, unknown>, cause?: unknown): EventError {
-        return new EventError(message, { statusCode: 425, attributes, cause, ctor: EventError.tooEarly })
+    public static tooEarly(message?: ErrorLike, options: EventOptions = {}): EventError {
+        return new EventError(message, { statusCode: 425, ctor: EventError.tooEarly, ...options })
     }
 
-    public static preconditionRequired(message?: ErrorLike, attributes?: Record<string, unknown>, cause?: unknown): EventError {
-        return new EventError(message, { statusCode: 428, attributes, cause, ctor: EventError.preconditionRequired })
+    public static preconditionRequired(message?: ErrorLike, options: EventOptions = {}): EventError {
+        return new EventError(message, { statusCode: 428, ctor: EventError.preconditionRequired, ...options })
     }
 
-    public static tooManyRequests(message?: ErrorLike, attributes?: Record<string, unknown>, cause?: unknown): EventError {
-        return new EventError(message, { statusCode: 429, attributes, cause, ctor: EventError.tooManyRequests })
+    public static tooManyRequests(message?: ErrorLike, options: EventOptions = {}): EventError {
+        return new EventError(message, { statusCode: 429, ctor: EventError.tooManyRequests, ...options })
     }
 
-    public static noResponse(message?: ErrorLike, attributes?: Record<string, unknown>, cause?: unknown): EventError {
-        return new EventError(message, { statusCode: 444, attributes, cause, ctor: EventError.noResponse })
+    public static noResponse(message?: ErrorLike, options: EventOptions = {}): EventError {
+        return new EventError(message, { statusCode: 444, ctor: EventError.noResponse, ...options })
     }
 
-    public static unavailableForLegalReasons(
-        message?: ErrorLike,
-        attributes?: Record<string, unknown>,
-        cause?: unknown
-    ): EventError {
-        return new EventError(message, { statusCode: 451, attributes, cause, ctor: EventError.unavailableForLegalReasons })
+    public static unavailableForLegalReasons(message?: ErrorLike, options: EventOptions = {}): EventError {
+        return new EventError(message, { statusCode: 451, ctor: EventError.unavailableForLegalReasons, ...options })
     }
 
-    public static retryable(message?: ErrorLike, attributes?: Record<string, unknown>, cause?: unknown): EventError {
-        return new EventError(message, { statusCode: 449, attributes, cause, ctor: EventError.retryable })
+    public static retryable(message?: ErrorLike, options: EventOptions = {}): EventError {
+        return new EventError(message, { statusCode: 449, ctor: EventError.retryable, ...options })
     }
 
-    public static internal(
-        message?: ErrorLike,
-        { expose, headers, statusCode = 500, attributes, cause }: UndefinedFields<EventErrorOptions> = {}
-    ): EventError {
-        return new EventError(message, { expose, headers, statusCode, attributes, cause, ctor: EventError.internal })
+    public static internal(message?: ErrorLike, options: EventOptions = {}): EventError {
+        return new EventError(message, { statusCode: 500, ctor: EventError.internal, ...options })
     }
 
-    public static internalServerError(message?: ErrorLike, attributes?: Record<string, unknown>, cause?: unknown): EventError {
-        return new EventError(message, { statusCode: 500, attributes, cause, ctor: EventError.internalServerError })
+    public static internalServerError(message?: ErrorLike, options: EventOptions = {}): EventError {
+        return new EventError(message, { statusCode: 500, ctor: EventError.internalServerError, ...options })
     }
 
-    public static notImplemented(message?: ErrorLike, attributes?: Record<string, unknown>, cause?: unknown): EventError {
-        return new EventError(message, { statusCode: 501, attributes, cause, ctor: EventError.notImplemented })
+    public static notImplemented(message?: ErrorLike, options: EventOptions = {}): EventError {
+        return new EventError(message, { statusCode: 501, ctor: EventError.notImplemented, ...options })
     }
 
-    public static badGateway(message?: ErrorLike, attributes?: Record<string, unknown>, cause?: unknown): EventError {
-        return new EventError(message, { statusCode: 502, attributes, cause, ctor: EventError.badGateway })
+    public static badGateway(message?: ErrorLike, options: EventOptions = {}): EventError {
+        return new EventError(message, { statusCode: 502, ctor: EventError.badGateway, ...options })
     }
 
-    public static serviceUnavailable(message?: ErrorLike, attributes?: Record<string, unknown>, cause?: unknown): EventError {
-        return new EventError(message, { statusCode: 503, attributes, cause, ctor: EventError.serviceUnavailable })
+    public static serviceUnavailable(message?: ErrorLike, options: EventOptions = {}): EventError {
+        return new EventError(message, { statusCode: 503, ctor: EventError.serviceUnavailable, ...options })
     }
 
-    public static gatewayTimeout(message?: ErrorLike, attributes?: Record<string, unknown>, cause?: unknown): EventError {
-        return new EventError(message, { statusCode: 504, attributes, cause, ctor: EventError.gatewayTimeout })
+    public static gatewayTimeout(message?: ErrorLike, options: EventOptions = {}): EventError {
+        return new EventError(message, { statusCode: 504, ctor: EventError.gatewayTimeout, ...options })
     }
 
-    public static loopDetected(message?: ErrorLike, attributes?: Record<string, unknown>, cause?: unknown): EventError {
-        return new EventError(message, { statusCode: 508, attributes, cause, ctor: EventError.loopDetected })
+    public static loopDetected(message?: ErrorLike, options: EventOptions = {}): EventError {
+        return new EventError(message, { statusCode: 508, ctor: EventError.loopDetected, ...options })
     }
 }

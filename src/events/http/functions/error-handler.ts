@@ -3,16 +3,14 @@ import { EventError } from '../../../errors/event-error'
 import type { LambdaContext } from '../../types'
 import type { HTTPResponse } from '../types'
 
-import { isError } from '@skyleague/axioms'
-
 export function httpErrorHandler({ logger, isSensitive }: LambdaContext) {
     return {
         onError: (error: Error | unknown): HTTPResponse => {
-            const eventError = EventError.is(error) ? error : isError(error) ? new EventError(error) : new EventError('unknown')
+            const eventError = EventError.from(error)
 
             if (!isSensitive) {
                 if (eventError.statusCode >= 500) {
-                    logger.error(`Uncaught error found`, eventError)
+                    logger.error(`Error found`, eventError)
                 } else if (eventError.statusCode >= 400) {
                     logger.info('Client error found', eventError)
                 } else {

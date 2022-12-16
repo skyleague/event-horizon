@@ -749,4 +749,65 @@ describe('eventHandler', () => {
             }
         )
     })
+
+    test('graceful failure resolves to success', async () => {
+        await asyncForAll(
+            tuple(
+                unknown(),
+                unknown(),
+                unknown(),
+                string().map((f) => {
+                    const error = new EventError(f, { errorHandling: 'graceful' })
+                    return error
+                }),
+                await context()
+            ),
+            async ([request, c, s, ret, ctx]) => {
+                const l = createLogger({ instance: mock() })
+                const setbinding = jest.spyOn(l, 'setBindings')
+
+                const m = createMetrics(mock())
+                const t = createTracer(mock())
+
+                const getSegment = mock<any>()
+                ;(t.instance.isTracingEnabled as any).mockReturnValue(true)
+                ;(t.instance.getSegment as any).mockReturnValue(getSegment)
+
+                const handlerImpl = jest.fn().mockResolvedValue(ret)
+                const config = jest.fn().mockResolvedValue(c)
+                const services = jest.fn().mockResolvedValue(s)
+                const definition = {
+                    config,
+                    services,
+                    raw: { schema: {}, handler: jest.fn() },
+                }
+                const handler = eventHandler(definition, {
+                    eventHandler: handlerImpl,
+                    logger: l,
+                    metrics: m,
+                    tracer: t,
+                }) as LambdaHandler
+
+                expect(await handler(request, ctx.raw)).toEqual({})
+                expect(config).toHaveBeenCalledTimes(1)
+                expect(config).toHaveBeenCalledWith()
+                expect(services).toHaveBeenCalledTimes(1)
+                expect(services).toHaveBeenCalledWith(c)
+
+                expect(handlerImpl).toHaveBeenCalledWith({
+                    definition,
+                    request,
+                    context: expect.objectContaining({ raw: ctx.raw }),
+                })
+
+                const rCtx = handlerImpl.mock.calls[0][0].context
+                expect(setbinding).toBeCalledWith({ requestId: rCtx.requestId, traceId: rCtx.traceId })
+                expect(rCtx.logger).not.toBe(l)
+                expect(m.instance.publishStoredMetrics).toHaveBeenCalled()
+
+                expect(getSegment.addNewSubsegment).toHaveBeenLastCalledWith('## ')
+                expect(getSegment.close).toHaveBeenCalled()
+            }
+        )
+    })
 })
