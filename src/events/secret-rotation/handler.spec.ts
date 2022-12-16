@@ -8,17 +8,17 @@ import type { SecretsManager } from 'aws-sdk'
 
 describe('handler', () => {
     const services = {
-        secretManager: mock<SecretsManager>(),
+        secretsManager: mock<SecretsManager>(),
     }
 
-    beforeEach(() => services.secretManager.mockClear())
+    beforeEach(() => services.secretsManager.mockClear())
 
     test('success does not give failures', async () => {
         await asyncForAll(tuple(secretRotationEvent(), await context({ services })), async ([rotation, ctx]) => {
             ctx.mockClear()
-            services.secretManager.mockClear()
+            services.secretsManager.mockClear()
 
-            services.secretManager.describeSecret.mockReturnValueOnce({
+            services.secretsManager.describeSecret.mockReturnValueOnce({
                 promise: () =>
                     Promise.resolve({
                         RotationEnabled: true,
@@ -47,9 +47,9 @@ describe('handler', () => {
     test('schema validation, gives failure', async () => {
         await asyncForAll(tuple(secretRotationEvent(), await context({ services })), async ([rotation, ctx]) => {
             ctx.mockClear()
-            services.secretManager.mockClear()
+            services.secretsManager.mockClear()
 
-            services.secretManager.describeSecret.mockReturnValueOnce({
+            services.secretsManager.describeSecret.mockReturnValueOnce({
                 promise: () =>
                     Promise.resolve({
                         RotationEnabled: true,
@@ -78,9 +78,9 @@ describe('handler', () => {
     test.each([new Error()])('promise reject with Error, gives failure', async (error) => {
         await asyncForAll(tuple(secretRotationEvent(), await context({ services })), async ([rotation, ctx]) => {
             ctx.mockClear()
-            services.secretManager.mockClear()
+            services.secretsManager.mockClear()
 
-            services.secretManager.describeSecret.mockReturnValueOnce({
+            services.secretsManager.describeSecret.mockReturnValueOnce({
                 promise: () =>
                     Promise.resolve({
                         RotationEnabled: true,
@@ -109,9 +109,9 @@ describe('handler', () => {
     test.each([new Error(), EventError.badRequest(), 'foobar'])('promise throws with Error, gives failure', async (error) => {
         await asyncForAll(tuple(secretRotationEvent(), await context({ services })), async ([rotation, ctx]) => {
             ctx.mockClear()
-            services.secretManager.mockClear()
+            services.secretsManager.mockClear()
 
-            services.secretManager.describeSecret.mockReturnValueOnce({
+            services.secretsManager.describeSecret.mockReturnValueOnce({
                 promise: () =>
                     Promise.resolve({
                         RotationEnabled: true,

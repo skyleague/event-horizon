@@ -8,19 +8,19 @@ import type SecretsManager from 'aws-sdk/clients/secretsmanager'
 
 describe('validate', () => {
     const services = {
-        secretManager: mock<SecretsManager>(),
+        secretsManager: mock<SecretsManager>(),
     }
 
-    beforeEach(() => services.secretManager.mockClear())
+    beforeEach(() => services.secretsManager.mockClear())
 
     test('identity function when validates', async () => {
         await asyncForAll(tuple(secretRotationEvent(), await context({ services })), async ([rotation, ctx]) => {
             ctx.mockClear()
-            services.secretManager.mockClear()
+            services.secretsManager.mockClear()
 
             const fn = secretValidateEvent(ctx)
 
-            services.secretManager.describeSecret.mockReturnValueOnce({
+            services.secretsManager.describeSecret.mockReturnValueOnce({
                 promise: () =>
                     Promise.resolve({
                         RotationEnabled: true,
@@ -38,11 +38,11 @@ describe('validate', () => {
     test('fails when rotation is disabled', async () => {
         await asyncForAll(tuple(secretRotationEvent(), await context({ services })), async ([rotation, ctx]) => {
             ctx.mockClear()
-            services.secretManager.mockClear()
+            services.secretsManager.mockClear()
 
             const fn = secretValidateEvent(ctx)
 
-            services.secretManager.describeSecret.mockReturnValueOnce({
+            services.secretsManager.describeSecret.mockReturnValueOnce({
                 promise: () =>
                     Promise.resolve({
                         RotationEnabled: false,
@@ -60,11 +60,11 @@ describe('validate', () => {
     test('fails when crt is not available', async () => {
         await asyncForAll(tuple(secretRotationEvent(), await context({ services })), async ([rotation, ctx]) => {
             ctx.mockClear()
-            services.secretManager.mockClear()
+            services.secretsManager.mockClear()
 
             const fn = secretValidateEvent(ctx)
 
-            services.secretManager.describeSecret.mockReturnValueOnce({
+            services.secretsManager.describeSecret.mockReturnValueOnce({
                 promise: () =>
                     Promise.resolve({
                         RotationEnabled: true,
@@ -79,11 +79,11 @@ describe('validate', () => {
     test('Nothing when crt is current', async () => {
         await asyncForAll(tuple(secretRotationEvent(), await context({ services })), async ([rotation, ctx]) => {
             ctx.mockClear()
-            services.secretManager.mockClear()
+            services.secretsManager.mockClear()
 
             const fn = secretValidateEvent(ctx)
 
-            services.secretManager.describeSecret.mockReturnValueOnce({
+            services.secretsManager.describeSecret.mockReturnValueOnce({
                 promise: () =>
                     Promise.resolve({
                         RotationEnabled: true,
@@ -101,11 +101,11 @@ describe('validate', () => {
     test('fails when crt is not pending', async () => {
         await asyncForAll(tuple(secretRotationEvent(), await context({ services })), async ([rotation, ctx]) => {
             ctx.mockClear()
-            services.secretManager.mockClear()
+            services.secretsManager.mockClear()
 
             const fn = secretValidateEvent(ctx)
 
-            services.secretManager.describeSecret.mockReturnValueOnce({
+            services.secretsManager.describeSecret.mockReturnValueOnce({
                 promise: () =>
                     Promise.resolve({
                         RotationEnabled: true,
