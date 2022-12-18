@@ -1,1 +1,0 @@
-export { createEventBridge } from './eventbridge'

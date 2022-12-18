@@ -8,6 +8,7 @@ import { loggerContext } from '../events/common/logger-context'
 import { metricsContext } from '../events/common/metrics-context'
 import { profileHandler } from '../events/common/profile-handler'
 import { traceInvocation } from '../events/common/trace-invocation'
+import { traceServices } from '../events/common/trace-services'
 import { warmup } from '../events/common/warmup'
 import { handleEventBridgeEvent } from '../events/eventbridge/handler'
 import { handleFirehoseTransformation } from '../events/firehose/handler'
@@ -174,9 +175,9 @@ export async function createLambdaContext({
     requestId: string | undefined
     traceIdGenerator?: string
     requestIdGenerator?: string
-    logger?: Logger | undefined
-    metrics?: Metrics | undefined
-    tracer?: Tracer | undefined
+    logger: Logger
+    metrics: Metrics
+    tracer: Tracer
 }): Promise<LambdaContext> {
     return {
         logger,
@@ -210,15 +211,20 @@ export function eventHandler<H extends EventHandler, R>(definition: H, options: 
     const {
         eventHandler: eventHandlerImpl = handleEvent,
         eagerHandlerInitialization = constants.eagerHandlerInitialization,
-        logger,
-        metrics,
-        tracer,
+        logger = globalLogger,
+        metrics = globalMetrics,
+        tracer = globalTracer,
     } = options
+
+    const traceServicesFn = traceServices({ tracer })
+
     const config = memoize(() => (isFunction(definition.config) ? definition.config() : definition.config))
     const services = memoize(() =>
-        isFunction(definition.services)
-            ? Promise.resolve(config()).then((c) => definition.services?.(c as never))
-            : definition.services
+        traceServicesFn.before(
+            isFunction(definition.services)
+                ? Promise.resolve(config()).then((c) => definition.services?.(c as never))
+                : definition.services
+        )
     )
     if (eagerHandlerInitialization) {
         void services()
