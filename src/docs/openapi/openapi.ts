@@ -76,7 +76,9 @@ export function normalizeSchema({
 
     if (jsonschema.$defs !== undefined) {
         for (const [name, def] of entriesOf(jsonschema.$defs)) {
-            addComponent(ctx, normalizeSchema({ ctx, schema: def }), name)
+            if (def !== undefined) {
+                addComponent(ctx, normalizeSchema({ ctx, schema: def }), name)
+            }
         }
 
         delete jsonschema.$defs

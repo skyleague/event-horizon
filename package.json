@@ -47,7 +47,7 @@
     "@aws-lambda-powertools/logger": "^1.5.0",
     "@aws-lambda-powertools/metrics": "^1.5.0",
     "@aws-lambda-powertools/tracer": "^1.5.0",
-    "@skyleague/axioms": "^1.10.1",
+    "@skyleague/axioms": "^1.11.0",
     "@types/aws-lambda": "^8.10.109",
     "secure-json-parse": "^2.6.0",
     "tslib": "^2.4.1"
@@ -56,7 +56,7 @@
     "@skyleague/event-horizon": "file:./",
     "@skyleague/event-horizon-dev": "^1.13.2",
     "@skyleague/node-standards": "^1.11.2",
-    "@skyleague/therefore": "^1.21.0",
+    "@skyleague/therefore": "^1.22.0",
     "@types/node": "^18.11.12",
     "aws-sdk": "^2.1272.0",
     "got": "^11.8.5",
