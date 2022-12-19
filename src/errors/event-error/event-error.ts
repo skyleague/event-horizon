@@ -3,7 +3,7 @@
 import type { HTTPHeaders, HTTPMethod } from '../../events/http/types'
 
 import type { UndefinedFields } from '@skyleague/axioms'
-import { asArray, isError } from '@skyleague/axioms'
+import { asArray, isError, isThrown } from '@skyleague/axioms'
 import type { ErrorObject } from 'ajv'
 
 export const httpStatusCodes: Record<number, string | undefined> = {
@@ -133,7 +133,8 @@ export class EventError extends Error {
         this.error = httpStatusCodes[this.statusCode] ?? 'Unknown'
         this.name = name ?? ctor.name
         this.cause = cause
-        this.level = level ?? (this.isServerError ? 'error' : this.isClientError ? 'warning' : 'info')
+        this.level =
+            level ?? (isThrown(message) ? 'error' : this.isServerError ? 'error' : this.isClientError ? 'warning' : 'info')
         this.errorHandling = errorHandling ?? 'throw'
         if (isError(message)) {
             this.message = message.message
