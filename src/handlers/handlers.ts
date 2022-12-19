@@ -18,6 +18,7 @@ import type {
     SQSHandler,
 } from '../events'
 
+import type { UndefinedFields } from '@skyleague/axioms'
 import type { APIGatewayProxyEvent, APIGatewayProxyEventV2 } from 'aws-lambda'
 
 export function firehoseHandler<Configuration, Service, Profile, Payload, Result, D>(
@@ -36,8 +37,8 @@ export function httpHandler<Configuration, Service, Profile, Body, Path, Query, 
     definition: D & HTTPHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, GV>
 ): D & LambdaHandler {
     function findHeader(name: string) {
-        return (request: APIGatewayProxyEvent | APIGatewayProxyEventV2) =>
-            Object.entries(request.headers).find(([n]) => n.toLowerCase() === name.toLowerCase())?.[1]
+        return (request: UndefinedFields<Pick<APIGatewayProxyEvent | APIGatewayProxyEventV2, 'headers'>>) =>
+            Object.entries(request.headers ?? {}).find(([n]) => n.toLowerCase() === name.toLowerCase())?.[1]
     }
     return eventHandler(definition as unknown as EventHandler, {
         requestId: findHeader(constants.requestIdHeader),
