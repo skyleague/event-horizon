@@ -1,9 +1,9 @@
 import { tracer } from '../../observability/tracer/tracer'
 
+import { Firehose } from '@aws-sdk/client-firehose'
 import { memoize } from '@skyleague/axioms'
-import Firehose from 'aws-sdk/clients/firehose'
 
 /**
  * @group Services
  */
-export const createFirehose = memoize<Firehose>(() => tracer.captureAWSClient(new Firehose()))
+export const createFirehose = memoize<Firehose>(() => tracer.captureAWSv3Client(new Firehose({})))

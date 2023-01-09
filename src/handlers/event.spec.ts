@@ -24,6 +24,8 @@ import { createLogger } from '../observability/logger/logger'
 import { createMetrics } from '../observability/metrics/metrics'
 import { createTracer } from '../observability/tracer/tracer'
 
+import { AppConfigData } from '@aws-sdk/client-appconfigdata'
+import type { SecretsManager } from '@aws-sdk/client-secrets-manager'
 import {
     alpha,
     asyncForAll,
@@ -54,8 +56,6 @@ import {
 } from '@skyleague/event-horizon-dev'
 import { arbitrary } from '@skyleague/therefore'
 import type { SNSEvent as LambdaSnsEvent } from 'aws-lambda'
-import type { SecretsManager } from 'aws-sdk'
-import { AppConfigData } from 'aws-sdk'
 
 describe('handleEvent', () => {
     const eventHandlers = mock<typeof allHandlers>()
@@ -533,17 +533,17 @@ describe('eventHandler', () => {
     })
 
     test('configuration is loaded into profile successfully', async () => {
-        const appConfigData = new AppConfigData()
+        const appConfigData = new AppConfigData({})
         const s = { appConfigData }
         await asyncForAll(
             tuple(unknown(), unknown(), unknown(), await context(), string(), dict(json())),
             async ([request, c, ret, ctx, token, profile]) => {
                 jest.clearAllMocks()
                 jest.spyOn(appConfigData, 'startConfigurationSession').mockReturnValue({
-                    promise: () => ({ InitialConfigurationToken: token }),
+                    InitialConfigurationToken: token,
                 } as any)
                 jest.spyOn(appConfigData, 'getLatestConfiguration').mockReturnValue({
-                    promise: () => ({ Configuration: JSON.stringify(profile) }),
+                    Configuration: JSON.stringify(profile),
                 } as any)
 
                 const l = createLogger({ instance: mock() })
@@ -596,17 +596,17 @@ describe('eventHandler', () => {
     })
 
     test('invalidating configuration is loaded into profile as failure', async () => {
-        const appConfigData = new AppConfigData()
+        const appConfigData = new AppConfigData({})
         const s = { appConfigData }
         await asyncForAll(
             tuple(unknown(), unknown(), unknown(), await context(), string(), dict(json())),
             async ([request, c, ret, ctx, token, profile]) => {
                 jest.clearAllMocks()
                 jest.spyOn(appConfigData, 'startConfigurationSession').mockReturnValue({
-                    promise: () => ({ InitialConfigurationToken: token }),
+                    InitialConfigurationToken: token,
                 } as any)
                 jest.spyOn(appConfigData, 'getLatestConfiguration').mockReturnValue({
-                    promise: () => ({ Configuration: JSON.stringify(profile) }),
+                    Configuration: JSON.stringify(profile),
                 } as any)
 
                 const l = createLogger({ instance: mock() })

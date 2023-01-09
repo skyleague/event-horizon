@@ -1,20 +1,21 @@
 import { tracer } from '../../observability/tracer/tracer'
 
+import { DynamoDB } from '@aws-sdk/client-dynamodb'
+import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb'
 import { memoize } from '@skyleague/axioms'
-import DynamoDB, { DocumentClient } from 'aws-sdk/clients/dynamodb'
 
 /**
  * @group Services
  */
-export const createDynamoDB = memoize<DynamoDB>(() => tracer.captureAWSClient(new DynamoDB()))
+export const createDynamoDB = memoize<DynamoDB>(() => tracer.captureAWSv3Client(new DynamoDB({})))
 
 /**
  * @group Services
  */
-export const createDocumentClient = memoize<DocumentClient>(() => {
-    const db = new DocumentClient({ service: createDynamoDB() })
+export const createDocumentClient = memoize<DynamoDBDocumentClient>(() => {
+    const db = DynamoDBDocumentClient.from(createDynamoDB())
     if ('service' in db) {
-        tracer.captureAWSClient((db as { service?: DynamoDB }).service)
+        tracer.captureAWSv3Client((db as { service?: DynamoDB }).service)
     }
     return db
 })

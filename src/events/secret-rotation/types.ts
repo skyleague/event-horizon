@@ -1,8 +1,8 @@
 import type { EventHandlerDefinition, LambdaContext } from '../types'
 
+import type { SecretsManager } from '@aws-sdk/client-secrets-manager'
 import type { Promisable, Try } from '@skyleague/axioms'
 import type { SecretsManagerRotationEvent } from 'aws-lambda'
-import type { SecretsManager } from 'aws-sdk'
 
 export interface SecretRotationRequest {
     step: 'createSecret' | 'finishSecret' | 'setSecret' | 'testSecret'

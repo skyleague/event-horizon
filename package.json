@@ -25,7 +25,13 @@
     "registry": "https://registry.npmjs.org",
     "access": "public"
   },
-  "files": [".main.js", ".main.js.map", "index.d.ts", "src/**/*.d.ts", "package.json"],
+  "files": [
+    ".main.js",
+    ".main.js.map",
+    "index.d.ts",
+    "src/**/*.d.ts",
+    "package.json"
+  ],
   "scripts": {
     "build": "npx ts-node esbuild.config.ts",
     "build:clean": "npx tsc --build --clean && rm .main.js && rm .main.js.map",
@@ -54,11 +60,12 @@
   },
   "devDependencies": {
     "@skyleague/event-horizon": "file:./",
-    "@skyleague/event-horizon-dev": "^1.13.2",
+    "@skyleague/event-horizon-dev": "^2.0.1",
     "@skyleague/node-standards": "^1.11.2",
     "@skyleague/therefore": "^1.22.0",
     "@types/node": "^18.11.12",
-    "aws-sdk": "^2.1272.0",
+    "aws-sdk-client-mock": "^2.0.1",
+    "aws-sdk-client-mock-jest": "^2.0.1",
     "got": "^11.8.5",
     "nock": "^13.2.9",
     "typescript": "^4.9.3"

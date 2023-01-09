@@ -2,31 +2,30 @@ import { handleSecretRotationEvent } from './handler'
 
 import { EventError } from '../../errors'
 
+import { DescribeSecretCommand, SecretsManager, SecretsManagerClient } from '@aws-sdk/client-secrets-manager'
 import { asyncForAll, failure, tuple } from '@skyleague/axioms'
-import { context, mock, secretRotationEvent } from '@skyleague/event-horizon-dev'
-import type { SecretsManager } from 'aws-sdk'
+import { context, secretRotationEvent } from '@skyleague/event-horizon-dev'
+import { mockClient } from 'aws-sdk-client-mock'
 
 describe('handler', () => {
+    const mockSecrets = mockClient(SecretsManagerClient)
     const services = {
-        secretsManager: mock<SecretsManager>(),
+        secretsManager: new SecretsManager({}),
     }
 
-    beforeEach(() => services.secretsManager.mockClear())
+    beforeEach(() => mockSecrets.reset())
 
     test('success does not give failures', async () => {
         await asyncForAll(tuple(secretRotationEvent(), await context({ services })), async ([rotation, ctx]) => {
             ctx.mockClear()
-            services.secretsManager.mockClear()
+            mockSecrets.reset()
 
-            services.secretsManager.describeSecret.mockReturnValueOnce({
-                promise: () =>
-                    Promise.resolve({
-                        RotationEnabled: true,
-                        VersionIdsToStages: {
-                            [rotation.clientRequestToken]: ['AWSPENDING'],
-                        },
-                    }),
-            } as any)
+            mockSecrets.on(DescribeSecretCommand).resolvesOnce({
+                RotationEnabled: true,
+                VersionIdsToStages: {
+                    [rotation.clientRequestToken]: ['AWSPENDING'],
+                },
+            })
 
             const handler = jest.fn()
             const response = await handleSecretRotationEvent({ services, secretRotation: { handler } }, rotation.raw, ctx)
@@ -47,17 +46,14 @@ describe('handler', () => {
     test('schema validation, gives failure', async () => {
         await asyncForAll(tuple(secretRotationEvent(), await context({ services })), async ([rotation, ctx]) => {
             ctx.mockClear()
-            services.secretsManager.mockClear()
+            mockSecrets.reset()
 
-            services.secretsManager.describeSecret.mockReturnValueOnce({
-                promise: () =>
-                    Promise.resolve({
-                        RotationEnabled: true,
-                        VersionIdsToStages: {
-                            [rotation.clientRequestToken]: [],
-                        },
-                    }),
-            } as any)
+            mockSecrets.on(DescribeSecretCommand).resolvesOnce({
+                RotationEnabled: true,
+                VersionIdsToStages: {
+                    [rotation.clientRequestToken]: [],
+                },
+            })
 
             const handler = jest.fn()
             const response = await handleSecretRotationEvent({ services, secretRotation: { handler } }, rotation.raw, ctx)
@@ -78,17 +74,14 @@ describe('handler', () => {
     test.each([new Error()])('promise reject with Error, gives failure', async (error) => {
         await asyncForAll(tuple(secretRotationEvent(), await context({ services })), async ([rotation, ctx]) => {
             ctx.mockClear()
-            services.secretsManager.mockClear()
+            mockSecrets.reset()
 
-            services.secretsManager.describeSecret.mockReturnValueOnce({
-                promise: () =>
-                    Promise.resolve({
-                        RotationEnabled: true,
-                        VersionIdsToStages: {
-                            [rotation.clientRequestToken]: ['AWSPENDING'],
-                        },
-                    }),
-            } as any)
+            mockSecrets.on(DescribeSecretCommand).resolvesOnce({
+                RotationEnabled: true,
+                VersionIdsToStages: {
+                    [rotation.clientRequestToken]: ['AWSPENDING'],
+                },
+            })
 
             const handler = jest.fn().mockRejectedValue(error)
             const response = await handleSecretRotationEvent({ services, secretRotation: { handler } }, rotation.raw, ctx)
@@ -109,17 +102,14 @@ describe('handler', () => {
     test.each([new Error(), EventError.badRequest(), 'foobar'])('promise throws with Error, gives failure', async (error) => {
         await asyncForAll(tuple(secretRotationEvent(), await context({ services })), async ([rotation, ctx]) => {
             ctx.mockClear()
-            services.secretsManager.mockClear()
+            mockSecrets.reset()
 
-            services.secretsManager.describeSecret.mockReturnValueOnce({
-                promise: () =>
-                    Promise.resolve({
-                        RotationEnabled: true,
-                        VersionIdsToStages: {
-                            [rotation.clientRequestToken]: ['AWSPENDING'],
-                        },
-                    }),
-            } as any)
+            mockSecrets.on(DescribeSecretCommand).resolvesOnce({
+                RotationEnabled: true,
+                VersionIdsToStages: {
+                    [rotation.clientRequestToken]: ['AWSPENDING'],
+                },
+            })
 
             const handler = jest.fn().mockImplementation(() => {
                 throw error

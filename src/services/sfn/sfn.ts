@@ -1,9 +1,9 @@
 import { tracer } from '../../observability/tracer/tracer'
 
+import { SFN } from '@aws-sdk/client-sfn'
 import { memoize } from '@skyleague/axioms'
-import SFN from 'aws-sdk/clients/stepfunctions'
 
 /**
  * @group Services
  */
-export const createSFN = memoize<SFN>(() => tracer.captureAWSClient(new SFN()))
+export const createSFN = memoize<SFN>(() => tracer.captureAWSv3Client(new SFN({})))
