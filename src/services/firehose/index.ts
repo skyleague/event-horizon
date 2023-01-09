@@ -1,1 +1,0 @@
-export { createFirehose } from './firehose'

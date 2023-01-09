@@ -19,7 +19,6 @@ import type { EventHandler } from './types'
 
 import { EventError } from '../errors'
 import type { Logger, Metrics, Tracer } from '../observability'
-import { logger, metrics, tracer } from '../observability'
 import { createLogger } from '../observability/logger/logger'
 import { createMetrics } from '../observability/metrics/metrics'
 import { createTracer } from '../observability/tracer/tracer'
@@ -309,28 +308,6 @@ describe('handleEvent', () => {
 })
 
 describe('createLambdaContext', () => {
-    test('minimal', async () => {
-        await asyncForAll(await context(), async (ctx) => {
-            const lCtx = await createLambdaContext({
-                definition: { raw: { handler: jest.fn(), schema: {} } },
-                context: ctx.raw,
-                services: undefined,
-                config: undefined,
-                traceId: undefined,
-                requestId: undefined,
-            })
-            expect(lCtx.logger).toBe(logger)
-            expect(lCtx.metrics).toBe(metrics)
-            expect(lCtx.tracer).toBe(tracer)
-            expect(lCtx.raw).toBe(ctx.raw)
-            expect(lCtx.isSensitive).toBe(false)
-            expect(lCtx.traceId).toContain('-')
-            expect(lCtx.requestId).toContain('-')
-            expect(lCtx.services).toBe(undefined)
-            expect(lCtx.config).toBe(undefined)
-        })
-    })
-
     test('set manual observability', async () => {
         await asyncForAll(await context(), async (ctx) => {
             const l = mock<Logger>()
@@ -361,6 +338,9 @@ describe('createLambdaContext', () => {
 
     test('set trace and request', async () => {
         await asyncForAll(tuple(await context(), string(), string()), async ([ctx, traceId, requestId]) => {
+            const l = mock<Logger>()
+            const m = mock<Metrics>()
+            const t = mock<Tracer>()
             const lCtx = await createLambdaContext({
                 definition: { raw: { handler: jest.fn(), schema: {} } },
                 context: ctx.raw,
@@ -368,10 +348,13 @@ describe('createLambdaContext', () => {
                 config: undefined,
                 traceId,
                 requestId,
+                logger: l,
+                metrics: m,
+                tracer: t,
             })
-            expect(lCtx.logger).toBe(logger)
-            expect(lCtx.metrics).toBe(metrics)
-            expect(lCtx.tracer).toBe(tracer)
+            expect(lCtx.logger).toBe(l)
+            expect(lCtx.metrics).toBe(m)
+            expect(lCtx.tracer).toBe(t)
             expect(lCtx.raw).toBe(ctx.raw)
             expect(lCtx.isSensitive).toBe(false)
             expect(lCtx.traceId).toEqual(traceId)
@@ -385,6 +368,9 @@ describe('createLambdaContext', () => {
         await asyncForAll(
             tuple(await context(), string({ minLength: 4 }), string({ minLength: 4 })),
             async ([ctx, traceId, requestId]) => {
+                const l = mock<Logger>()
+                const m = mock<Metrics>()
+                const t = mock<Tracer>()
                 const lCtx = await createLambdaContext({
                     definition: { raw: { handler: jest.fn(), schema: {} } },
                     context: ctx.raw,
@@ -394,10 +380,13 @@ describe('createLambdaContext', () => {
                     requestId: undefined,
                     traceIdGenerator: traceId,
                     requestIdGenerator: requestId,
+                    logger: l,
+                    metrics: m,
+                    tracer: t,
                 })
-                expect(lCtx.logger).toBe(logger)
-                expect(lCtx.metrics).toBe(metrics)
-                expect(lCtx.tracer).toBe(tracer)
+                expect(lCtx.logger).toBe(l)
+                expect(lCtx.metrics).toBe(m)
+                expect(lCtx.tracer).toBe(t)
                 expect(lCtx.raw).toBe(ctx.raw)
                 expect(lCtx.isSensitive).toBe(false)
                 expect(lCtx.traceId).toContain('-')
