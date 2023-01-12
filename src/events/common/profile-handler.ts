@@ -52,7 +52,7 @@ export function profileHandler<T>(options: ProfileOptions<T>, services: () => Pr
         const response = await appConfig.getLatestConfiguration({ ConfigurationToken: nextToken })
 
         nextToken = response.NextPollConfigurationToken
-        const returnedConfiguration = response.Configuration?.toString() ?? ''
+        const returnedConfiguration = Buffer.from(response.Configuration ?? '').toString()
         if (returnedConfiguration.length > 0) {
             configuration = returnedConfiguration
         }
