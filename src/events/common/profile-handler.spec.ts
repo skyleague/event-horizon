@@ -43,6 +43,46 @@ describe('profile handler', () => {
         })
     })
 
+    test('retrieve initial configuration - buffer, and validates', async () => {
+        await asyncForAll(tuple(string(), dict(json())), async ([token, config]) => {
+            appConfigDataMock.reset()
+            appConfigDataMock.on(StartConfigurationSessionCommand).resolvesOnce({ InitialConfigurationToken: token })
+            appConfigDataMock
+                .on(GetLatestConfigurationCommand)
+                .resolvesOnce({ Configuration: Buffer.from(JSON.stringify(config)) as any })
+
+            const handler = profileHandler(
+                { profile: { schema: { schema: { type: 'object' }, is: () => true } } } as any,
+                async () => services
+            )
+
+            expect(await handler.before()).toEqual(config)
+            expect(appConfigDataMock).toReceiveCommandTimes(StartConfigurationSessionCommand, 1)
+            expect(appConfigDataMock).toReceiveCommandTimes(GetLatestConfigurationCommand, 1)
+            expect(appConfigDataMock).toReceiveCommandWith(GetLatestConfigurationCommand, { ConfigurationToken: token })
+        })
+    })
+
+    test('retrieve initial configuration - Uint8Array, and validates', async () => {
+        await asyncForAll(tuple(string(), dict(json())), async ([token, config]) => {
+            appConfigDataMock.reset()
+            appConfigDataMock.on(StartConfigurationSessionCommand).resolvesOnce({ InitialConfigurationToken: token })
+            appConfigDataMock
+                .on(GetLatestConfigurationCommand)
+                .resolvesOnce({ Configuration: Uint8Array.from(Buffer.from(JSON.stringify(config))) as any })
+
+            const handler = profileHandler(
+                { profile: { schema: { schema: { type: 'object' }, is: () => true } } } as any,
+                async () => services
+            )
+
+            expect(await handler.before()).toEqual(config)
+            expect(appConfigDataMock).toReceiveCommandTimes(StartConfigurationSessionCommand, 1)
+            expect(appConfigDataMock).toReceiveCommandTimes(GetLatestConfigurationCommand, 1)
+            expect(appConfigDataMock).toReceiveCommandWith(GetLatestConfigurationCommand, { ConfigurationToken: token })
+        })
+    })
+
     test('retrieve initial configuration, and validates - caches results', async () => {
         await asyncForAll(tuple(string(), dict(json())), async ([token, config]) => {
             appConfigDataMock.reset()
