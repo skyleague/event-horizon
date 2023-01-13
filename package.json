@@ -1,11 +1,11 @@
 {
   "name": "@skyleague/event-horizon",
   "description": "A standardized boilerplate for lambda handlers.",
-  "version": "2.2.2",
+  "version": "3.1.1",
   "license": "MIT",
   "author": "SkyLeague Technologies B.V. <technologies@skyleague.io> (https://skyleague.io)",
-  "main": ".main.js",
-  "types": "index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "sideEffects": false,
   "homepage": "https://skyleague.github.io/event-horizon/",
   "repository": {
@@ -25,15 +25,9 @@
     "registry": "https://registry.npmjs.org",
     "access": "public"
   },
-  "files": [
-    ".main.js",
-    ".main.js.map",
-    "index.d.ts",
-    "src/**/*.d.ts",
-    "package.json"
-  ],
+  "files": ["dist", "package.json"],
   "scripts": {
-    "build": "npx ts-node esbuild.config.ts",
+    "build": "npx ts-node build.config.ts",
     "build:clean": "npx tsc --build --clean && rm .main.js && rm .main.js.map",
     "build:docs": "(cd docs; npm install; npm run build)",
     "check:cost": "npx cost-of-modules --no-install --include-dev",
@@ -50,24 +44,24 @@
     "test": "npx jest"
   },
   "dependencies": {
-    "@aws-lambda-powertools/logger": "^1.5.0",
-    "@aws-lambda-powertools/metrics": "^1.5.0",
-    "@aws-lambda-powertools/tracer": "^1.5.0",
-    "@skyleague/axioms": "^1.11.0",
+    "@aws-lambda-powertools/logger": "^1.5.1",
+    "@aws-lambda-powertools/metrics": "^1.5.1",
+    "@aws-lambda-powertools/tracer": "^1.5.1",
+    "@skyleague/axioms": "^1.13.0",
     "@types/aws-lambda": "^8.10.109",
-    "secure-json-parse": "^2.6.0",
+    "secure-json-parse": "^2.7.0",
     "tslib": "^2.4.1"
   },
   "devDependencies": {
     "@skyleague/event-horizon": "file:./",
-    "@skyleague/event-horizon-dev": "^2.0.1",
-    "@skyleague/node-standards": "^1.11.2",
-    "@skyleague/therefore": "^1.22.0",
-    "@types/node": "^18.11.12",
+    "@skyleague/event-horizon-dev": "^2.0.2",
+    "@skyleague/node-standards": "^1.12.3",
+    "@skyleague/therefore": "^1.22.1",
+    "@types/node": "^18.11.18",
     "aws-sdk-client-mock": "^2.0.1",
     "aws-sdk-client-mock-jest": "^2.0.1",
     "got": "^11.8.5",
-    "nock": "^13.2.9",
-    "typescript": "^4.9.3"
+    "nock": "^13.3.0",
+    "typescript": "^4.9.4"
   }
 }

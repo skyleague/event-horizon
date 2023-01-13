@@ -1,8 +1,11 @@
 {
   "extends": "./tsconfig.json",
-  "include": ["src/**/*.ts", "typings/**/*.ts", "index.ts"],
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/**/*.spec.ts"],
   "compilerOptions": {
     "typeRoots": ["./typings", "./node_modules/@types"],
+    "rootDir": "src",
+    "outDir": "dist",
     "incremental": false,
     "noEmit": false
   }

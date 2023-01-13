@@ -5,6 +5,9 @@ import { constants } from '../constants'
 import type { EventError } from '../errors'
 import { errorHandler } from '../events/common/error-handler'
 import { loggerContext } from '../events/common/logger-context'
+
+import { randomUUID } from 'crypto'
+
 import { metricsContext } from '../events/common/metrics-context'
 import { profileHandler } from '../events/common/profile-handler'
 import { traceInvocation } from '../events/common/trace-invocation'
@@ -15,8 +18,8 @@ import { handleFirehoseTransformation } from '../events/firehose/handler'
 import { handleHTTPEvent } from '../events/http/handler'
 import { handleKinesisEvent } from '../events/kinesis/handler'
 import { handleRawEvent } from '../events/raw/handler'
-import { handleS3Batch } from '../events/s3-batch/handler'
 import { handleS3Event } from '../events/s3/handler'
+import { handleS3Batch } from '../events/s3-batch/handler'
 import { handleSecretRotationEvent } from '../events/secret-rotation/handler'
 import type { SecretRotationHandler } from '../events/secret-rotation/types'
 import { handleSNSEvent } from '../events/sns/handler'
@@ -40,8 +43,6 @@ import type {
     SQSRecord,
 } from 'aws-lambda'
 import AWSXRay from 'aws-xray-sdk-core'
-
-import { randomUUID } from 'crypto'
 
 export const allHandlers = {
     http: handleHTTPEvent,
