@@ -2,6 +2,7 @@ import { snsParseEvent } from './functions/parse-event'
 import type { SNSEvent, SNSHandler } from './types'
 
 import { ioLogger } from '../functions/io-logger'
+import { ioLoggerChild } from '../functions/io-logger-child'
 import { ioValidate } from '../functions/io-validate'
 import type { LambdaContext } from '../types'
 
@@ -14,12 +15,18 @@ export async function handleSNSEvent(handler: SNSHandler, events: SNSEventRecord
     const parseEventFn = snsParseEvent(sns)
     const ioValidateFn = ioValidate<SNSEvent>({ input: (x) => x.payload })
     const ioLoggerFn = ioLogger({ type: 'sns' }, context)
+    const ioLoggerChildFn = ioLoggerChild(context, context.logger)
 
     for (const [i, event] of enumerate(events)) {
         const item = { item: i }
 
         const snsEvent = mapTry(event, (e) => {
             const unvalidatedSnsEvent = parseEventFn.before(e)
+
+            ioLoggerChildFn.before({
+                messageId: unvalidatedSnsEvent.raw.Sns.MessageId,
+            })
+
             return ioValidateFn.before(sns.schema.payload, unvalidatedSnsEvent)
         })
 
@@ -28,6 +35,7 @@ export async function handleSNSEvent(handler: SNSHandler, events: SNSEventRecord
         const response = await mapTry(snsEvent, (success) => sns.handler(success, context))
 
         ioLoggerFn.after(undefined, item)
+        ioLoggerChildFn.after()
 
         if (isFailure(response)) {
             return response

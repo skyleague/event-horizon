@@ -1,7 +1,7 @@
 {
   "name": "@skyleague/event-horizon",
   "description": "A standardized boilerplate for lambda handlers.",
-  "version": "3.1.1",
+  "version": "3.2.1",
   "license": "MIT",
   "author": "SkyLeague Technologies B.V. <technologies@skyleague.io> (https://skyleague.io)",
   "main": "dist/index.js",
@@ -47,16 +47,16 @@
     "@aws-lambda-powertools/logger": "^1.5.1",
     "@aws-lambda-powertools/metrics": "^1.5.1",
     "@aws-lambda-powertools/tracer": "^1.5.1",
-    "@skyleague/axioms": "^1.13.0",
+    "@skyleague/axioms": "^1.13.1",
     "@types/aws-lambda": "^8.10.109",
     "secure-json-parse": "^2.7.0",
     "tslib": "^2.4.1"
   },
   "devDependencies": {
     "@skyleague/event-horizon": "file:./",
-    "@skyleague/event-horizon-dev": "^2.0.2",
+    "@skyleague/event-horizon-dev": "^2.1.1",
     "@skyleague/node-standards": "^1.12.3",
-    "@skyleague/therefore": "^1.22.1",
+    "@skyleague/therefore": "^1.23.0",
     "@types/node": "^18.11.18",
     "aws-sdk-client-mock": "^2.0.1",
     "aws-sdk-client-mock-jest": "^2.0.1",

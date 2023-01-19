@@ -5,9 +5,6 @@ import { constants } from '../constants'
 import type { EventError } from '../errors'
 import { errorHandler } from '../events/common/error-handler'
 import { loggerContext } from '../events/common/logger-context'
-
-import { randomUUID } from 'crypto'
-
 import { metricsContext } from '../events/common/metrics-context'
 import { profileHandler } from '../events/common/profile-handler'
 import { traceInvocation } from '../events/common/trace-invocation'
@@ -43,6 +40,8 @@ import type {
     SQSRecord,
 } from 'aws-lambda'
 import AWSXRay from 'aws-xray-sdk-core'
+
+import { randomUUID } from 'crypto'
 
 export const allHandlers = {
     http: handleHTTPEvent,
