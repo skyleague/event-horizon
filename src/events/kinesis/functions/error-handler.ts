@@ -6,9 +6,8 @@ import type { KinesisStreamBatchItemFailure, KinesisStreamRecord } from 'aws-lam
 export function kinesisErrorHandler({ logger, isSensitive }: LambdaContext) {
     return {
         onError: (original: KinesisStreamRecord, error: Error | unknown): KinesisStreamBatchItemFailure => {
-            const eventError = EventError.from(error)
             if (!isSensitive) {
-                logger.error(`Uncaught error found`, eventError)
+                EventError.log(logger, error, 'error')
             }
 
             return { itemIdentifier: original.eventID }

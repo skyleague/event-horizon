@@ -2,16 +2,13 @@ import { EventError } from '../../../errors/event-error'
 import type { LambdaContext } from '../../types'
 import type { S3BatchHandler } from '../types'
 
-import { isError } from '@skyleague/axioms'
 import type { S3BatchEventTask, S3BatchResultResult } from 'aws-lambda'
 
 export function s3BatchErrorHandler(handler: S3BatchHandler, { logger, isSensitive }: LambdaContext) {
     return {
         onError: (original: S3BatchEventTask, error: Error | unknown): S3BatchResultResult => {
-            const eventError = EventError.is(error) ? error : isError(error) ? new EventError(error) : new EventError('unknown')
-
             if (!isSensitive) {
-                logger.error(`Uncaught error found`, eventError)
+                EventError.log(logger, error, 'error')
             }
             // https://docs.aws.amazon.com/AmazonS3/latest/userguide/batch-ops-invoke-lambda.html
             // result strings on failure are ignored
