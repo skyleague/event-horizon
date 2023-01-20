@@ -3,6 +3,7 @@ import { kinesisParseEvent } from './functions/parse-event'
 import type { KinesisEvent, KinesisHandler } from './types'
 
 import { ioLogger } from '../functions/io-logger'
+import { ioLoggerChild } from '../functions/io-logger-child'
 import { ioValidate } from '../functions/io-validate'
 import type { LambdaContext } from '../types'
 
@@ -21,6 +22,7 @@ export async function handleKinesisEvent(
     const parseEventFn = kinesisParseEvent(kinesis)
     const ioValidateFn = ioValidate<KinesisEvent>({ input: (e) => e.payload })
     const ioLoggerFn = ioLogger({ type: 'kinesis' }, context)
+    const ioLoggerChildFn = ioLoggerChild(context, context.logger)
 
     let failures: KinesisStreamBatchItemFailure[] | undefined = undefined
 
@@ -29,6 +31,11 @@ export async function handleKinesisEvent(
 
         const kinesisEvent = mapTry(event, (e) => {
             const unvalidatedKinesisEvent = parseEventFn.before(e)
+
+            ioLoggerChildFn.before({
+                eventId: unvalidatedKinesisEvent.raw.eventID,
+            })
+
             return ioValidateFn.before(kinesis.schema.payload, unvalidatedKinesisEvent)
         })
 
@@ -45,6 +52,8 @@ export async function handleKinesisEvent(
         } else {
             ioLoggerFn.after(undefined, item)
         }
+
+        ioLoggerChildFn.after()
     }
     if (failures !== undefined) {
         return { batchItemFailures: failures }

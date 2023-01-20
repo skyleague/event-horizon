@@ -4,6 +4,7 @@ import { s3BatchSerializeResult } from './functions/serialize-result'
 import type { S3BatchHandler, S3BatchTaskResult } from './types'
 
 import { ioLogger } from '../functions/io-logger'
+import { ioLoggerChild } from '../functions/io-logger-child'
 import { ioValidate } from '../functions/io-validate'
 import type { LambdaContext } from '../types'
 
@@ -23,12 +24,20 @@ export async function handleS3Batch(
     const parseEventFn = s3BatchParseEvent()
     const ioValidateFn = ioValidate<never, S3BatchTaskResult>({ output: (e) => e.payload })
     const ioLoggerFn = ioLogger({ type: 's3-batch' }, context)
+    const ioLoggerChildFn = ioLoggerChild(context, context.logger)
 
     const results: S3BatchResultResult[] = []
     for (const [i, task] of enumerate(event.tasks)) {
         const item = { item: i }
 
         const s3BatchTask = parseEventFn.before(event, task)
+
+        ioLoggerChildFn.before({
+            taskId: s3BatchTask.taskId,
+            s3Key: s3BatchTask.s3Key,
+            s3VersionId: s3BatchTask.s3VersionId,
+            s3BucketArn: s3BatchTask.s3BucketArn,
+        })
         ioLoggerFn.before(s3BatchTask, item)
 
         const unvalidatedResponse = await mapTry(s3BatchTask, (t) => s3Batch.handler(t, context))
@@ -41,6 +50,7 @@ export async function handleS3Batch(
         )
 
         ioLoggerFn.after(result, item)
+        ioLoggerChildFn.after()
 
         if (isSuccess(result)) {
             results.push(result)

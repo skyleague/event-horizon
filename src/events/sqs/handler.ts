@@ -3,6 +3,7 @@ import { sqsParseEvent } from './functions/parse-event'
 import type { SQSEvent, SQSHandler } from './types'
 
 import { ioLogger } from '../functions/io-logger'
+import { ioLoggerChild } from '../functions/io-logger-child'
 import { ioValidate } from '../functions/io-validate'
 import type { LambdaContext } from '../types'
 
@@ -20,6 +21,7 @@ export async function handleSQSEvent(
     const parseEventFn = sqsParseEvent(sqs)
     const ioValidateFn = ioValidate<SQSEvent>({ input: (e) => e.payload })
     const ioLoggerFn = ioLogger({ type: 'sqs' }, context)
+    const ioLoggerChildFn = ioLoggerChild(context, context.logger)
 
     let failures: SQSBatchItemFailure[] | undefined = undefined
     for (const [i, event] of enumerate(events)) {
@@ -27,6 +29,11 @@ export async function handleSQSEvent(
 
         const sqsEvent = mapTry(event, (e) => {
             const unvalidatedSQSEvent = parseEventFn.before(e)
+
+            ioLoggerChildFn.before({
+                messageId: unvalidatedSQSEvent.raw.messageId,
+            })
+
             return ioValidateFn.before(sqs.schema.payload, unvalidatedSQSEvent)
         })
 
@@ -38,6 +45,7 @@ export async function handleSQSEvent(
         const response = mapLeft(eitherTransformed, (e) => errorHandlerFn.onError(event, e))
 
         ioLoggerFn.after(eitherAsValue(response), item)
+        ioLoggerChildFn.after()
 
         if (isLeft(response)) {
             failures ??= []
