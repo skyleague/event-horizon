@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 
 import type { HTTPHeaders, HTTPMethod } from '../../events/http/types'
+import type { Logger } from '../../observability/logger'
 
 import type { UndefinedFields } from '@skyleague/axioms'
 import { asArray, isError, isThrown } from '@skyleague/axioms'
@@ -169,6 +170,23 @@ export class EventError extends Error {
 
     public static is<O>(e: EventError | O): e is EventError {
         return e instanceof Error && 'isEventError' in e && e.isEventError
+    }
+
+    public static log(logger: Logger, error: EventError | unknown, mode: 'error' | 'level' = 'level'): EventError {
+        const eventError = EventError.from(error)
+        if (mode === 'level') {
+            if (eventError.level === 'error') {
+                logger.error(eventError.message, eventError)
+            } else if (eventError.level === 'warning') {
+                logger.warn(eventError.message, eventError)
+            } else {
+                logger.info(eventError.message, eventError)
+            }
+        } else {
+            logger.error(eventError.message, eventError)
+        }
+
+        return eventError
     }
 
     public static from(error: EventError | unknown): EventError {

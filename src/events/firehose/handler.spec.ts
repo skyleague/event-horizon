@@ -228,7 +228,7 @@ describe('handler', () => {
                         item: i,
                         response: undefined,
                     })
-                    expect(ctx.logger.error).toHaveBeenNthCalledWith(i + 1, 'Uncaught error found', expect.any(EventError))
+                    expect(ctx.logger.error).toHaveBeenNthCalledWith(i + 1, expect.any(String), expect.any(EventError))
                 }
             }
         )
@@ -280,7 +280,7 @@ describe('handler', () => {
                         response: undefined,
                     })
 
-                    expect(ctx.logger.error).toHaveBeenNthCalledWith(i + 1, 'Uncaught error found', EventError.validation())
+                    expect(ctx.logger.error).toHaveBeenNthCalledWith(i + 1, expect.any(String), EventError.validation())
                 }
             }
         )
@@ -332,13 +332,13 @@ describe('handler', () => {
                         response: undefined,
                     })
 
-                    expect(ctx.logger.error).toHaveBeenNthCalledWith(i + 1, 'Uncaught error found', EventError.validation())
+                    expect(ctx.logger.error).toHaveBeenNthCalledWith(i + 1, expect.any(String), EventError.validation())
                 }
             }
         )
     })
 
-    test.each([new Error(), EventError.badRequest(), 'foobar'])('promise reject with Error, gives failure', async (error) => {
+    test.each([new Error(), 'foobar'])('promise reject with Error, gives failure', async (error) => {
         await asyncForAll(tuple(arbitrary(FirehoseTransformationEvent), await context({})), async ([{ records }, ctx]) => {
             ctx.mockClear()
 
@@ -370,12 +370,49 @@ describe('handler', () => {
                     item: i,
                     response: undefined,
                 })
-                expect(ctx.logger.error).toHaveBeenNthCalledWith(i + 1, 'Uncaught error found', expect.any(EventError))
+                expect(ctx.logger.error).toHaveBeenNthCalledWith(i + 1, expect.any(String), expect.any(EventError))
             }
         })
     })
 
-    test.each([new Error(), EventError.badRequest(), 'foobar'])('promise throws with Error, gives failure', async (error) => {
+    test.each([EventError.badRequest()])('promise reject with client error, gives errors', async (error) => {
+        await asyncForAll(tuple(arbitrary(FirehoseTransformationEvent), await context({})), async ([{ records }, ctx]) => {
+            ctx.mockClear()
+
+            const handler = jest.fn().mockRejectedValue(error)
+            const response = await handleFirehoseTransformation(
+                { firehose: { schema: {}, handler, payloadType: 'binary' } },
+                records as FirehoseTransformationEventRecord[],
+                ctx
+            )
+
+            expect(response).toEqual({
+                records: records.map((r) => ({
+                    data: r.data,
+                    recordId: r.recordId,
+                    result: 'ProcessingFailed',
+                })),
+            })
+
+            for (const [i, record] of enumerate(records)) {
+                expect(handler).toHaveBeenNthCalledWith(i + 1, expect.objectContaining({ raw: record }), ctx)
+
+                expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[firehose] start', {
+                    event: expect.objectContaining({
+                        raw: record,
+                    }),
+                    item: i,
+                })
+                expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 2, '[firehose] sent', {
+                    item: i,
+                    response: undefined,
+                })
+                expect(ctx.logger.error).toHaveBeenNthCalledWith(i + 1, expect.any(String), expect.any(EventError))
+            }
+        })
+    })
+
+    test.each([new Error(), 'foobar'])('promise throws with Error, gives failure', async (error) => {
         await asyncForAll(tuple(arbitrary(FirehoseTransformationEvent), await context({})), async ([{ records }, ctx]) => {
             ctx.mockClear()
 
@@ -409,7 +446,46 @@ describe('handler', () => {
                     item: i,
                     response: undefined,
                 })
-                expect(ctx.logger.error).toHaveBeenNthCalledWith(i + 1, 'Uncaught error found', expect.any(EventError))
+                expect(ctx.logger.error).toHaveBeenNthCalledWith(i + 1, expect.any(String), expect.any(EventError))
+            }
+        })
+    })
+
+    test.each([EventError.badRequest()])('promise throws with client error, gives errors', async (error) => {
+        await asyncForAll(tuple(arbitrary(FirehoseTransformationEvent), await context({})), async ([{ records }, ctx]) => {
+            ctx.mockClear()
+
+            const handler = jest.fn().mockImplementation(() => {
+                throw error
+            })
+            const response = await handleFirehoseTransformation(
+                { firehose: { schema: {}, handler, payloadType: 'binary' } },
+                records as FirehoseTransformationEventRecord[],
+                ctx
+            )
+
+            expect(response).toEqual({
+                records: records.map((r) => ({
+                    data: r.data,
+                    recordId: r.recordId,
+                    result: 'ProcessingFailed',
+                })),
+            })
+
+            for (const [i, record] of enumerate(records)) {
+                expect(handler).toHaveBeenNthCalledWith(i + 1, expect.objectContaining({ raw: record }), ctx)
+
+                expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[firehose] start', {
+                    event: expect.objectContaining({
+                        raw: record,
+                    }),
+                    item: i,
+                })
+                expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 2, '[firehose] sent', {
+                    item: i,
+                    response: undefined,
+                })
+                expect(ctx.logger.error).toHaveBeenNthCalledWith(i + 1, expect.any(String), expect.any(EventError))
             }
         })
     })

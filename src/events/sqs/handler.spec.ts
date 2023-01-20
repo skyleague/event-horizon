@@ -100,7 +100,7 @@ describe('handler', () => {
                         item: i,
                         response: { itemIdentifier: record.messageId },
                     })
-                    expect(ctx.logger.error).toHaveBeenNthCalledWith(i + 1, 'Uncaught error found', expect.any(EventError))
+                    expect(ctx.logger.error).toHaveBeenNthCalledWith(i + 1, expect.any(String), expect.any(EventError))
                 }
             }
         )
@@ -144,13 +144,13 @@ describe('handler', () => {
                         response: { itemIdentifier: record.messageId },
                     })
 
-                    expect(ctx.logger.error).toHaveBeenNthCalledWith(i + 1, 'Uncaught error found', EventError.validation())
+                    expect(ctx.logger.error).toHaveBeenNthCalledWith(i + 1, expect.any(String), EventError.validation())
                 }
             }
         )
     })
 
-    test.each([new Error(), EventError.badRequest(), 'foobar'])('promise reject with Error, gives failure', async (error) => {
+    test.each([new Error(), 'foobar'])('promise reject with Error, gives failure', async (error) => {
         await asyncForAll(tuple(arbitrary(SQSEvent), await context({})), async ([{ Records }, ctx]) => {
             ctx.mockClear()
 
@@ -178,12 +178,45 @@ describe('handler', () => {
                     item: i,
                     response: { itemIdentifier: record.messageId },
                 })
-                expect(ctx.logger.error).toHaveBeenNthCalledWith(i + 1, 'Uncaught error found', expect.any(EventError))
+                expect(ctx.logger.error).toHaveBeenNthCalledWith(i + 1, expect.any(String), expect.any(EventError))
             }
         })
     })
 
-    test.each([new Error(), EventError.badRequest(), 'foobar'])('promise throws with Error, gives failure', async (error) => {
+    test.each([EventError.badRequest()])('promise reject with error error, gives errors', async (error) => {
+        await asyncForAll(tuple(arbitrary(SQSEvent), await context({})), async ([{ Records }, ctx]) => {
+            ctx.mockClear()
+
+            const handler = jest.fn().mockRejectedValue(error)
+            const response = await handleSQSEvent(
+                { sqs: { schema: {}, handler, payloadType: 'plaintext' } },
+                Records as SQSRecord[],
+                ctx
+            )
+
+            if (Records.length > 0) {
+                expect(response).toEqual({ batchItemFailures: Records.map((r) => ({ itemIdentifier: r.messageId })) })
+            }
+
+            for (const [i, record] of enumerate(Records)) {
+                expect(handler).toHaveBeenNthCalledWith(i + 1, expect.objectContaining({ raw: record }), ctx)
+
+                expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[sqs] start', {
+                    event: expect.objectContaining({
+                        raw: record,
+                    }),
+                    item: i,
+                })
+                expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 2, '[sqs] sent', {
+                    item: i,
+                    response: { itemIdentifier: record.messageId },
+                })
+                expect(ctx.logger.error).toHaveBeenNthCalledWith(i + 1, EventError.from(error).message, expect.any(EventError))
+            }
+        })
+    })
+
+    test.each([new Error(), 'foobar'])('promise throws with Error, gives failure', async (error) => {
         await asyncForAll(tuple(arbitrary(SQSEvent), await context({})), async ([{ Records }, ctx]) => {
             ctx.mockClear()
 
@@ -213,7 +246,42 @@ describe('handler', () => {
                     item: i,
                     response: { itemIdentifier: record.messageId },
                 })
-                expect(ctx.logger.error).toHaveBeenNthCalledWith(i + 1, 'Uncaught error found', expect.any(EventError))
+                expect(ctx.logger.error).toHaveBeenNthCalledWith(i + 1, expect.any(String), expect.any(EventError))
+            }
+        })
+    })
+
+    test.each([EventError.badRequest()])('promise throws with client error, gives errors', async (error) => {
+        await asyncForAll(tuple(arbitrary(SQSEvent), await context({})), async ([{ Records }, ctx]) => {
+            ctx.mockClear()
+
+            const handler = jest.fn().mockImplementation(() => {
+                throw error
+            })
+            const response = await handleSQSEvent(
+                { sqs: { schema: {}, handler, payloadType: 'plaintext' } },
+                Records as SQSRecord[],
+                ctx
+            )
+
+            if (Records.length > 0) {
+                expect(response).toEqual({ batchItemFailures: Records.map((r) => ({ itemIdentifier: r.messageId })) })
+            }
+
+            for (const [i, record] of enumerate(Records)) {
+                expect(handler).toHaveBeenNthCalledWith(i + 1, expect.objectContaining({ raw: record }), ctx)
+
+                expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[sqs] start', {
+                    event: expect.objectContaining({
+                        raw: record,
+                    }),
+                    item: i,
+                })
+                expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 2, '[sqs] sent', {
+                    item: i,
+                    response: { itemIdentifier: record.messageId },
+                })
+                expect(ctx.logger.error).toHaveBeenNthCalledWith(i + 1, EventError.from(error).message, expect.any(EventError))
             }
         })
     })

@@ -11,7 +11,7 @@ test('unrelated error becomes internal server event error', async () => {
         const handler = errorHandler(ctx)
         handler.onError(error)
 
-        expect(ctx.logger.error).toHaveBeenCalledWith('Uncaught error found', expect.any(EventError))
+        expect(ctx.logger.error).toHaveBeenCalledWith('unknown', expect.any(EventError))
     })
 })
 
@@ -19,14 +19,14 @@ test('server event error becomes error', async () => {
     forAll(
         tuple(
             await context(),
-            string().map((c) => new EventError(c))
+            string().map((c) => [c, new EventError(c)])
         ),
-        ([ctx, error]) => {
+        ([ctx, [message, error]]) => {
             ctx.mockClear()
             const handler = errorHandler(ctx)
             handler.onError(error)
 
-            expect(ctx.logger.error).toHaveBeenCalledWith('Uncaught error found', expect.any(EventError))
+            expect(ctx.logger.error).toHaveBeenCalledWith(message, expect.any(EventError))
         }
     )
 })
@@ -35,14 +35,14 @@ test('client event error becomes warning', async () => {
     forAll(
         tuple(
             await context(),
-            string().map((c) => new EventError(c, { statusCode: 400 }))
+            string().map((c) => [c, new EventError(c, { statusCode: 400 })])
         ),
-        ([ctx, error]) => {
+        ([ctx, [message, error]]) => {
             ctx.mockClear()
             const handler = errorHandler(ctx)
             handler.onError(error)
 
-            expect(ctx.logger.warn).toHaveBeenCalledWith('Warning found', expect.any(EventError))
+            expect(ctx.logger.warn).toHaveBeenCalledWith(message, expect.any(EventError))
         }
     )
 })

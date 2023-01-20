@@ -73,7 +73,7 @@ describe('handler', () => {
         )
     })
 
-    test.each([new Error(), EventError.badRequest(), 'foobar'])('promise reject with Error, gives failure', async (error) => {
+    test.each([new Error(), 'foobar'])('promise reject with Error, gives failure', async (error) => {
         await asyncForAll(tuple(arbitrary(S3BatchEvent), await context({})), async ([event, ctx]) => {
             ctx.mockClear()
 
@@ -123,12 +123,67 @@ describe('handler', () => {
                 })
             }
             if (event.tasks.length > 0) {
-                expect(ctx.logger.error).toHaveBeenCalledWith('Uncaught error found', expect.any(EventError))
+                expect(ctx.logger.error).toHaveBeenCalledWith(expect.any(String), expect.any(EventError))
             }
         })
     })
 
-    test.each([new Error(), EventError.badRequest(), 'foobar'])('promise throws with Error, gives failure', async (error) => {
+    test.each([EventError.badRequest()])('promise reject with client error, gives errors', async (error) => {
+        await asyncForAll(tuple(arbitrary(S3BatchEvent), await context({})), async ([event, ctx]) => {
+            ctx.mockClear()
+
+            const handler = jest.fn().mockRejectedValue(error)
+
+            const response = await handleS3Batch({ s3Batch: { handler, schema: {} } }, event, ctx)
+
+            expect(response).toEqual({
+                invocationId: event.invocationId,
+                invocationSchemaVersion: event.invocationSchemaVersion,
+                results: event.tasks.map((_, i) => ({
+                    resultCode: 'TemporaryFailure',
+                    resultString: '',
+                    taskId: event.tasks[i].taskId,
+                })),
+                treatMissingKeysAs: 'TemporaryFailure',
+            })
+
+            for (const [i, task] of enumerate(event.tasks)) {
+                expect(handler).toHaveBeenNthCalledWith(
+                    i + 1,
+                    expect.objectContaining({
+                        raw: {
+                            task: task,
+                            job: omit(event, ['tasks']),
+                        },
+                    }),
+                    ctx
+                )
+
+                expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[s3-batch] start', {
+                    event: expect.objectContaining({
+                        raw: {
+                            task: task,
+                            job: omit(event, ['tasks']),
+                        },
+                    }),
+                    item: i,
+                })
+                expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 2, '[s3-batch] sent', {
+                    item: i,
+                    response: {
+                        resultCode: 'TemporaryFailure',
+                        resultString: '',
+                        taskId: event.tasks[i].taskId,
+                    },
+                })
+            }
+            if (event.tasks.length > 0) {
+                expect(ctx.logger.error).toHaveBeenCalledWith(expect.any(String), expect.any(EventError))
+            }
+        })
+    })
+
+    test.each([new Error(), 'foobar'])('promise throws with Error, gives failure', async (error) => {
         await asyncForAll(tuple(arbitrary(S3BatchEvent), await context({})), async ([event, ctx]) => {
             ctx.mockClear()
 
@@ -180,7 +235,64 @@ describe('handler', () => {
                 })
             }
             if (event.tasks.length > 0) {
-                expect(ctx.logger.error).toHaveBeenCalledWith('Uncaught error found', expect.any(EventError))
+                expect(ctx.logger.error).toHaveBeenCalledWith(expect.any(String), expect.any(EventError))
+            }
+        })
+    })
+
+    test.each([EventError.badRequest()])('promise throws with client error, gives errors', async (error) => {
+        await asyncForAll(tuple(arbitrary(S3BatchEvent), await context({})), async ([event, ctx]) => {
+            ctx.mockClear()
+
+            const handler = jest.fn().mockImplementation(() => {
+                throw error
+            })
+
+            const response = await handleS3Batch({ s3Batch: { handler, schema: {} } }, event, ctx)
+
+            expect(response).toEqual({
+                invocationId: event.invocationId,
+                invocationSchemaVersion: event.invocationSchemaVersion,
+                results: event.tasks.map((_, i) => ({
+                    resultCode: 'TemporaryFailure',
+                    resultString: '',
+                    taskId: event.tasks[i].taskId,
+                })),
+                treatMissingKeysAs: 'TemporaryFailure',
+            })
+
+            for (const [i, task] of enumerate(event.tasks)) {
+                expect(handler).toHaveBeenNthCalledWith(
+                    i + 1,
+                    expect.objectContaining({
+                        raw: {
+                            task: task,
+                            job: omit(event, ['tasks']),
+                        },
+                    }),
+                    ctx
+                )
+
+                expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[s3-batch] start', {
+                    event: expect.objectContaining({
+                        raw: {
+                            task: task,
+                            job: omit(event, ['tasks']),
+                        },
+                    }),
+                    item: i,
+                })
+                expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 2, '[s3-batch] sent', {
+                    item: i,
+                    response: {
+                        resultCode: 'TemporaryFailure',
+                        resultString: '',
+                        taskId: event.tasks[i].taskId,
+                    },
+                })
+            }
+            if (event.tasks.length > 0) {
+                expect(ctx.logger.error).toHaveBeenCalledWith(expect.any(String), expect.any(EventError))
             }
         })
     })
