@@ -241,7 +241,8 @@ export function eventHandler<H extends EventHandler, R>(definition: H, options: 
             config: config(),
             requestId: options.requestId?.(request as R),
             traceId: options.traceId?.(request as R),
-            logger,
+            // isolate the context logger
+            logger: logger.child(),
             metrics,
             tracer,
         })
@@ -259,8 +260,6 @@ export function eventHandler<H extends EventHandler, R>(definition: H, options: 
         loggerContextFn.before(request, context)
 
         const ctx = await mapTry(lambdaContext, async (c) => {
-            // isolate the context logger
-            c.logger = c.logger.child()
             c.profile = (await profileFn.before()) as never
             return c
         })

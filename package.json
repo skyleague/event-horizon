@@ -54,10 +54,10 @@
   },
   "devDependencies": {
     "@skyleague/event-horizon": "file:./",
-    "@skyleague/event-horizon-dev": "^2.1.1",
+    "@skyleague/event-horizon-dev": "^2.2.0",
     "@skyleague/node-standards": "^1.12.3",
-    "@skyleague/therefore": "^1.23.0",
-    "@types/node": "^18.11.18",
+    "@skyleague/therefore": "^1.23.1",
+    "@types/node": "^18.13.0",
     "aws-sdk-client-mock": "^2.0.1",
     "aws-sdk-client-mock-jest": "^2.0.1",
     "got": "^11.8.5",
