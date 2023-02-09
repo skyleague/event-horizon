@@ -19,7 +19,7 @@ import type { EventHandler } from './types'
 
 import { EventError } from '../errors'
 import type { Logger, Metrics, Tracer } from '../observability'
-import { createLogger } from '../observability/logger/logger'
+import { createLogger, logger } from '../observability/logger/logger'
 import { createMetrics } from '../observability/metrics/metrics'
 import { createTracer } from '../observability/tracer/tracer'
 
@@ -535,7 +535,7 @@ describe('eventHandler', () => {
                     Configuration: JSON.stringify(profile),
                 } as any)
 
-                const l = createLogger({ instance: mock() })
+                const l = ctx.logger
                 const setbinding = jest.spyOn(l, 'setBindings')
                 const m = createMetrics(mock())
                 const t = createTracer(mock())
@@ -574,7 +574,8 @@ describe('eventHandler', () => {
 
                 const rCtx = handlerImpl.mock.calls[0][0].context
                 expect(setbinding).toBeCalledWith({ requestId: rCtx.requestId, traceId: rCtx.traceId })
-                expect(rCtx.logger).not.toBe(l)
+                expect(rCtx.logger).toBe(l)
+                expect(rCtx.logger).not.toBe(logger)
                 expect(rCtx.profile).toEqual(profile)
                 expect(m.instance.publishStoredMetrics).toHaveBeenCalled()
 
@@ -640,7 +641,7 @@ describe('eventHandler', () => {
         await asyncForAll(
             tuple(unknown(), unknown(), unknown(), unknown(), await context()),
             async ([request, c, s, ret, ctx]) => {
-                const l = createLogger({ instance: mock() })
+                const l = ctx.logger
                 const setbinding = jest.spyOn(l, 'setBindings')
                 const m = createMetrics(mock())
                 const t = createTracer(mock())
@@ -678,7 +679,8 @@ describe('eventHandler', () => {
 
                 const rCtx = handlerImpl.mock.calls[0][0].context
                 expect(setbinding).toBeCalledWith({ requestId: rCtx.requestId, traceId: rCtx.traceId })
-                expect(rCtx.logger).not.toBe(l)
+                expect(rCtx.logger).toBe(l)
+                expect(rCtx.logger).not.toBe(logger)
                 expect(m.instance.publishStoredMetrics).toHaveBeenCalled()
 
                 expect(getSegment.addNewSubsegment).toHaveBeenLastCalledWith('## ')
@@ -691,7 +693,7 @@ describe('eventHandler', () => {
         await asyncForAll(
             tuple(unknown(), unknown(), unknown(), unknown().map(failure), await context()),
             async ([request, c, s, ret, ctx]) => {
-                const l = createLogger({ instance: mock() })
+                const l = ctx.logger
                 const setbinding = jest.spyOn(l, 'setBindings')
 
                 const m = createMetrics(mock())
@@ -730,7 +732,8 @@ describe('eventHandler', () => {
 
                 const rCtx = handlerImpl.mock.calls[0][0].context
                 expect(setbinding).toBeCalledWith({ requestId: rCtx.requestId, traceId: rCtx.traceId })
-                expect(rCtx.logger).not.toBe(l)
+                expect(rCtx.logger).toBe(l)
+                expect(rCtx.logger).not.toBe(logger)
                 expect(m.instance.publishStoredMetrics).toHaveBeenCalled()
 
                 expect(getSegment.addNewSubsegment).toHaveBeenLastCalledWith('## ')
@@ -752,7 +755,7 @@ describe('eventHandler', () => {
                 await context()
             ),
             async ([request, c, s, ret, ctx]) => {
-                const l = createLogger({ instance: mock() })
+                const l = ctx.logger
                 const setbinding = jest.spyOn(l, 'setBindings')
 
                 const m = createMetrics(mock())
@@ -791,7 +794,8 @@ describe('eventHandler', () => {
 
                 const rCtx = handlerImpl.mock.calls[0][0].context
                 expect(setbinding).toBeCalledWith({ requestId: rCtx.requestId, traceId: rCtx.traceId })
-                expect(rCtx.logger).not.toBe(l)
+                expect(rCtx.logger).toBe(l)
+                expect(rCtx.logger).not.toBe(logger)
                 expect(m.instance.publishStoredMetrics).toHaveBeenCalled()
 
                 expect(getSegment.addNewSubsegment).toHaveBeenLastCalledWith('## ')
