@@ -1,12 +1,12 @@
-import { handleSNSEvent } from './handler'
+import { handleSNSEvent } from './handler.js'
 
-import { EventError } from '../../errors/event-error'
+import { EventError } from '../../errors/event-error/index.js'
 
 import { asyncForAll, enumerate, failure, json, random, tuple } from '@skyleague/axioms'
 import { context, SNSEvent } from '@skyleague/event-horizon-dev'
 import type { Schema } from '@skyleague/therefore'
 import { arbitrary } from '@skyleague/therefore'
-import type { SNSEventRecord } from 'aws-lambda/trigger/sns'
+import type { SNSEventRecord } from 'aws-lambda/trigger/sns.js'
 
 describe('handler', () => {
     test('binary events does not give failures', async () => {
@@ -14,6 +14,7 @@ describe('handler', () => {
             ctx.mockClear()
 
             const handler = jest.fn()
+
             const response = await handleSNSEvent(
                 { sns: { schema: {}, handler, payloadType: 'binary' } },
                 Records as SNSEventRecord[],

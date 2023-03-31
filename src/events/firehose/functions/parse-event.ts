@@ -1,5 +1,5 @@
-import { parseJSON } from '../../../parsers'
-import type { FirehoseTransformationEvent, FirehoseTransformationEventHandler } from '../types'
+import { parseJSON } from '../../../parsers/index.js'
+import type { FirehoseTransformationEvent, FirehoseTransformationEventHandler } from '../types.js'
 
 import type { FirehoseTransformationEventRecord } from 'aws-lambda'
 

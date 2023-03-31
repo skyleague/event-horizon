@@ -1,6 +1,6 @@
-import { httpErrorHandler } from './error-handler'
+import { httpErrorHandler } from './error-handler.js'
 
-import { EventError } from '../../../errors/event-error'
+import { EventError } from '../../../errors/event-error/index.js'
 
 import { forAll, random, string, tuple, unknown } from '@skyleague/axioms'
 import { context } from '@skyleague/event-horizon-dev'

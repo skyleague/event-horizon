@@ -14,6 +14,8 @@
     "*.config.ts",
     "*.js",
     ".*.js",
+    "*.cjs",
+    ".*.cjs",
     "*.json",
     ".*.json",
     "index.ts"

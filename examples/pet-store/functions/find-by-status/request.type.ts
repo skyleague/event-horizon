@@ -5,7 +5,7 @@
 /* eslint-disable */
 import AjvValidator from 'ajv'
 import type { ValidateFunction } from 'ajv'
-import { Status } from '../../lib/models.type'
+import { Status } from '../../lib/models.type.js'
 
 export interface Query {
     status: Status

@@ -1,12 +1,14 @@
 import glob from 'fast-glob'
 
-import { execSync } from 'child_process'
-import fs from 'fs'
-import path from 'path'
+import { execFileSync } from 'node:child_process'
+import fs from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 async function main() {
-    execSync(`rm -rf dist`)
-    execSync('npx tsc -p tsconfig.dist.json')
+    execFileSync(`rm`, ['-rf', 'dist'], { stdio: 'inherit', cwd: __dirname })
+    execFileSync('npx', ['tsc', '-p', 'tsconfig.dist.json'], { stdio: 'inherit', cwd: __dirname })
 
     const srcDir = path.join(__dirname, 'src')
     await Promise.all(

@@ -1,8 +1,8 @@
-import type { ProfileSchema } from './common/profile-handler'
+import type { ProfileSchema } from './common/profile-handler.js'
 
-import type { Logger } from '../observability/logger/logger'
-import type { Metrics } from '../observability/metrics/metrics'
-import type { Tracer } from '../observability/tracer/tracer'
+import type { Logger } from '../observability/logger/logger.js'
+import type { Metrics } from '../observability/metrics/metrics.js'
+import type { Tracer } from '../observability/tracer/tracer.js'
 
 import type { Context } from 'aws-lambda'
 

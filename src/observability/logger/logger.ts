@@ -1,6 +1,6 @@
-import { LogFormatter } from './formatter'
+import { LogFormatter } from './formatter.js'
 
-import { constants } from '../../constants'
+import { constants } from '../../constants.js'
 
 import { Logger as AwsLogger } from '@aws-lambda-powertools/logger'
 import type { ConstructorOptions } from '@aws-lambda-powertools/logger/lib/types'

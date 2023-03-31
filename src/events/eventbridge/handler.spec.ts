@@ -1,6 +1,6 @@
-import { handleEventBridgeEvent } from './handler'
+import { handleEventBridgeEvent } from './handler.js'
 
-import { EventError } from '../../errors'
+import { EventError } from '../../errors/index.js'
 
 import { asyncForAll, failure, json, tuple } from '@skyleague/axioms'
 import { context, eventBridgeEvent } from '@skyleague/event-horizon-dev'

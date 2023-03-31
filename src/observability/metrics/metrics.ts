@@ -1,4 +1,4 @@
-import { constants } from '../../constants'
+import { constants } from '../../constants.js'
 
 import { Metrics as AWSMetrics } from '@aws-lambda-powertools/metrics'
 import type { MetricUnit } from '@aws-lambda-powertools/metrics/lib/types'

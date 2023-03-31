@@ -2,6 +2,7 @@
 node_modules
 yalc.lock
 src/**/*.d.ts
+**/*.schema.js
 /index.d.ts
 /dist
 
@@ -12,5 +13,3 @@ src/**/*.d.ts
 !.gitignore
 !.gitkeep
 !.eslintrc.*
-!.prettierignore
-!.eslintignore

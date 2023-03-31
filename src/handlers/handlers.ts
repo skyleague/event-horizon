@@ -1,8 +1,8 @@
-import type { LambdaHandler } from './aws'
-import { eventHandler } from './event'
-import type { EventHandler } from './types'
+import type { LambdaHandler } from './aws.js'
+import { eventHandler } from './event.js'
+import type { EventHandler } from './types.js'
 
-import { constants } from '../constants'
+import { constants } from '../constants.js'
 import type {
     EventBridgeHandler,
     FirehoseTransformationHandler,
@@ -16,7 +16,7 @@ import type {
     SecretRotationServices,
     SNSHandler,
     SQSHandler,
-} from '../events'
+} from '../events/index.js'
 
 import type { UndefinedFields } from '@skyleague/axioms'
 import type { APIGatewayProxyEvent, APIGatewayProxyEventV2 } from 'aws-lambda'

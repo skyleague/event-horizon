@@ -1,11 +1,11 @@
-import { firehoseErrorHandler } from './functions/error-handler'
-import { firehoseParseEvent } from './functions/parse-event'
-import { firehoseSerializeTransformation } from './functions/serialize-transformation'
-import type { FirehoseTransformationEvent, FirehoseTransformationHandler, FirehoseTransformationResult } from './types'
+import { firehoseErrorHandler } from './functions/error-handler.js'
+import { firehoseParseEvent } from './functions/parse-event.js'
+import { firehoseSerializeTransformation } from './functions/serialize-transformation.js'
+import type { FirehoseTransformationEvent, FirehoseTransformationHandler, FirehoseTransformationResult } from './types.js'
 
-import { ioLogger } from '../functions/io-logger'
-import { ioValidate } from '../functions/io-validate'
-import type { LambdaContext } from '../types'
+import { ioLogger } from '../functions/io-logger.js'
+import { ioValidate } from '../functions/io-validate.js'
+import type { LambdaContext } from '../types.js'
 
 import type { Try } from '@skyleague/axioms'
 import { enumerate, mapTry, transformTry, isSuccess } from '@skyleague/axioms'

@@ -1,4 +1,4 @@
-import { EventError } from '../../errors'
+import { EventError } from '../../errors/index.js'
 
 import type { Try } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'

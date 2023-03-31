@@ -1,1 +1,1 @@
-export { SQSEvent, SQSEventHandler, SQSHandler } from './types'
+export { SQSEvent, SQSEventHandler, SQSHandler } from './types.js'

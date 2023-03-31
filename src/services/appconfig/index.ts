@@ -1,1 +1,1 @@
-export { createAppConfigData } from './appconfig'
+export { createAppConfigData } from './appconfig.js'

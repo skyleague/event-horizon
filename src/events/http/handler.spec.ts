@@ -1,7 +1,7 @@
-import { handleHTTPEvent } from './handler'
+import { handleHTTPEvent } from './handler.js'
 
-import { EventError } from '../../errors'
-import { httpHandler } from '../../handlers'
+import { EventError } from '../../errors/index.js'
+import { httpHandler } from '../../handlers/index.js'
 
 import { alpha, asyncForAll, constant, isString, json, oneOf, random, tuple } from '@skyleague/axioms'
 import { context, httpEvent } from '@skyleague/event-horizon-dev'

@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/require-await */
-import { profileHandler } from './profile-handler'
+import { profileHandler } from './profile-handler.js'
 
 import 'aws-sdk-client-mock-jest'
-import { EventError } from '../../errors'
+import { EventError } from '../../errors/index.js'
 
 import {
     AppConfigData,

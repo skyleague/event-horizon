@@ -1,5 +1,5 @@
-import type { Dimensions } from '../../observability/metrics/metrics'
-import type { LambdaContext } from '../types'
+import type { Dimensions } from '../../observability/metrics/metrics.js'
+import type { LambdaContext } from '../types.js'
 
 export function metricsContext(
     { metrics }: LambdaContext,

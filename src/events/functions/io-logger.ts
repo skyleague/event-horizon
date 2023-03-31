@@ -1,5 +1,5 @@
-import { constants } from '../../constants'
-import type { LambdaContext } from '../types'
+import { constants } from '../../constants.js'
+import type { LambdaContext } from '../types.js'
 
 export interface IOLoggerOptions {
     type: string

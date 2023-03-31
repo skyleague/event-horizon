@@ -1,1 +1,1 @@
-export { KinesisEvent, KinesisEventHandler, KinesisHandler } from './types'
+export { KinesisEvent, KinesisEventHandler, KinesisHandler } from './types.js'

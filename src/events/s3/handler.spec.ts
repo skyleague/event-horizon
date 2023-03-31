@@ -1,6 +1,6 @@
-import { handleS3Event } from './handler'
+import { handleS3Event } from './handler.js'
 
-import { EventError } from '../../errors/event-error'
+import { EventError } from '../../errors/event-error/index.js'
 
 import { asyncForAll, enumerate, failure, tuple } from '@skyleague/axioms'
 import { context, S3Event } from '@skyleague/event-horizon-dev'

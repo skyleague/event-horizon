@@ -1,6 +1,6 @@
-import { constants } from '../../../constants'
+import { constants } from '../../../constants.js'
 
-import type { Schema } from '@skyleague/therefore/src/lib/primitives/restclient/openapi.type'
+import type { Schema } from '@skyleague/therefore/src/lib/primitives/restclient/openapi.type.js'
 
 export interface HttpError {
     statusCode: number

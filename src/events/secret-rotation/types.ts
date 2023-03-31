@@ -1,4 +1,4 @@
-import type { EventHandlerDefinition, LambdaContext } from '../types'
+import type { EventHandlerDefinition, LambdaContext } from '../types.js'
 
 import type { SecretsManager } from '@aws-sdk/client-secrets-manager'
 import type { Promisable, Try } from '@skyleague/axioms'

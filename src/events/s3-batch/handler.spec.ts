@@ -1,6 +1,6 @@
-import { handleS3Batch } from './handler'
+import { handleS3Batch } from './handler.js'
 
-import { EventError } from '../../errors'
+import { EventError } from '../../errors/index.js'
 
 import { array, asyncForAll, enumerate, isString, json, omit, random, tuple } from '@skyleague/axioms'
 import { context, S3BatchEvent } from '@skyleague/event-horizon-dev'
@@ -32,7 +32,7 @@ describe('handler', () => {
                     results: payloads.map((p, i) => ({
                         resultCode: 'Succeeded',
                         resultString: isString(p) ? p : JSON.stringify(p),
-                        taskId: event.tasks[i].taskId,
+                        taskId: event.tasks[i]!.taskId,
                     })),
                     treatMissingKeysAs: 'TemporaryFailure',
                 })
@@ -63,7 +63,7 @@ describe('handler', () => {
                         response: {
                             resultCode: 'Succeeded',
                             resultString: isString(payloads[i]) ? payloads[i] : JSON.stringify(payloads[i]),
-                            taskId: event.tasks[i].taskId,
+                            taskId: event.tasks[i]!.taskId,
                         },
                     })
                 }
@@ -87,7 +87,7 @@ describe('handler', () => {
                 results: event.tasks.map((_, i) => ({
                     resultCode: 'TemporaryFailure',
                     resultString: '',
-                    taskId: event.tasks[i].taskId,
+                    taskId: event.tasks[i]!.taskId,
                 })),
                 treatMissingKeysAs: 'TemporaryFailure',
             })
@@ -118,7 +118,7 @@ describe('handler', () => {
                     response: {
                         resultCode: 'TemporaryFailure',
                         resultString: '',
-                        taskId: event.tasks[i].taskId,
+                        taskId: event.tasks[i]!.taskId,
                     },
                 })
             }
@@ -142,7 +142,7 @@ describe('handler', () => {
                 results: event.tasks.map((_, i) => ({
                     resultCode: 'TemporaryFailure',
                     resultString: '',
-                    taskId: event.tasks[i].taskId,
+                    taskId: event.tasks[i]!.taskId,
                 })),
                 treatMissingKeysAs: 'TemporaryFailure',
             })
@@ -173,7 +173,7 @@ describe('handler', () => {
                     response: {
                         resultCode: 'TemporaryFailure',
                         resultString: '',
-                        taskId: event.tasks[i].taskId,
+                        taskId: event.tasks[i]!.taskId,
                     },
                 })
             }
@@ -199,7 +199,7 @@ describe('handler', () => {
                 results: event.tasks.map((_, i) => ({
                     resultCode: 'TemporaryFailure',
                     resultString: '',
-                    taskId: event.tasks[i].taskId,
+                    taskId: event.tasks[i]!.taskId,
                 })),
                 treatMissingKeysAs: 'TemporaryFailure',
             })
@@ -230,7 +230,7 @@ describe('handler', () => {
                     response: {
                         resultCode: 'TemporaryFailure',
                         resultString: '',
-                        taskId: event.tasks[i].taskId,
+                        taskId: event.tasks[i]!.taskId,
                     },
                 })
             }
@@ -256,7 +256,7 @@ describe('handler', () => {
                 results: event.tasks.map((_, i) => ({
                     resultCode: 'TemporaryFailure',
                     resultString: '',
-                    taskId: event.tasks[i].taskId,
+                    taskId: event.tasks[i]!.taskId,
                 })),
                 treatMissingKeysAs: 'TemporaryFailure',
             })
@@ -287,7 +287,7 @@ describe('handler', () => {
                     response: {
                         resultCode: 'TemporaryFailure',
                         resultString: '',
-                        taskId: event.tasks[i].taskId,
+                        taskId: event.tasks[i]!.taskId,
                     },
                 })
             }

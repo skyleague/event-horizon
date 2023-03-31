@@ -1,1 +1,1 @@
-export { SecretRotationRequest, SecretRotationEventHandler, SecretRotationServices, SecretRotationHandler } from './types'
+export { SecretRotationRequest, SecretRotationEventHandler, SecretRotationServices, SecretRotationHandler } from './types.js'

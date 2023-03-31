@@ -1,67 +1,78 @@
 {
   "name": "@skyleague/event-horizon",
+  "version": "4.0.0-beta.0",
   "description": "A standardized boilerplate for lambda handlers.",
-  "version": "3.2.1",
-  "license": "MIT",
-  "author": "SkyLeague Technologies B.V. <technologies@skyleague.io> (https://skyleague.io)",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "sideEffects": false,
   "homepage": "https://skyleague.github.io/event-horizon/",
   "repository": {
     "type": "git",
     "url": "https://github.com/skyleague/event-horizon.git"
   },
-  "node-standards": {
-    "type": "library",
-    "template": {
-      "documentation": "docusaurus"
-    }
+  "license": "MIT",
+  "author": "SkyLeague Technologies B.V. <technologies@skyleague.io> (https://skyleague.io)",
+  "sideEffects": false,
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js",
+    "./package.json": "./package.json",
+    "./*.js": "./dist/*.js"
   },
-  "engines": {
-    "node": ">=14"
-  },
-  "publishConfig": {
-    "registry": "https://registry.npmjs.org",
-    "access": "public"
-  },
-  "files": ["dist", "package.json"],
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "package.json"
+  ],
   "scripts": {
-    "build": "npx ts-node build.config.ts",
-    "build:clean": "npx tsc --build --clean && rm .main.js && rm .main.js.map",
+    "build": "npx ts-node --esm build.config.ts",
+    "build:clean": "npx tsc --build --clean && rm -rf dist",
     "build:docs": "(cd docs; npm install; npm run build)",
     "check:cost": "npx cost-of-modules --no-install --include-dev",
-    "check:coverage": "npx jest --collectCoverage=true",
+    "check:coverage": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" npx jest --collectCoverage=true",
     "check:full": "npm run lint && npm run check:types && npm run check:coverage && npm run build && npm run check:project",
     "check:project": "npx node-standards lint",
     "check:types": "npx tsc -p tsconfig.json",
-    "format": "npx prettier \"**/*.{ts,js,json,yml,yaml,md}\" --ignore-path .gitignore --write",
-    "lint": "npx eslint \"{src,test,typing}/**/*.ts\" --no-eslintrc --cache -c .eslintrc.js --ignore-path .gitignore",
+    "format": "npx prettier \"**/*.{ts,js,json,yml,yaml,md}\" --write",
+    "lint": "npm run build; npx eslint \"./{src,test,typings}/**/*.ts\" --cache --no-eslintrc --config .eslintrc.cjs",
     "lint:fix": "npm run lint -- --fix",
     "lint:full": "bash -c \"FULL_LINT=true npm run lint\"",
     "package": "rm -rf .dist && npm run build",
     "prepare": "npx husky install || true",
-    "test": "npx jest"
+    "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" npx jest"
   },
   "dependencies": {
-    "@aws-lambda-powertools/logger": "^1.5.1",
-    "@aws-lambda-powertools/metrics": "^1.5.1",
-    "@aws-lambda-powertools/tracer": "^1.5.1",
-    "@skyleague/axioms": "^1.13.1",
-    "@types/aws-lambda": "^8.10.109",
+    "@aws-lambda-powertools/logger": "^1.7.0",
+    "@aws-lambda-powertools/metrics": "^1.7.0",
+    "@aws-lambda-powertools/tracer": "^1.7.0",
+    "@skyleague/axioms": "^1.15.0",
+    "@types/aws-lambda": "^8.10.114",
     "secure-json-parse": "^2.7.0",
-    "tslib": "^2.4.1"
+    "tslib": "^2.5.0"
   },
   "devDependencies": {
-    "@skyleague/event-horizon": "file:./",
-    "@skyleague/event-horizon-dev": "^2.2.0",
-    "@skyleague/node-standards": "^1.12.3",
-    "@skyleague/therefore": "^1.23.1",
-    "@types/node": "^18.13.0",
-    "aws-sdk-client-mock": "^2.0.1",
-    "aws-sdk-client-mock-jest": "^2.0.1",
-    "got": "^11.8.5",
+    "@skyleague/event-horizon": "./",
+    "@skyleague/event-horizon-dev": "2.3.0-beta-be553fbd.1",
+    "@skyleague/node-standards": "1.22.0-beta-2172eaee.1",
+    "@skyleague/therefore": "1.25.0-beta-99ae9e1e.1",
+    "@types/node": "^18.15.11",
+    "aws-sdk-client-mock": "^2.1.1",
+    "aws-sdk-client-mock-jest": "^2.1.1",
+    "got": "^12.6.0",
     "nock": "^13.3.0",
-    "typescript": "^4.9.4"
+    "typescript": "^5.0.2"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "node-standards": {
+    "extends": [
+      "library",
+      "docusaurus"
+    ],
+    "rules": {
+      "scripts": false
+    }
   }
 }

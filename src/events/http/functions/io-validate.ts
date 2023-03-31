@@ -1,5 +1,5 @@
-import { EventError } from '../../../errors'
-import type { HTTPEventHandler, HTTPRequest } from '../types'
+import { EventError } from '../../../errors/index.js'
+import type { HTTPEventHandler, HTTPRequest } from '../types.js'
 
 import type { Try } from '@skyleague/axioms'
 

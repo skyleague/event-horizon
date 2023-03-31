@@ -1,11 +1,11 @@
-import { sqsErrorHandler } from './functions/error-handler'
-import { sqsParseEvent } from './functions/parse-event'
-import type { SQSEvent, SQSHandler } from './types'
+import { sqsErrorHandler } from './functions/error-handler.js'
+import { sqsParseEvent } from './functions/parse-event.js'
+import type { SQSEvent, SQSHandler } from './types.js'
 
-import { ioLogger } from '../functions/io-logger'
-import { ioLoggerChild } from '../functions/io-logger-child'
-import { ioValidate } from '../functions/io-validate'
-import type { LambdaContext } from '../types'
+import { ioLoggerChild } from '../functions/io-logger-child.js'
+import { ioLogger } from '../functions/io-logger.js'
+import { ioValidate } from '../functions/io-validate.js'
+import type { LambdaContext } from '../types.js'
 
 import { eitherAsValue, enumerate, isLeft, mapLeft, mapTry, tryToEither } from '@skyleague/axioms'
 import type { SQSBatchItemFailure, SQSBatchResponse, SQSRecord } from 'aws-lambda'

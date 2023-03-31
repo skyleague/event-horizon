@@ -1,10 +1,10 @@
-import { snsParseEvent } from './functions/parse-event'
-import type { SNSEvent, SNSHandler } from './types'
+import { snsParseEvent } from './functions/parse-event.js'
+import type { SNSEvent, SNSHandler } from './types.js'
 
-import { ioLogger } from '../functions/io-logger'
-import { ioLoggerChild } from '../functions/io-logger-child'
-import { ioValidate } from '../functions/io-validate'
-import type { LambdaContext } from '../types'
+import { ioLoggerChild } from '../functions/io-logger-child.js'
+import { ioLogger } from '../functions/io-logger.js'
+import { ioValidate } from '../functions/io-validate.js'
+import type { LambdaContext } from '../types.js'
 
 import type { Try } from '@skyleague/axioms'
 import { enumerate, isFailure, mapTry } from '@skyleague/axioms'

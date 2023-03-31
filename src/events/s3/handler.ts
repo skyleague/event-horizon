@@ -1,8 +1,8 @@
-import { s3ParseEvent } from './functions/parse-event'
-import type { S3Handler } from './types'
+import { s3ParseEvent } from './functions/parse-event.js'
+import type { S3Handler } from './types.js'
 
-import { ioLogger } from '../functions/io-logger'
-import type { LambdaContext } from '../types'
+import { ioLogger } from '../functions/io-logger.js'
+import type { LambdaContext } from '../types.js'
 
 import type { Try } from '@skyleague/axioms'
 import { enumerate, isFailure, mapTry } from '@skyleague/axioms'

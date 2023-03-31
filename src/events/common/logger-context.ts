@@ -1,4 +1,4 @@
-import type { LambdaContext } from '../types'
+import type { LambdaContext } from '../types.js'
 
 import { Logger as AWSLogger } from '@aws-lambda-powertools/logger'
 import type { Context } from 'aws-lambda'

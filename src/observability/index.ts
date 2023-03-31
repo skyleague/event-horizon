@@ -1,3 +1,3 @@
-export * from './logger'
-export * from './metrics'
-export * from './tracer'
+export * from './logger/index.js'
+export * from './metrics/index.js'
+export * from './tracer/index.js'
