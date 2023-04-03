@@ -1,4 +1,4 @@
-import { createLogger } from './logger'
+import { createLogger } from './logger.js'
 
 import { forAll, string } from '@skyleague/axioms'
 

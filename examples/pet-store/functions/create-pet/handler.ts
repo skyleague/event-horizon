@@ -1,5 +1,5 @@
-import { httpHandler } from '../../../../src'
-import { Pet } from '../../lib/models.type'
+import { httpHandler } from '../../../../src/index.js'
+import { Pet } from '../../lib/models.type.js'
 
 export const handler = httpHandler({
     description: 'Add a new pet to the store',

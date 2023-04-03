@@ -1,1 +1,1 @@
-export * from './appconfig'
+export * from './appconfig/index.js'

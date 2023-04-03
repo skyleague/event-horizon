@@ -1,1 +1,1 @@
-export { isAWSv3Client } from './is-client'
+export { isAWSv3Client } from './is-client.js'

@@ -1,11 +1,11 @@
-import { kinesisErrorHandler } from './functions/error-handler'
-import { kinesisParseEvent } from './functions/parse-event'
-import type { KinesisEvent, KinesisHandler } from './types'
+import { kinesisErrorHandler } from './functions/error-handler.js'
+import { kinesisParseEvent } from './functions/parse-event.js'
+import type { KinesisEvent, KinesisHandler } from './types.js'
 
-import { ioLogger } from '../functions/io-logger'
-import { ioLoggerChild } from '../functions/io-logger-child'
-import { ioValidate } from '../functions/io-validate'
-import type { LambdaContext } from '../types'
+import { ioLoggerChild } from '../functions/io-logger-child.js'
+import { ioLogger } from '../functions/io-logger.js'
+import { ioValidate } from '../functions/io-validate.js'
+import type { LambdaContext } from '../types.js'
 
 import type { Try } from '@skyleague/axioms'
 import { enumerate, isLeft, mapLeft, mapTry, tryToEither, tryAsValue } from '@skyleague/axioms'

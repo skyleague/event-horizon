@@ -10,7 +10,7 @@ import type {
     SecretRotationServices,
     SecretRotationHandler,
     S3Handler,
-} from '../events'
+} from '../events/index.js'
 
 export type EventHandler<Service = never> =
     | EventBridgeHandler

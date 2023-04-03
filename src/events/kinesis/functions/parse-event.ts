@@ -1,5 +1,5 @@
-import { parseJSON } from '../../../parsers'
-import type { KinesisEvent, KinesisEventHandler } from '../types'
+import { parseJSON } from '../../../parsers/index.js'
+import type { KinesisEvent, KinesisEventHandler } from '../types.js'
 
 import type { KinesisStreamRecord } from 'aws-lambda'
 

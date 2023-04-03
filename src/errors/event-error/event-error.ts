@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 
-import type { HTTPHeaders, HTTPMethod } from '../../events/http/types'
-import type { Logger } from '../../observability/logger'
+import type { HTTPHeaders, HTTPMethod } from '../../events/http/types.js'
+import type { Logger } from '../../observability/logger/index.js'
 
 import type { UndefinedFields } from '@skyleague/axioms'
 import { asArray, isError, isThrown } from '@skyleague/axioms'
@@ -106,7 +106,7 @@ export class EventError extends Error {
     public error: string
     public expose: boolean
     public headers: HTTPHeaders | undefined
-    public message: string
+    public override message: string
     public statusCode: number
     public attributes: Record<string, unknown> | undefined
 

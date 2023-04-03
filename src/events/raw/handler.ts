@@ -1,8 +1,8 @@
-import { EventError } from '../../errors/event-error'
-import type { EventHandler } from '../../handlers/types'
-import { ioLogger } from '../functions/io-logger'
-import { ioValidate } from '../functions/io-validate'
-import type { LambdaContext } from '../types'
+import { EventError } from '../../errors/event-error/index.js'
+import type { EventHandler } from '../../handlers/types.js'
+import { ioLogger } from '../functions/io-logger.js'
+import { ioValidate } from '../functions/io-validate.js'
+import type { LambdaContext } from '../types.js'
 
 import type { Try } from '@skyleague/axioms'
 import { mapTry, tryAsValue } from '@skyleague/axioms'

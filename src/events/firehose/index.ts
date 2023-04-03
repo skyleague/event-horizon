@@ -3,4 +3,4 @@ export {
     FirehoseTransformationEvent,
     FirehoseTransformationEventHandler,
     FirehoseTransformationHandler,
-} from './types'
+} from './types.js'

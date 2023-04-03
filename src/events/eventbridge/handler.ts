@@ -1,9 +1,9 @@
-import { eventBridgeParseEvent } from './functions/parse-event'
-import type { EventBridgeEvent, EventBridgeHandler } from './types'
+import { eventBridgeParseEvent } from './functions/parse-event.js'
+import type { EventBridgeEvent, EventBridgeHandler } from './types.js'
 
-import { ioLogger } from '../functions/io-logger'
-import { ioValidate } from '../functions/io-validate'
-import type { LambdaContext } from '../types'
+import { ioLogger } from '../functions/io-logger.js'
+import { ioValidate } from '../functions/io-validate.js'
+import type { LambdaContext } from '../types.js'
 
 import type { Try } from '@skyleague/axioms'
 import { mapTry } from '@skyleague/axioms'

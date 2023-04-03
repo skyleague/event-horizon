@@ -1,6 +1,6 @@
-import { EventError } from '../../../errors/event-error'
-import type { LambdaContext } from '../../types'
-import type { SecretRotationRequest, SecretRotationServices } from '../types'
+import { EventError } from '../../../errors/event-error/index.js'
+import type { LambdaContext } from '../../types.js'
+import type { SecretRotationRequest, SecretRotationServices } from '../types.js'
 
 import type { Maybe, Try } from '@skyleague/axioms'
 import { Nothing } from '@skyleague/axioms'
@@ -25,10 +25,10 @@ export function secretValidateEvent({ logger, services: { secretsManager } }: La
                 return EventError.preconditionFailed()
             }
 
-            if (versions[clientRequestToken].includes('AWSCURRENT')) {
+            if (versions[clientRequestToken]!.includes('AWSCURRENT')) {
                 logger.info('Secret version was already set as AWSCURRENT')
                 return Nothing
-            } else if (!versions[clientRequestToken].includes('AWSPENDING')) {
+            } else if (!versions[clientRequestToken]!.includes('AWSPENDING')) {
                 logger.error('Secret version not set as AWSPENDING for rotation')
                 return EventError.preconditionFailed()
             }

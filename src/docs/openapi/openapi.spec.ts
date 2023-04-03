@@ -1,7 +1,7 @@
-import { addComponent, ensureTarget, jsonptrToName, normalizeSchema, openapiFromHandlers } from './openapi'
+import { addComponent, ensureTarget, jsonptrToName, normalizeSchema, openapiFromHandlers } from './openapi.js'
 
-import { HttpError } from '../../events/http/functions/http-error.type'
-import { httpHandler } from '../../handlers'
+import { HttpError } from '../../events/http/functions/http-error.type.js'
+import { httpHandler } from '../../handlers/index.js'
 
 import { alpha, array, dict, entriesOf, forAll, json, omit, omitUndefined, random, string, tuple } from '@skyleague/axioms'
 
@@ -86,7 +86,7 @@ describe('ensureTarget', () => {
                 array(alpha({ minLength: 1 }), { minLength: 1 }).map((xs) => xs.join('/')),
                 alpha({ minLength: 1 })
             ),
-            ([ptr, name]) => {
+            ([ptr, name]: [string, string]) => {
                 openapi = {}
                 ensureTarget({ openapi } as any, `#/${ptr}/${name}`, 'schemas')
                 expect(openapi.components.schemas).toEqual({})

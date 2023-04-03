@@ -1,7 +1,7 @@
-import { constants } from '../../../constants'
-import { EventError } from '../../../errors/event-error'
-import type { LambdaContext } from '../../types'
-import type { HTTPResponse } from '../types'
+import { constants } from '../../../constants.js'
+import { EventError } from '../../../errors/event-error/index.js'
+import type { LambdaContext } from '../../types.js'
+import type { HTTPResponse } from '../types.js'
 
 export function httpErrorHandler({ logger, isSensitive }: LambdaContext) {
     return {

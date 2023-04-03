@@ -1,6 +1,6 @@
-import { constants } from '../../../constants'
-import type { LambdaContext } from '../../types'
-import type { HTTPEventHandler, HTTPRequest, HTTPResponse } from '../types'
+import { constants } from '../../../constants.js'
+import type { LambdaContext } from '../../types.js'
+import type { HTTPEventHandler, HTTPRequest, HTTPResponse } from '../types.js'
 
 import type { Try } from '@skyleague/axioms'
 import { isSuccess, pick } from '@skyleague/axioms'

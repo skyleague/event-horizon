@@ -1,6 +1,6 @@
-import { handler } from './handler'
+import { handler } from './handler.js'
 
-import { Pet } from '../../lib/models.type'
+import { Pet } from '../../lib/models.type.js'
 
 import { forAll, tuple } from '@skyleague/axioms'
 import { context, httpEvent } from '@skyleague/event-horizon-dev'

@@ -8,4 +8,4 @@ export {
     GatewayVersion,
     HTTPEventHandler,
     HTTPHandler,
-} from './types'
+} from './types.js'

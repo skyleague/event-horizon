@@ -1,6 +1,6 @@
-import type { EventBridgeEvent } from '../types'
+import type { EventBridgeEvent } from '../types.js'
 
-import type { EventBridgeEvent as AWSEventBridgeEvent } from 'aws-lambda/trigger/eventbridge'
+import type { EventBridgeEvent as AWSEventBridgeEvent } from 'aws-lambda/trigger/eventbridge.js'
 
 export function eventBridgeParseEvent() {
     return {

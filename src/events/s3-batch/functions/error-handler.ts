@@ -1,6 +1,6 @@
-import { EventError } from '../../../errors/event-error'
-import type { LambdaContext } from '../../types'
-import type { S3BatchHandler } from '../types'
+import { EventError } from '../../../errors/event-error/index.js'
+import type { LambdaContext } from '../../types.js'
+import type { S3BatchHandler } from '../types.js'
 
 import type { S3BatchEventTask, S3BatchResultResult } from 'aws-lambda'
 

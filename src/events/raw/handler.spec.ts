@@ -1,7 +1,7 @@
-import { handleRawEvent } from './handler'
+import { handleRawEvent } from './handler.js'
 
-import { EventError } from '../../errors'
-import type { EventHandler } from '../../handlers/types'
+import { EventError } from '../../errors/index.js'
+import type { EventHandler } from '../../handlers/types.js'
 
 import { asyncForAll, failure, json, tuple } from '@skyleague/axioms'
 import { context } from '@skyleague/event-horizon-dev'

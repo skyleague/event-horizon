@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 
-import type { LambdaHandler } from './aws'
-import type { allHandlers } from './event'
-import { createLambdaContext, eventHandler, handleEvent } from './event'
+import type { LambdaHandler } from './aws.js'
+import type { allHandlers } from './event.js'
+import { createLambdaContext, eventHandler, handleEvent } from './event.js'
 import {
     eventBridgeHandler,
     firehoseHandler,
@@ -14,14 +14,14 @@ import {
     secretRotationHandler,
     snsHandler,
     sqsHandler,
-} from './handlers'
-import type { EventHandler } from './types'
+} from './handlers.js'
+import type { EventHandler } from './types.js'
 
-import { EventError } from '../errors'
-import type { Logger, Metrics, Tracer } from '../observability'
-import { createLogger, logger } from '../observability/logger/logger'
-import { createMetrics } from '../observability/metrics/metrics'
-import { createTracer } from '../observability/tracer/tracer'
+import { EventError } from '../errors/index.js'
+import type { Logger, Metrics, Tracer } from '../observability/index.js'
+import { createLogger, logger } from '../observability/logger/logger.js'
+import { createMetrics } from '../observability/metrics/metrics.js'
+import { createTracer } from '../observability/tracer/tracer.js'
 
 import { AppConfigData } from '@aws-sdk/client-appconfigdata'
 import type { SecretsManager } from '@aws-sdk/client-secrets-manager'
@@ -718,7 +718,7 @@ describe('eventHandler', () => {
                     tracer: t,
                 }) as LambdaHandler
 
-                await expect(() => handler(request, ctx.raw)).rejects.toThrowError(ret)
+                await expect(() => handler(request, ctx.raw)).rejects.toEqual(ret)
                 expect(config).toHaveBeenCalledTimes(1)
                 expect(config).toHaveBeenCalledWith()
                 expect(services).toHaveBeenCalledTimes(1)

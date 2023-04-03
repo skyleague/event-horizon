@@ -1,7 +1,7 @@
-import { Query } from './request.type'
+import { Query } from './request.type.js'
 
-import { httpHandler } from '../../../../src'
-import { Pet, PetArray } from '../../lib/models.type'
+import { httpHandler } from '../../../../src/index.js'
+import { Pet, PetArray } from '../../lib/models.type.js'
 
 import { array, random } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'

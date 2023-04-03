@@ -1,6 +1,13 @@
 name: Typescript Package CI
 
-on: push
+on:
+  push:
+  workflow_dispatch:
+    inputs:
+      beta_release:
+        description: Create beta release
+        required: true
+        type: boolean
 
 jobs:
   typescript:
@@ -18,5 +25,6 @@ jobs:
     uses: skyleague/node-standards/.github/workflows/reusable-release.yml@main
     with:
       build_artifact_name: ${{ needs.build.outputs.artifact_name }}
+      beta_release: ${{ inputs.beta_release || false }}
     secrets:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

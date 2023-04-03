@@ -1,5 +1,5 @@
-import { parseJSON } from '../../../parsers'
-import type { SNSEvent, SNSEventHandler } from '../types'
+import { parseJSON } from '../../../parsers/index.js'
+import type { SNSEvent, SNSEventHandler } from '../types.js'
 
 import type { SNSEventRecord } from 'aws-lambda'
 

@@ -1,6 +1,6 @@
-import { secretValidateEvent } from './validate-event'
+import { secretValidateEvent } from './validate-event.js'
 
-import { EventError } from '../../../errors/event-error'
+import { EventError } from '../../../errors/event-error/index.js'
 
 import { DescribeSecretCommand, SecretsManager, SecretsManagerClient } from '@aws-sdk/client-secrets-manager'
 import { asyncForAll, Nothing, tuple } from '@skyleague/axioms'

@@ -1,4 +1,4 @@
-import { status } from '../../lib/models.schema'
+import { status } from '../../lib/models.schema.js'
 
 import { $ref, $query } from '@skyleague/therefore'
 

@@ -1,5 +1,5 @@
-import { parseJSON } from '../../../parsers'
-import type { HTTPEventHandler, HTTPRequest } from '../types'
+import { parseJSON } from '../../../parsers/index.js'
+import type { HTTPEventHandler, HTTPRequest } from '../types.js'
 
 import { isString } from '@skyleague/axioms'
 import type { APIGatewayProxyEvent, APIGatewayProxyEventV2 } from 'aws-lambda'

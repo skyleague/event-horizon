@@ -1,4 +1,4 @@
-import { constants } from '../../constants'
+import { constants } from '../../constants.js'
 
 import { Tracer as AWSTracer } from '@aws-lambda-powertools/tracer'
 
@@ -10,7 +10,7 @@ export interface Tracer {
 
 export function createTracer(instance: AWSTracer = new AWSTracer({ serviceName: constants.serviceName })): Tracer {
     async function trace<R>(segmentName: string, fn: () => Promise<R>): Promise<R> {
-        const segment = instance.getSegment()
+        const segment = instance.getSegment()!
         const subsegment = segment.addNewSubsegment(segmentName)
         instance.setSegment(subsegment)
 

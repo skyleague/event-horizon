@@ -1,6 +1,6 @@
-import { handleKinesisEvent } from './handler'
+import { handleKinesisEvent } from './handler.js'
 
-import { EventError } from '../../errors/event-error'
+import { EventError } from '../../errors/event-error/index.js'
 
 import { asyncForAll, enumerate, json, random, tuple } from '@skyleague/axioms'
 import { context, KinesisStreamEvent } from '@skyleague/event-horizon-dev'

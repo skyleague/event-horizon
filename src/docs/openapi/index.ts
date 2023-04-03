@@ -1,1 +1,1 @@
-export { openapiFromHandlers } from './openapi'
+export { openapiFromHandlers } from './openapi.js'

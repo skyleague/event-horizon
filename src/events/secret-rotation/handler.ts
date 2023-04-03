@@ -1,9 +1,9 @@
-import { secretParseEvent } from './functions/parse-event'
-import { secretValidateEvent } from './functions/validate-event'
-import type { SecretRotationHandler, SecretRotationServices } from './types'
+import { secretParseEvent } from './functions/parse-event.js'
+import { secretValidateEvent } from './functions/validate-event.js'
+import type { SecretRotationHandler, SecretRotationServices } from './types.js'
 
-import { ioLogger } from '../functions/io-logger'
-import type { LambdaContext } from '../types'
+import { ioLogger } from '../functions/io-logger.js'
+import type { LambdaContext } from '../types.js'
 
 import type { Try } from '@skyleague/axioms'
 import { isJust, mapTry } from '@skyleague/axioms'

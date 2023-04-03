@@ -1,4 +1,4 @@
-import type { HTTPResponse } from '../types'
+import type { HTTPResponse } from '../types.js'
 
 import { isString } from '@skyleague/axioms'
 import type { APIGatewayProxyResult, APIGatewayProxyResultV2 } from 'aws-lambda'

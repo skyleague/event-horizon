@@ -1,6 +1,6 @@
-import { handleSecretRotationEvent } from './handler'
+import { handleSecretRotationEvent } from './handler.js'
 
-import { EventError } from '../../errors'
+import { EventError } from '../../errors/index.js'
 
 import { DescribeSecretCommand, SecretsManager, SecretsManagerClient } from '@aws-sdk/client-secrets-manager'
 import { asyncForAll, failure, tuple } from '@skyleague/axioms'

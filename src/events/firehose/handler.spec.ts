@@ -1,13 +1,13 @@
-import { handleFirehoseTransformation } from './handler'
+import { handleFirehoseTransformation } from './handler.js'
 
-import { EventError } from '../../errors/event-error'
+import { EventError } from '../../errors/event-error/index.js'
 
 import type { Json } from '@skyleague/axioms'
 import { asyncForAll, enumerate, isString, json, random, tuple } from '@skyleague/axioms'
 import { context, FirehoseTransformationEvent } from '@skyleague/event-horizon-dev'
 import type { Schema } from '@skyleague/therefore'
 import { arbitrary } from '@skyleague/therefore'
-import type { FirehoseTransformationEventRecord } from 'aws-lambda/trigger/kinesis-firehose-transformation'
+import type { FirehoseTransformationEventRecord } from 'aws-lambda/trigger/kinesis-firehose-transformation.js'
 
 describe('handler', () => {
     const neverTrue = {
@@ -50,7 +50,7 @@ describe('handler', () => {
                 expect(response).toEqual({
                     records: results.map((r, i) => ({
                         data: Buffer.from(isString(r) ? r : JSON.stringify(r)).toString('base64'),
-                        recordId: records[i].recordId,
+                        recordId: records[i]!.recordId,
                         result: 'Ok',
                     })),
                 })
@@ -104,7 +104,7 @@ describe('handler', () => {
                 expect(response).toEqual({
                     records: results.map((r, i) => ({
                         data: Buffer.from(isString(r) ? r : JSON.stringify(r)).toString('base64'),
-                        recordId: records[i].recordId,
+                        recordId: records[i]!.recordId,
                         result: 'Ok',
                     })),
                 })
@@ -158,7 +158,7 @@ describe('handler', () => {
                 expect(response).toEqual({
                     records: results.map((r, i) => ({
                         data: Buffer.from(isString(r) ? r : JSON.stringify(r)).toString('base64'),
-                        recordId: records[i].recordId,
+                        recordId: records[i]!.recordId,
                         result: 'Ok',
                     })),
                 })
@@ -211,8 +211,8 @@ describe('handler', () => {
 
                 expect(response).toEqual({
                     records: results.map((r, i) => ({
-                        data: records[i].data,
-                        recordId: records[i].recordId,
+                        data: records[i]!.data,
+                        recordId: records[i]!.recordId,
                         result: 'ProcessingFailed',
                     })),
                 })
@@ -262,8 +262,8 @@ describe('handler', () => {
 
                 expect(response).toEqual({
                     records: results.map((r, i) => ({
-                        data: records[i].data,
-                        recordId: records[i].recordId,
+                        data: records[i]!.data,
+                        recordId: records[i]!.recordId,
                         result: 'ProcessingFailed',
                     })),
                 })
@@ -314,8 +314,8 @@ describe('handler', () => {
 
                 expect(response).toEqual({
                     records: results.map((r, i) => ({
-                        data: records[i].data,
-                        recordId: records[i].recordId,
+                        data: records[i]!.data,
+                        recordId: records[i]!.recordId,
                         result: 'ProcessingFailed',
                     })),
                 })

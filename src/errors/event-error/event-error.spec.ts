@@ -1,4 +1,4 @@
-import { EventError, httpStatusCodes } from './event-error'
+import { EventError, httpStatusCodes } from './event-error.js'
 
 import { constant, forAll, integer, oneOf, string, tuple } from '@skyleague/axioms'
 

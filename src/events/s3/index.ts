@@ -1,1 +1,1 @@
-export { S3Event, S3EventHandler, S3Handler } from './types'
+export { S3Event, S3EventHandler, S3Handler } from './types.js'

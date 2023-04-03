@@ -1,1 +1,1 @@
-export { Metrics, metrics } from './metrics'
+export { Metrics, metrics } from './metrics.js'

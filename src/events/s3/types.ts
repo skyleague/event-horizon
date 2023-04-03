@@ -1,4 +1,4 @@
-import type { LambdaContext, EventHandlerDefinition } from '../types'
+import type { LambdaContext, EventHandlerDefinition } from '../types.js'
 
 import type { Promisable, Try } from '@skyleague/axioms'
 import type { S3EventRecord } from 'aws-lambda'

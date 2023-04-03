@@ -1,1 +1,1 @@
-export { EventBridgeEvent, EventBridgeHandler, EventBridgeEventHandler } from './types'
+export { EventBridgeEvent, EventBridgeHandler, EventBridgeEventHandler } from './types.js'

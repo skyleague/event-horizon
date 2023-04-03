@@ -1,7 +1,7 @@
-import { constants } from '../../constants'
-import { EventError } from '../../errors'
-import { parseJSON } from '../../parsers/json'
-import { createAppConfigData } from '../../services/appconfig'
+import { constants } from '../../constants.js'
+import { EventError } from '../../errors/index.js'
+import { parseJSON } from '../../parsers/json/index.js'
+import { createAppConfigData } from '../../services/appconfig/index.js'
 
 import type { AppConfigData } from '@aws-sdk/client-appconfigdata'
 import type { Try } from '@skyleague/axioms'

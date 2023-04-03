@@ -9,4 +9,4 @@ export {
     sqsHandler,
     s3Handler,
     s3BatchHandler,
-} from './handlers'
+} from './handlers.js'

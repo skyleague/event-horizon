@@ -1,7 +1,7 @@
-import * as handlers from '../'
-import { version, name } from '../../../../package.json'
-import type { HTTPHandler } from '../../../../src'
-import { httpHandler, openapiFromHandlers } from '../../../../src'
+import * as handlers from '..//index.js'
+import { version, name } from '../../../../package.json' assert { type: 'json' }
+import type { HTTPHandler } from '../../../../src/index.js'
+import { httpHandler, openapiFromHandlers } from '../../../../src/index.js'
 
 export const handlerJson: HTTPHandler = httpHandler({
     http: {
