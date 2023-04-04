@@ -12,6 +12,11 @@ on:
 jobs:
   typescript:
     uses: skyleague/node-standards/.github/workflows/reusable-typescript.yml@main
+    with:
+      postinstall: |
+        {
+          "check": "npm run build"
+        }
     secrets:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
