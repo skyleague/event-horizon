@@ -1,6 +1,6 @@
 {
   "name": "@skyleague/event-horizon",
-  "version": "4.0.0-beta.0",
+  "version": "4.0.0",
   "description": "A standardized boilerplate for lambda handlers.",
   "homepage": "https://skyleague.github.io/event-horizon/",
   "repository": {
@@ -31,6 +31,7 @@
     "check:project": "npx node-standards lint",
     "check:types": "npx tsc -p tsconfig.json",
     "format": "npx prettier \"**/*.{ts,js,json,yml,yaml,md}\" --write",
+    "install": "npm run build",
     "lint": "npx eslint \"./{src,test,typings}/**/*.ts\" --cache --no-eslintrc --config .eslintrc.cjs",
     "lint:fix": "npm run lint -- --fix",
     "lint:full": "bash -c \"FULL_LINT=true npm run lint\"",
@@ -39,19 +40,19 @@
     "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" npx jest"
   },
   "dependencies": {
-    "@aws-lambda-powertools/logger": "^1.7.0",
-    "@aws-lambda-powertools/metrics": "^1.7.0",
-    "@aws-lambda-powertools/tracer": "^1.7.0",
-    "@skyleague/axioms": "^2.0.0",
+    "@aws-lambda-powertools/logger": "^1.8.0",
+    "@aws-lambda-powertools/metrics": "^1.8.0",
+    "@aws-lambda-powertools/tracer": "^1.8.0",
+    "@skyleague/axioms": "^2.0.2",
     "@types/aws-lambda": "^8.10.114",
     "secure-json-parse": "^2.7.0",
     "tslib": "^2.5.0"
   },
   "devDependencies": {
     "@skyleague/event-horizon": "./",
-    "@skyleague/event-horizon-dev": "^3.0.0",
-    "@skyleague/node-standards": "^2.2.0",
-    "@skyleague/therefore": "^2.0.0",
+    "@skyleague/event-horizon-dev": "^3.0.2",
+    "@skyleague/node-standards": "^2.2.1",
+    "@skyleague/therefore": "^2.0.2",
     "@types/node": "^18.15.11",
     "aws-sdk-client-mock": "^2.1.1",
     "aws-sdk-client-mock-jest": "^2.1.1",
