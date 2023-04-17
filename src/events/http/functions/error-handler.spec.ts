@@ -4,8 +4,8 @@ import { EventError } from '../../../errors/event-error/index.js'
 
 import { forAll, random, string, tuple, unknown } from '@skyleague/axioms'
 import { context } from '@skyleague/event-horizon-dev'
-
-test('unrelated error becomes internal server event error', async () => {
+import { expect, it } from 'vitest'
+it('unrelated error becomes internal server event error', async () => {
     const ctx = random(await context())
     forAll(
         unknown(),
@@ -24,7 +24,7 @@ test('unrelated error becomes internal server event error', async () => {
     )
 })
 
-test('server event error becomes error', async () => {
+it('server event error becomes error', async () => {
     forAll(
         tuple(
             await context(),
@@ -44,7 +44,7 @@ test('server event error becomes error', async () => {
     )
 })
 
-test('client event error becomes info', async () => {
+it('client event error becomes info', async () => {
     forAll(
         tuple(
             await context(),

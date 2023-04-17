@@ -6,6 +6,7 @@ import { httpHandler } from '../../handlers/index.js'
 import { alpha, asyncForAll, constant, isString, json, oneOf, random, tuple } from '@skyleague/axioms'
 import { context, httpEvent } from '@skyleague/event-horizon-dev'
 import type { Schema } from '@skyleague/therefore'
+import { expect, describe, it, vi } from 'vitest'
 
 describe('handler', () => {
     const neverTrue = {
@@ -17,8 +18,8 @@ describe('handler', () => {
     const method = random(oneOf(constant('get'), constant('put')))
     const path = `/${random(alpha())}` as const
 
-    test('plaintext success does not give failures', async () => {
-        const h = jest.fn()
+    it('plaintext success does not give failures', async () => {
+        const h = vi.fn()
         const handler = httpHandler({
             http: {
                 method,
@@ -54,8 +55,8 @@ describe('handler', () => {
         })
     })
 
-    test('json success does not give failures', async () => {
-        const h = jest.fn()
+    it('json success does not give failures', async () => {
+        const h = vi.fn()
         const handler = httpHandler({
             http: {
                 method,
@@ -91,8 +92,8 @@ describe('handler', () => {
         })
     })
 
-    test('binary success does not give failures', async () => {
-        const h = jest.fn()
+    it('binary success does not give failures', async () => {
+        const h = vi.fn()
         const handler = httpHandler({
             http: {
                 method,
@@ -128,8 +129,8 @@ describe('handler', () => {
         })
     })
 
-    test('body schema validation, gives failure', async () => {
-        const h = jest.fn()
+    it('body schema validation, gives failure', async () => {
+        const h = vi.fn()
         const handler = httpHandler({
             http: {
                 method,
@@ -163,8 +164,8 @@ describe('handler', () => {
         })
     })
 
-    test('query schema validation, gives failure', async () => {
-        const h = jest.fn()
+    it('query schema validation, gives failure', async () => {
+        const h = vi.fn()
         const handler = httpHandler({
             http: {
                 method,
@@ -198,8 +199,8 @@ describe('handler', () => {
         })
     })
 
-    test('path schema validation, gives failure', async () => {
-        const h = jest.fn()
+    it('path schema validation, gives failure', async () => {
+        const h = vi.fn()
         const handler = httpHandler({
             http: {
                 method,
@@ -233,8 +234,8 @@ describe('handler', () => {
         })
     })
 
-    test('headers schema validation, gives failure', async () => {
-        const h = jest.fn()
+    it('headers schema validation, gives failure', async () => {
+        const h = vi.fn()
         const handler = httpHandler({
             http: {
                 method,
@@ -268,10 +269,10 @@ describe('handler', () => {
         })
     })
 
-    test.each([new Error(), EventError.internalServerError(), 'foobar'])(
+    it.each([new Error(), EventError.internalServerError(), 'foobar'])(
         'promise reject with Error, gives failure',
         async (error) => {
-            const h = jest.fn()
+            const h = vi.fn()
             const handler = httpHandler({
                 http: {
                     method,
@@ -305,10 +306,10 @@ describe('handler', () => {
         }
     )
 
-    test.each([new Error(), EventError.internalServerError(), 'foobar'])(
+    it.each([new Error(), EventError.internalServerError(), 'foobar'])(
         'promise throws with Error, gives failure',
         async (error) => {
-            const h = jest.fn()
+            const h = vi.fn()
             const handler = httpHandler({
                 http: {
                     method,

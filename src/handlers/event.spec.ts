@@ -46,32 +46,33 @@ import {
     FirehoseTransformationEvent,
     httpEvent,
     KinesisStreamEvent,
-    mock,
     S3BatchEvent,
     S3Event,
     secretRotationEvent,
     SNSEvent,
     SQSEvent,
+    unsafeMock,
 } from '@skyleague/event-horizon-dev'
 import { arbitrary } from '@skyleague/therefore'
 import type { SNSEvent as LambdaSnsEvent } from 'aws-lambda'
+import { expect, describe, beforeEach, it, vi } from 'vitest'
 
 describe('handleEvent', () => {
-    const eventHandlers = mock<typeof allHandlers>()
+    const eventHandlers = unsafeMock<typeof allHandlers>()
 
     const method = random(oneOf(constant('get'), constant('put')))
     const path = `/${random(alpha())}` as const
 
     beforeEach(() => eventHandlers.mockClear())
 
-    test('http', async () => {
+    it('http', async () => {
         const handler = httpHandler({
             http: {
                 method,
                 path,
                 schema: { responses: {} },
                 bodyType: 'plaintext' as const,
-                handler: jest.fn(),
+                handler: vi.fn(),
             },
         })
         await asyncForAll(tuple(httpEvent(handler), unknown(), await context()), async ([event, ret, ctx]) => {
@@ -86,8 +87,8 @@ describe('handleEvent', () => {
         })
     })
 
-    test('eventBridge', async () => {
-        const handler = eventBridgeHandler({ eventBridge: { schema: {}, handler: jest.fn() } })
+    it('eventBridge', async () => {
+        const handler = eventBridgeHandler({ eventBridge: { schema: {}, handler: vi.fn() } })
         await asyncForAll(tuple(eventBridgeEvent(handler), unknown(), await context()), async ([event, ret, ctx]) => {
             eventHandlers.mockClear()
             eventHandlers.eventBridge.mockReturnValue(ret as any)
@@ -100,11 +101,11 @@ describe('handleEvent', () => {
         })
     })
 
-    test('secretRotation', async () => {
-        const services = { secretsManager: mock<SecretsManager>() as SecretsManager }
+    it('secretRotation', async () => {
+        const services = { secretsManager: unsafeMock<SecretsManager>() as SecretsManager }
         const handler = secretRotationHandler({
             services,
-            secretRotation: { handler: jest.fn() },
+            secretRotation: { handler: vi.fn() },
         })
         await asyncForAll(tuple(secretRotationEvent(), unknown(), await context()), async ([event, ret, ctx]) => {
             eventHandlers.mockClear()
@@ -118,9 +119,9 @@ describe('handleEvent', () => {
         })
     })
 
-    test('sqs', async () => {
+    it('sqs', async () => {
         const handler = sqsHandler({
-            sqs: { handler: jest.fn(), schema: {} },
+            sqs: { handler: vi.fn(), schema: {} },
         })
         await asyncForAll(tuple(arbitrary(SQSEvent), unknown(), await context()), async ([event, ret, ctx]) => {
             eventHandlers.mockClear()
@@ -142,9 +143,9 @@ describe('handleEvent', () => {
         })
     })
 
-    test('sns', async () => {
+    it('sns', async () => {
         const handler = snsHandler({
-            sns: { handler: jest.fn(), schema: {} },
+            sns: { handler: vi.fn(), schema: {} },
         })
         await asyncForAll(tuple(arbitrary(SNSEvent), unknown(), await context()), async ([event, ret, ctx]) => {
             eventHandlers.mockClear()
@@ -166,9 +167,9 @@ describe('handleEvent', () => {
         })
     })
 
-    test('kinesis', async () => {
+    it('kinesis', async () => {
         const handler = kinesisHandler({
-            kinesis: { handler: jest.fn(), schema: {} },
+            kinesis: { handler: vi.fn(), schema: {} },
         })
         await asyncForAll(tuple(arbitrary(KinesisStreamEvent), unknown(), await context()), async ([event, ret, ctx]) => {
             eventHandlers.mockClear()
@@ -190,9 +191,9 @@ describe('handleEvent', () => {
         })
     })
 
-    test('s3', async () => {
+    it('s3', async () => {
         const handler = s3Handler({
-            s3: { handler: jest.fn() },
+            s3: { handler: vi.fn() },
         })
         await asyncForAll(tuple(arbitrary(S3Event), unknown(), await context()), async ([event, ret, ctx]) => {
             eventHandlers.mockClear()
@@ -214,9 +215,9 @@ describe('handleEvent', () => {
         })
     })
 
-    test('firehose', async () => {
+    it('firehose', async () => {
         const handler = firehoseHandler({
-            firehose: { handler: jest.fn(), schema: {} },
+            firehose: { handler: vi.fn(), schema: {} },
         })
         await asyncForAll(
             tuple(arbitrary(FirehoseTransformationEvent), unknown(), await context()),
@@ -241,9 +242,9 @@ describe('handleEvent', () => {
         )
     })
 
-    test('s3Batch', async () => {
+    it('s3Batch', async () => {
         const handler = s3BatchHandler({
-            s3Batch: { handler: jest.fn(), schema: {} },
+            s3Batch: { handler: vi.fn(), schema: {} },
         })
         await asyncForAll(tuple(arbitrary(S3BatchEvent), unknown(), await context()), async ([event, ret, ctx]) => {
             eventHandlers.mockClear()
@@ -265,9 +266,9 @@ describe('handleEvent', () => {
         })
     })
 
-    test.each([{ Records: [{ foo: 'bar' }] }, { records: [{ foo: 'bar' }] }])('unprocessable $event', async (event) => {
+    it.each([{ Records: [{ foo: 'bar' }] }, { records: [{ foo: 'bar' }] }])('unprocessable $event', async (event) => {
         const handler = rawHandler({
-            raw: { handler: jest.fn(), schema: {} },
+            raw: { handler: vi.fn(), schema: {} },
         })
         await asyncForAll(tuple(unknown(), await context()), async ([ret, ctx]) => {
             eventHandlers.mockClear()
@@ -292,8 +293,8 @@ describe('handleEvent', () => {
         })
     })
 
-    test('raw', async () => {
-        const handler = rawHandler({ raw: { schema: {}, handler: jest.fn() } })
+    it('raw', async () => {
+        const handler = rawHandler({ raw: { schema: {}, handler: vi.fn() } })
         await asyncForAll(tuple(unknown(), unknown(), await context()), async ([event, ret, ctx]) => {
             eventHandlers.mockClear()
             eventHandlers.raw.mockReturnValue(ret as any)
@@ -308,13 +309,13 @@ describe('handleEvent', () => {
 })
 
 describe('createLambdaContext', () => {
-    test('set manual observability', async () => {
+    it('set manual observability', async () => {
         await asyncForAll(await context(), async (ctx) => {
-            const l = mock<Logger>()
-            const m = mock<Metrics>()
-            const t = mock<Tracer>()
+            const l = unsafeMock<Logger>()
+            const m = unsafeMock<Metrics>()
+            const t = unsafeMock<Tracer>()
             const lCtx = await createLambdaContext({
-                definition: { raw: { handler: jest.fn(), schema: {} } },
+                definition: { raw: { handler: vi.fn(), schema: {} } },
                 context: ctx.raw,
                 services: undefined,
                 config: undefined,
@@ -336,13 +337,13 @@ describe('createLambdaContext', () => {
         })
     })
 
-    test('set trace and request', async () => {
+    it('set trace and request', async () => {
         await asyncForAll(tuple(await context(), string(), string()), async ([ctx, traceId, requestId]) => {
-            const l = mock<Logger>()
-            const m = mock<Metrics>()
-            const t = mock<Tracer>()
+            const l = unsafeMock<Logger>()
+            const m = unsafeMock<Metrics>()
+            const t = unsafeMock<Tracer>()
             const lCtx = await createLambdaContext({
-                definition: { raw: { handler: jest.fn(), schema: {} } },
+                definition: { raw: { handler: vi.fn(), schema: {} } },
                 context: ctx.raw,
                 services: undefined,
                 config: undefined,
@@ -364,15 +365,15 @@ describe('createLambdaContext', () => {
         })
     })
 
-    test('set trace and request from unknown generator', async () => {
+    it('set trace and request from unknown generator', async () => {
         await asyncForAll(
             tuple(await context(), string({ minLength: 4 }), string({ minLength: 4 })),
             async ([ctx, traceId, requestId]) => {
-                const l = mock<Logger>()
-                const m = mock<Metrics>()
-                const t = mock<Tracer>()
+                const l = unsafeMock<Logger>()
+                const m = unsafeMock<Metrics>()
+                const t = unsafeMock<Tracer>()
                 const lCtx = await createLambdaContext({
-                    definition: { raw: { handler: jest.fn(), schema: {} } },
+                    definition: { raw: { handler: vi.fn(), schema: {} } },
                     context: ctx.raw,
                     services: undefined,
                     config: undefined,
@@ -399,25 +400,25 @@ describe('createLambdaContext', () => {
 })
 
 describe('eventHandler', () => {
-    test('handler is definition', () => {
+    it('handler is definition', () => {
         forAll(dict(unknown()), (meta) => {
             const handler = eventHandler({
-                raw: { schema: {}, handler: jest.fn() },
+                raw: { schema: {}, handler: vi.fn() },
                 ...meta,
             })
             expect(handler).toEqual(expect.objectContaining(meta))
         })
     })
 
-    test('eager init calls config and services, sync', async () => {
+    it('eager init calls config and services, sync', async () => {
         await asyncForAll(tuple(unknown(), unknown()), async ([c, s]) => {
-            const config = jest.fn().mockReturnValue(c)
-            const services = jest.fn().mockReturnValue(s)
+            const config = vi.fn().mockReturnValue(c)
+            const services = vi.fn().mockReturnValue(s)
             eventHandler(
                 {
                     config,
                     services,
-                    raw: { schema: {}, handler: jest.fn() },
+                    raw: { schema: {}, handler: vi.fn() },
                 },
                 { eagerHandlerInitialization: true }
             )
@@ -430,15 +431,15 @@ describe('eventHandler', () => {
         })
     })
 
-    test('eager init calls config and services, async', async () => {
+    it('eager init calls config and services, async', async () => {
         await asyncForAll(tuple(unknown(), unknown()), async ([c, s]) => {
-            const config = jest.fn().mockResolvedValue(c)
-            const services = jest.fn().mockResolvedValue(s)
+            const config = vi.fn().mockResolvedValue(c)
+            const services = vi.fn().mockResolvedValue(s)
             eventHandler(
                 {
                     config,
                     services,
-                    raw: { schema: {}, handler: jest.fn() },
+                    raw: { schema: {}, handler: vi.fn() },
                 },
                 { eagerHandlerInitialization: true }
             )
@@ -451,15 +452,15 @@ describe('eventHandler', () => {
         })
     })
 
-    test('lazy init calls not config and not services, async', async () => {
+    it('lazy init calls not config and not services, async', async () => {
         await asyncForAll(tuple(unknown(), unknown()), async ([c, s]) => {
-            const config = jest.fn().mockResolvedValue(c)
-            const services = jest.fn().mockResolvedValue(s)
+            const config = vi.fn().mockResolvedValue(c)
+            const services = vi.fn().mockResolvedValue(s)
             eventHandler(
                 {
                     config,
                     services,
-                    raw: { schema: {}, handler: jest.fn() },
+                    raw: { schema: {}, handler: vi.fn() },
                 },
                 { eagerHandlerInitialization: false }
             )
@@ -470,14 +471,14 @@ describe('eventHandler', () => {
         })
     })
 
-    test('default init calls not config and not services, async', async () => {
+    it('default init calls not config and not services, async', async () => {
         await asyncForAll(tuple(unknown(), unknown()), async ([c, s]) => {
-            const config = jest.fn().mockResolvedValue(c)
-            const services = jest.fn().mockResolvedValue(s)
+            const config = vi.fn().mockResolvedValue(c)
+            const services = vi.fn().mockResolvedValue(s)
             eventHandler({
                 config,
                 services,
-                raw: { schema: {}, handler: jest.fn() },
+                raw: { schema: {}, handler: vi.fn() },
             })
             // force event loop switching
             await sleep(10)
@@ -486,27 +487,27 @@ describe('eventHandler', () => {
         })
     })
 
-    test('default init calls with literals', () => {
+    it('default init calls with literals', () => {
         forAll(tuple(unknown(), unknown()), ([c, s]) => {
             eventHandler({
                 config: c as never,
                 services: s as never,
-                raw: { schema: {}, handler: jest.fn() },
+                raw: { schema: {}, handler: vi.fn() },
             })
         })
     })
 
-    test('early exit fully resolved on warmer', async () => {
+    it('early exit fully resolved on warmer', async () => {
         const warmer = '__WARMER__'
         await asyncForAll(tuple(unknown(), unknown(), await context()), async ([c, s, ctx]) => {
-            const handlerImpl = jest.fn()
-            const config = jest.fn().mockResolvedValue(c)
-            const services = jest.fn().mockResolvedValue(s)
+            const handlerImpl = vi.fn()
+            const config = vi.fn().mockResolvedValue(c)
+            const services = vi.fn().mockResolvedValue(s)
             const handler = eventHandler(
                 {
                     config,
                     services,
-                    raw: { schema: {}, handler: jest.fn() },
+                    raw: { schema: {}, handler: vi.fn() },
                 },
                 { eventHandler: handlerImpl }
             ) as LambdaHandler
@@ -521,36 +522,36 @@ describe('eventHandler', () => {
         })
     })
 
-    test('configuration is loaded into profile successfully', async () => {
+    it('configuration is loaded into profile successfully', async () => {
         const appConfigData = new AppConfigData({})
         const s = { appConfigData }
         await asyncForAll(
             tuple(unknown(), unknown(), unknown(), await context(), string(), dict(json())),
             async ([request, c, ret, ctx, token, profile]) => {
-                jest.clearAllMocks()
-                jest.spyOn(appConfigData, 'startConfigurationSession').mockReturnValue({
+                vi.clearAllMocks()
+                vi.spyOn(appConfigData, 'startConfigurationSession').mockReturnValue({
                     InitialConfigurationToken: token,
                 } as any)
-                jest.spyOn(appConfigData, 'getLatestConfiguration').mockReturnValue({
+                vi.spyOn(appConfigData, 'getLatestConfiguration').mockReturnValue({
                     Configuration: JSON.stringify(profile),
                 } as any)
 
                 const l = ctx.logger
-                const setbinding = jest.spyOn(l, 'setBindings')
-                const m = createMetrics(mock())
-                const t = createTracer(mock())
+                const setbinding = vi.spyOn(l, 'setBindings')
+                const m = createMetrics(unsafeMock())
+                const t = createTracer(unsafeMock())
 
-                const getSegment = mock<any>()
+                const getSegment = unsafeMock<any>()
                 ;(t.instance.isTracingEnabled as any).mockReturnValue(true)
                 ;(t.instance.getSegment as any).mockReturnValue(getSegment)
 
-                const handlerImpl = jest.fn().mockResolvedValue(ret)
-                const config = jest.fn().mockResolvedValue(c)
-                const services = jest.fn().mockResolvedValue(s)
+                const handlerImpl = vi.fn().mockResolvedValue(ret)
+                const config = vi.fn().mockResolvedValue(c)
+                const services = vi.fn().mockResolvedValue(s)
                 const definition = {
                     config,
                     services,
-                    raw: { schema: {}, handler: jest.fn() },
+                    raw: { schema: {}, handler: vi.fn() },
                     profile: { schema: { schema: { type: 'object' }, is: () => true } },
                 }
                 const handler = eventHandler(definition as unknown as EventHandler, {
@@ -585,35 +586,35 @@ describe('eventHandler', () => {
         )
     })
 
-    test('invalidating configuration is loaded into profile as failure', async () => {
+    it('invalidating configuration is loaded into profile as failure', async () => {
         const appConfigData = new AppConfigData({})
         const s = { appConfigData }
         await asyncForAll(
             tuple(unknown(), unknown(), unknown(), await context(), string(), dict(json())),
             async ([request, c, ret, ctx, token, profile]) => {
-                jest.clearAllMocks()
-                jest.spyOn(appConfigData, 'startConfigurationSession').mockReturnValue({
+                vi.clearAllMocks()
+                vi.spyOn(appConfigData, 'startConfigurationSession').mockReturnValue({
                     InitialConfigurationToken: token,
                 } as any)
-                jest.spyOn(appConfigData, 'getLatestConfiguration').mockReturnValue({
+                vi.spyOn(appConfigData, 'getLatestConfiguration').mockReturnValue({
                     Configuration: JSON.stringify(profile),
                 } as any)
 
-                const l = createLogger({ instance: mock() })
-                const m = createMetrics(mock())
-                const t = createTracer(mock())
+                const l = createLogger({ instance: unsafeMock() })
+                const m = createMetrics(unsafeMock())
+                const t = createTracer(unsafeMock())
 
-                const getSegment = mock<any>()
+                const getSegment = unsafeMock<any>()
                 ;(t.instance.isTracingEnabled as any).mockReturnValue(true)
                 ;(t.instance.getSegment as any).mockReturnValue(getSegment)
 
-                const handlerImpl = jest.fn().mockResolvedValue(ret)
-                const config = jest.fn().mockResolvedValue(c)
-                const services = jest.fn().mockResolvedValue(s)
+                const handlerImpl = vi.fn().mockResolvedValue(ret)
+                const config = vi.fn().mockResolvedValue(c)
+                const services = vi.fn().mockResolvedValue(s)
                 const definition = {
                     config,
                     services,
-                    raw: { schema: {}, handler: jest.fn() },
+                    raw: { schema: {}, handler: vi.fn() },
                     profile: { schema: { schema: { type: 'object' }, is: () => false } },
                 }
                 const handler = eventHandler(definition as unknown as EventHandler, {
@@ -637,26 +638,26 @@ describe('eventHandler', () => {
             }
         )
     })
-    test('success resolves to success', async () => {
+    it('success resolves to success', async () => {
         await asyncForAll(
             tuple(unknown(), unknown(), unknown(), unknown(), await context()),
             async ([request, c, s, ret, ctx]) => {
                 const l = ctx.logger
-                const setbinding = jest.spyOn(l, 'setBindings')
-                const m = createMetrics(mock())
-                const t = createTracer(mock())
+                const setbinding = vi.spyOn(l, 'setBindings')
+                const m = createMetrics(unsafeMock())
+                const t = createTracer(unsafeMock())
 
-                const getSegment = mock<any>()
+                const getSegment = unsafeMock<any>()
                 ;(t.instance.isTracingEnabled as any).mockReturnValue(true)
                 ;(t.instance.getSegment as any).mockReturnValue(getSegment)
 
-                const handlerImpl = jest.fn().mockResolvedValue(ret)
-                const config = jest.fn().mockResolvedValue(c)
-                const services = jest.fn().mockResolvedValue(s)
+                const handlerImpl = vi.fn().mockResolvedValue(ret)
+                const config = vi.fn().mockResolvedValue(c)
+                const services = vi.fn().mockResolvedValue(s)
                 const definition = {
                     config,
                     services,
-                    raw: { schema: {}, handler: jest.fn() },
+                    raw: { schema: {}, handler: vi.fn() },
                 }
                 const handler = eventHandler(definition, {
                     eventHandler: handlerImpl,
@@ -689,27 +690,27 @@ describe('eventHandler', () => {
         )
     })
 
-    test('failure resolves to failure', async () => {
+    it('failure resolves to failure', async () => {
         await asyncForAll(
             tuple(unknown(), unknown(), unknown(), unknown().map(failure), await context()),
             async ([request, c, s, ret, ctx]) => {
                 const l = ctx.logger
-                const setbinding = jest.spyOn(l, 'setBindings')
+                const setbinding = vi.spyOn(l, 'setBindings')
 
-                const m = createMetrics(mock())
-                const t = createTracer(mock())
+                const m = createMetrics(unsafeMock())
+                const t = createTracer(unsafeMock())
 
-                const getSegment = mock<any>()
+                const getSegment = unsafeMock<any>()
                 ;(t.instance.isTracingEnabled as any).mockReturnValue(true)
                 ;(t.instance.getSegment as any).mockReturnValue(getSegment)
 
-                const handlerImpl = jest.fn().mockResolvedValue(ret)
-                const config = jest.fn().mockResolvedValue(c)
-                const services = jest.fn().mockResolvedValue(s)
+                const handlerImpl = vi.fn().mockResolvedValue(ret)
+                const config = vi.fn().mockResolvedValue(c)
+                const services = vi.fn().mockResolvedValue(s)
                 const definition = {
                     config,
                     services,
-                    raw: { schema: {}, handler: jest.fn() },
+                    raw: { schema: {}, handler: vi.fn() },
                 }
                 const handler = eventHandler(definition, {
                     eventHandler: handlerImpl,
@@ -742,7 +743,7 @@ describe('eventHandler', () => {
         )
     })
 
-    test('graceful failure resolves to success', async () => {
+    it('graceful failure resolves to success', async () => {
         await asyncForAll(
             tuple(
                 unknown(),
@@ -756,22 +757,22 @@ describe('eventHandler', () => {
             ),
             async ([request, c, s, ret, ctx]) => {
                 const l = ctx.logger
-                const setbinding = jest.spyOn(l, 'setBindings')
+                const setbinding = vi.spyOn(l, 'setBindings')
 
-                const m = createMetrics(mock())
-                const t = createTracer(mock())
+                const m = createMetrics(unsafeMock())
+                const t = createTracer(unsafeMock())
 
-                const getSegment = mock<any>()
+                const getSegment = unsafeMock<any>()
                 ;(t.instance.isTracingEnabled as any).mockReturnValue(true)
                 ;(t.instance.getSegment as any).mockReturnValue(getSegment)
 
-                const handlerImpl = jest.fn().mockResolvedValue(ret)
-                const config = jest.fn().mockResolvedValue(c)
-                const services = jest.fn().mockResolvedValue(s)
+                const handlerImpl = vi.fn().mockResolvedValue(ret)
+                const config = vi.fn().mockResolvedValue(c)
+                const services = vi.fn().mockResolvedValue(s)
                 const definition = {
                     config,
                     services,
-                    raw: { schema: {}, handler: jest.fn() },
+                    raw: { schema: {}, handler: vi.fn() },
                 }
                 const handler = eventHandler(definition, {
                     eventHandler: handlerImpl,

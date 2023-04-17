@@ -5,13 +5,14 @@ import { EventError } from '../../errors/event-error/index.js'
 import { asyncForAll, enumerate, failure, tuple } from '@skyleague/axioms'
 import { context, S3Event } from '@skyleague/event-horizon-dev'
 import { arbitrary } from '@skyleague/therefore'
+import { expect, describe, it, vi } from 'vitest'
 
 describe('handler', () => {
-    test('events do not give failures', async () => {
+    it('events do not give failures', async () => {
         await asyncForAll(tuple(arbitrary(S3Event), await context({})), async ([{ Records }, ctx]) => {
             ctx.mockClear()
 
-            const handler = jest.fn()
+            const handler = vi.fn()
             const response = await handleS3Event({ s3: { handler } }, Records, ctx)
 
             expect(response).toEqual(undefined)
@@ -32,11 +33,11 @@ describe('handler', () => {
         })
     })
 
-    test.each([new Error(), EventError.badRequest(), 'foobar'])('promise reject with Error, gives failure', async (error) => {
+    it.each([new Error(), EventError.badRequest(), 'foobar'])('promise reject with Error, gives failure', async (error) => {
         await asyncForAll(tuple(arbitrary(S3Event), await context({})), async ([{ Records }, ctx]) => {
             ctx.mockClear()
 
-            const handler = jest.fn().mockRejectedValue(error)
+            const handler = vi.fn().mockRejectedValue(error)
             const response = await handleS3Event({ s3: { handler } }, Records, ctx)
 
             if (Records.length > 0) {
@@ -63,11 +64,11 @@ describe('handler', () => {
         })
     })
 
-    test.each([new Error(), EventError.badRequest(), 'foobar'])('promise throws with Error, gives failure', async (error) => {
+    it.each([new Error(), EventError.badRequest(), 'foobar'])('promise throws with Error, gives failure', async (error) => {
         await asyncForAll(tuple(arbitrary(S3Event), await context({})), async ([{ Records }, ctx]) => {
             ctx.mockClear()
 
-            const handler = jest.fn().mockImplementation(() => {
+            const handler = vi.fn().mockImplementation(() => {
                 throw error
             })
             const response = await handleS3Event({ s3: { handler } }, Records, ctx)

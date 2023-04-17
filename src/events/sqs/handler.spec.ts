@@ -7,13 +7,14 @@ import { context, SQSEvent } from '@skyleague/event-horizon-dev'
 import type { Schema } from '@skyleague/therefore'
 import { arbitrary } from '@skyleague/therefore'
 import type { SQSRecord } from 'aws-lambda/trigger/sqs.js'
+import { expect, describe, it, vi } from 'vitest'
 
 describe('handler', () => {
-    test('plaintext events does not give failures', async () => {
+    it('plaintext events does not give failures', async () => {
         await asyncForAll(tuple(arbitrary(SQSEvent), await context({})), async ([{ Records }, ctx]) => {
             ctx.mockClear()
 
-            const handler = jest.fn()
+            const handler = vi.fn()
             const response = await handleSQSEvent(
                 { sqs: { schema: {}, handler, payloadType: 'plaintext' } },
                 Records as SQSRecord[],
@@ -38,7 +39,7 @@ describe('handler', () => {
         })
     })
 
-    test('json events does not give failures', async () => {
+    it('json events does not give failures', async () => {
         await asyncForAll(
             tuple(arbitrary(SQSEvent), await context({})).map(([e, ctx]) => {
                 for (const record of e.Records) {
@@ -49,7 +50,7 @@ describe('handler', () => {
             async ([{ Records }, ctx]) => {
                 ctx.mockClear()
 
-                const handler = jest.fn()
+                const handler = vi.fn()
                 const response = await handleSQSEvent({ sqs: { schema: {}, handler } }, Records as SQSRecord[], ctx)
 
                 expect(response).toEqual(undefined)
@@ -71,7 +72,7 @@ describe('handler', () => {
         )
     })
 
-    test('json parse failure, gives failure', async () => {
+    it('json parse failure, gives failure', async () => {
         await asyncForAll(
             tuple(arbitrary(SQSEvent), await context({})).map(([e, ctx]) => {
                 for (const record of e.Records) {
@@ -82,7 +83,7 @@ describe('handler', () => {
             async ([{ Records }, ctx]) => {
                 ctx.mockClear()
 
-                const handler = jest.fn()
+                const handler = vi.fn()
                 const response = await handleSQSEvent({ sqs: { schema: {}, handler } }, Records as SQSRecord[], ctx)
 
                 if (Records.length > 0) {
@@ -106,7 +107,7 @@ describe('handler', () => {
         )
     })
 
-    test('schema validation, gives failure', async () => {
+    it('schema validation, gives failure', async () => {
         const neverTrue = {
             is: () => false,
             errors: [],
@@ -121,7 +122,7 @@ describe('handler', () => {
             async ([{ Records }, ctx]) => {
                 ctx.mockClear()
 
-                const handler = jest.fn()
+                const handler = vi.fn()
                 const response = await handleSQSEvent(
                     { sqs: { schema: { payload: neverTrue }, handler } },
                     Records as SQSRecord[],
@@ -150,11 +151,11 @@ describe('handler', () => {
         )
     })
 
-    test.each([new Error(), 'foobar'])('promise reject with Error, gives failure', async (error) => {
+    it.each([new Error(), 'foobar'])('promise reject with Error, gives failure', async (error) => {
         await asyncForAll(tuple(arbitrary(SQSEvent), await context({})), async ([{ Records }, ctx]) => {
             ctx.mockClear()
 
-            const handler = jest.fn().mockRejectedValue(error)
+            const handler = vi.fn().mockRejectedValue(error)
             const response = await handleSQSEvent(
                 { sqs: { schema: {}, handler, payloadType: 'plaintext' } },
                 Records as SQSRecord[],
@@ -183,11 +184,11 @@ describe('handler', () => {
         })
     })
 
-    test.each([EventError.badRequest()])('promise reject with error error, gives errors', async (error) => {
+    it.each([EventError.badRequest()])('promise reject with error error, gives errors', async (error) => {
         await asyncForAll(tuple(arbitrary(SQSEvent), await context({})), async ([{ Records }, ctx]) => {
             ctx.mockClear()
 
-            const handler = jest.fn().mockRejectedValue(error)
+            const handler = vi.fn().mockRejectedValue(error)
             const response = await handleSQSEvent(
                 { sqs: { schema: {}, handler, payloadType: 'plaintext' } },
                 Records as SQSRecord[],
@@ -216,11 +217,11 @@ describe('handler', () => {
         })
     })
 
-    test.each([new Error(), 'foobar'])('promise throws with Error, gives failure', async (error) => {
+    it.each([new Error(), 'foobar'])('promise throws with Error, gives failure', async (error) => {
         await asyncForAll(tuple(arbitrary(SQSEvent), await context({})), async ([{ Records }, ctx]) => {
             ctx.mockClear()
 
-            const handler = jest.fn().mockImplementation(() => {
+            const handler = vi.fn().mockImplementation(() => {
                 throw error
             })
             const response = await handleSQSEvent(
@@ -251,11 +252,11 @@ describe('handler', () => {
         })
     })
 
-    test.each([EventError.badRequest()])('promise throws with client error, gives errors', async (error) => {
+    it.each([EventError.badRequest()])('promise throws with client error, gives errors', async (error) => {
         await asyncForAll(tuple(arbitrary(SQSEvent), await context({})), async ([{ Records }, ctx]) => {
             ctx.mockClear()
 
-            const handler = jest.fn().mockImplementation(() => {
+            const handler = vi.fn().mockImplementation(() => {
                 throw error
             })
             const response = await handleSQSEvent(

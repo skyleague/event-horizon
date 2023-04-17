@@ -8,6 +8,7 @@ import { context, FirehoseTransformationEvent } from '@skyleague/event-horizon-d
 import type { Schema } from '@skyleague/therefore'
 import { arbitrary } from '@skyleague/therefore'
 import type { FirehoseTransformationEventRecord } from 'aws-lambda/trigger/kinesis-firehose-transformation.js'
+import { expect, describe, it, vi } from 'vitest'
 
 describe('handler', () => {
     const neverTrue = {
@@ -20,7 +21,7 @@ describe('handler', () => {
         errors: [],
     } as unknown as Schema<string>
 
-    test('binary events does not give failures', async () => {
+    it('binary events does not give failures', async () => {
         await asyncForAll(
             tuple(arbitrary(FirehoseTransformationEvent), await context({})).map(([e, ctx]) => {
                 const results: Json[] = []
@@ -33,7 +34,7 @@ describe('handler', () => {
             async ([{ records }, ctx, results]) => {
                 ctx.mockClear()
 
-                const handler = jest.fn()
+                const handler = vi.fn()
                 for (const result of results) {
                     handler.mockResolvedValueOnce({
                         status: 'Ok',
@@ -75,7 +76,7 @@ describe('handler', () => {
         )
     })
 
-    test('plaintext events does not give failures', async () => {
+    it('plaintext events does not give failures', async () => {
         await asyncForAll(
             tuple(arbitrary(FirehoseTransformationEvent), await context({})).map(([e, ctx]) => {
                 const results: Json[] = []
@@ -88,7 +89,7 @@ describe('handler', () => {
             async ([{ records }, ctx, results]) => {
                 ctx.mockClear()
 
-                const handler = jest.fn()
+                const handler = vi.fn()
                 for (const result of results) {
                     handler.mockResolvedValueOnce({
                         status: 'Ok',
@@ -129,7 +130,7 @@ describe('handler', () => {
         )
     })
 
-    test('json events does not give failures', async () => {
+    it('json events does not give failures', async () => {
         await asyncForAll(
             tuple(arbitrary(FirehoseTransformationEvent), await context({})).map(([e, ctx]) => {
                 const results: Json[] = []
@@ -142,7 +143,7 @@ describe('handler', () => {
             async ([{ records }, ctx, results]) => {
                 ctx.mockClear()
 
-                const handler = jest.fn()
+                const handler = vi.fn()
                 for (const result of results) {
                     handler.mockResolvedValueOnce({
                         status: 'Ok',
@@ -183,7 +184,7 @@ describe('handler', () => {
         )
     })
 
-    test('json parse failure, gives failure', async () => {
+    it('json parse failure, gives failure', async () => {
         await asyncForAll(
             tuple(arbitrary(FirehoseTransformationEvent), await context({})).map(([e, ctx]) => {
                 const results: Json[] = []
@@ -196,7 +197,7 @@ describe('handler', () => {
             async ([{ records }, ctx, results]) => {
                 ctx.mockClear()
 
-                const handler = jest.fn()
+                const handler = vi.fn()
                 for (const result of results) {
                     handler.mockResolvedValueOnce({
                         status: 'Ok',
@@ -234,7 +235,7 @@ describe('handler', () => {
         )
     })
 
-    test('payload schema validation, gives failure', async () => {
+    it('payload schema validation, gives failure', async () => {
         await asyncForAll(
             tuple(arbitrary(FirehoseTransformationEvent), await context({})).map(([e, ctx]) => {
                 const results: Json[] = []
@@ -247,7 +248,7 @@ describe('handler', () => {
             async ([{ records }, ctx, results]) => {
                 ctx.mockClear()
 
-                const handler = jest.fn()
+                const handler = vi.fn()
                 for (const result of results) {
                     handler.mockResolvedValueOnce({
                         status: 'Ok',
@@ -286,7 +287,7 @@ describe('handler', () => {
         )
     })
 
-    test('result schema validation, gives failure', async () => {
+    it('result schema validation, gives failure', async () => {
         await asyncForAll(
             tuple(arbitrary(FirehoseTransformationEvent), await context({})).map(([e, ctx]) => {
                 const results: Json[] = []
@@ -299,7 +300,7 @@ describe('handler', () => {
             async ([{ records }, ctx, results]) => {
                 ctx.mockClear()
 
-                const handler = jest.fn()
+                const handler = vi.fn()
                 for (const result of results) {
                     handler.mockResolvedValueOnce({
                         status: 'Ok',
@@ -338,11 +339,11 @@ describe('handler', () => {
         )
     })
 
-    test.each([new Error(), 'foobar'])('promise reject with Error, gives failure', async (error) => {
+    it.each([new Error(), 'foobar'])('promise reject with Error, gives failure', async (error) => {
         await asyncForAll(tuple(arbitrary(FirehoseTransformationEvent), await context({})), async ([{ records }, ctx]) => {
             ctx.mockClear()
 
-            const handler = jest.fn().mockRejectedValue(error)
+            const handler = vi.fn().mockRejectedValue(error)
             const response = await handleFirehoseTransformation(
                 { firehose: { schema: {}, handler, payloadType: 'binary' } },
                 records as FirehoseTransformationEventRecord[],
@@ -375,11 +376,11 @@ describe('handler', () => {
         })
     })
 
-    test.each([EventError.badRequest()])('promise reject with client error, gives errors', async (error) => {
+    it.each([EventError.badRequest()])('promise reject with client error, gives errors', async (error) => {
         await asyncForAll(tuple(arbitrary(FirehoseTransformationEvent), await context({})), async ([{ records }, ctx]) => {
             ctx.mockClear()
 
-            const handler = jest.fn().mockRejectedValue(error)
+            const handler = vi.fn().mockRejectedValue(error)
             const response = await handleFirehoseTransformation(
                 { firehose: { schema: {}, handler, payloadType: 'binary' } },
                 records as FirehoseTransformationEventRecord[],
@@ -412,11 +413,11 @@ describe('handler', () => {
         })
     })
 
-    test.each([new Error(), 'foobar'])('promise throws with Error, gives failure', async (error) => {
+    it.each([new Error(), 'foobar'])('promise throws with Error, gives failure', async (error) => {
         await asyncForAll(tuple(arbitrary(FirehoseTransformationEvent), await context({})), async ([{ records }, ctx]) => {
             ctx.mockClear()
 
-            const handler = jest.fn().mockImplementation(() => {
+            const handler = vi.fn().mockImplementation(() => {
                 throw error
             })
             const response = await handleFirehoseTransformation(
@@ -451,11 +452,11 @@ describe('handler', () => {
         })
     })
 
-    test.each([EventError.badRequest()])('promise throws with client error, gives errors', async (error) => {
+    it.each([EventError.badRequest()])('promise throws with client error, gives errors', async (error) => {
         await asyncForAll(tuple(arbitrary(FirehoseTransformationEvent), await context({})), async ([{ records }, ctx]) => {
             ctx.mockClear()
 
-            const handler = jest.fn().mockImplementation(() => {
+            const handler = vi.fn().mockImplementation(() => {
                 throw error
             })
             const response = await handleFirehoseTransformation(

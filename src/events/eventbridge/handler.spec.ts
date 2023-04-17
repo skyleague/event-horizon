@@ -5,6 +5,7 @@ import { EventError } from '../../errors/index.js'
 import { asyncForAll, failure, json, tuple } from '@skyleague/axioms'
 import { context, eventBridgeEvent } from '@skyleague/event-horizon-dev'
 import type { Schema } from '@skyleague/therefore'
+import { expect, describe, it, vi } from 'vitest'
 
 describe('handler', () => {
     const neverTrue = {
@@ -23,8 +24,8 @@ describe('handler', () => {
         },
     } as unknown as Schema<string>
 
-    test('success does not give failures', async () => {
-        const h = jest.fn()
+    it('success does not give failures', async () => {
+        const h = vi.fn()
         const handler = { eventBridge: { schema: {}, handler: h } }
         await asyncForAll(tuple(eventBridgeEvent(handler), json(), await context({})), async ([value, ret, ctx]) => {
             ctx.mockClear()
@@ -46,8 +47,8 @@ describe('handler', () => {
         })
     })
 
-    test('payload schema validation, gives failure', async () => {
-        const h = jest.fn()
+    it('payload schema validation, gives failure', async () => {
+        const h = vi.fn()
         const handler = { eventBridge: { schema: { payload: neverTrue }, handler: h } }
         await asyncForAll(tuple(eventBridgeEvent(handler), await context({})), async ([value, ctx]) => {
             ctx.mockClear()
@@ -67,8 +68,8 @@ describe('handler', () => {
         })
     })
 
-    test('result schema validation, gives failure', async () => {
-        const h = jest.fn()
+    it('result schema validation, gives failure', async () => {
+        const h = vi.fn()
         const handler = { eventBridge: { schema: { payload: alwaysTrue, result: neverTrue }, handler: h } }
         await asyncForAll(tuple(eventBridgeEvent(handler), await context({})), async ([value, ctx]) => {
             ctx.mockClear()
@@ -88,8 +89,8 @@ describe('handler', () => {
         })
     })
 
-    test.each([new Error(), EventError.badRequest(), 'foobar'])('promise reject with Error, gives failure', async (error) => {
-        const h = jest.fn()
+    it.each([new Error(), EventError.badRequest(), 'foobar'])('promise reject with Error, gives failure', async (error) => {
+        const h = vi.fn()
         const handler = { eventBridge: { schema: { payload: alwaysTrue, result: neverTrue }, handler: h } }
         await asyncForAll(tuple(eventBridgeEvent(handler), await context({})), async ([value, ctx]) => {
             ctx.mockClear()
@@ -109,8 +110,8 @@ describe('handler', () => {
         })
     })
 
-    test.each([new Error(), EventError.badRequest(), 'foobar'])('promise throws with Error, gives failure', async (error) => {
-        const h = jest.fn()
+    it.each([new Error(), EventError.badRequest(), 'foobar'])('promise throws with Error, gives failure', async (error) => {
+        const h = vi.fn()
         const handler = { eventBridge: { schema: { payload: alwaysTrue, result: neverTrue }, handler: h } }
         await asyncForAll(tuple(eventBridgeEvent(handler), await context({})), async ([value, ctx]) => {
             ctx.mockClear()

@@ -2,26 +2,27 @@ import { createTracer } from './tracer.js'
 
 import type { Tracer as AWSTracer } from '@aws-lambda-powertools/tracer'
 import { asyncForAll, string, tuple, unknown } from '@skyleague/axioms'
-import { mock } from '@skyleague/event-horizon-dev'
+import { unsafeMock } from '@skyleague/event-horizon-dev'
+import { expect, describe, beforeEach, it, vi } from 'vitest'
 
 describe('tracer', () => {
-    const instance = mock<AWSTracer>()
+    const instance = unsafeMock<AWSTracer>()
     const tracer = createTracer(instance)
 
     beforeEach(() => instance.mockClear())
 
-    test('trace successful fn', async () => {
+    it('trace successful fn', async () => {
         await asyncForAll(tuple(string(), unknown()), async ([segment, response]) => {
             instance.mockClear()
 
-            const current = { addNewSubsegment: jest.fn() }
+            const current = { addNewSubsegment: vi.fn() }
 
-            const subsegment = { close: jest.fn() }
+            const subsegment = { close: vi.fn() }
 
             current.addNewSubsegment.mockReturnValue(subsegment as any)
             instance.getSegment.mockReturnValue(current as any)
 
-            const fn = jest.fn().mockReturnValue(response)
+            const fn = vi.fn().mockReturnValue(response)
 
             expect(await tracer.trace(segment, fn)).toBe(response)
 
@@ -34,18 +35,18 @@ describe('tracer', () => {
         })
     })
 
-    test('trace rejected fn', async () => {
+    it('trace rejected fn', async () => {
         await asyncForAll(tuple(string(), unknown()), async ([segment, response]) => {
             instance.mockClear()
 
-            const current = { addNewSubsegment: jest.fn() }
+            const current = { addNewSubsegment: vi.fn() }
 
-            const subsegment = { close: jest.fn() }
+            const subsegment = { close: vi.fn() }
 
             current.addNewSubsegment.mockReturnValue(subsegment as any)
             instance.getSegment.mockReturnValue(current as any)
 
-            const fn = jest.fn().mockRejectedValue(response)
+            const fn = vi.fn().mockRejectedValue(response)
 
             await expect(() => tracer.trace(segment, fn)).rejects.toBe(response)
 
