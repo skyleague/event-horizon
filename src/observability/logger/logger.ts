@@ -19,6 +19,7 @@ export interface Logger {
     info: (input: LogItem, ...extraInput: LogItemExtra) => void
     warn: (input: LogItem, ...extraInput: LogItemExtra) => void
     error: (input: LogItem, ...extraInput: LogItemExtra) => void
+    critical: (input: LogItem, ...extraInput: LogItemExtra) => void
     child: (bindings?: Record<string, unknown>) => Logger
     setBindings: (bindings: Record<string, unknown>) => void
 }
@@ -47,6 +48,10 @@ export function createLogger(
         instance.error(input, ...extraInput)
     }
 
+    function critical(input: LogItem, ...extraInput: LogItemExtra): void {
+        instance.critical(input, ...extraInput)
+    }
+
     function child(bindings?: Record<string, unknown>): Logger {
         // pass down the error formatter and attributes properly
         const parentAttributes = instance.getPersistentLogAttributes()
@@ -67,6 +72,7 @@ export function createLogger(
         warn,
         error,
         child,
+        critical,
         setBindings,
     }
 }
