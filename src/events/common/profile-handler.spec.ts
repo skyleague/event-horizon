@@ -12,12 +12,13 @@ import {
 } from '@aws-sdk/client-appconfigdata'
 import { asyncForAll, dict, json, string, tuple } from '@skyleague/axioms'
 import { mockClient } from 'aws-sdk-client-mock'
+import { expect, describe, it, vi } from 'vitest'
 
 describe('profile handler', () => {
     const appConfigDataMock = mockClient(AppConfigDataClient)
     const services = { appConfigData: new AppConfigData({}) }
 
-    test('skips retrieving when not properly configured', async () => {
+    it('skips retrieving when not properly configured', async () => {
         await asyncForAll(dict(json()), async (x) => {
             const handler = profileHandler({}, async () => x)
 
@@ -25,7 +26,7 @@ describe('profile handler', () => {
         })
     })
 
-    test('retrieve initial configuration, and validates', async () => {
+    it('retrieve initial configuration, and validates', async () => {
         await asyncForAll(tuple(string(), dict(json())), async ([token, config]) => {
             appConfigDataMock.reset()
             appConfigDataMock.on(StartConfigurationSessionCommand).resolvesOnce({ InitialConfigurationToken: token })
@@ -43,7 +44,7 @@ describe('profile handler', () => {
         })
     })
 
-    test('retrieve initial configuration - buffer, and validates', async () => {
+    it('retrieve initial configuration - buffer, and validates', async () => {
         await asyncForAll(tuple(string(), dict(json())), async ([token, config]) => {
             appConfigDataMock.reset()
             appConfigDataMock.on(StartConfigurationSessionCommand).resolvesOnce({ InitialConfigurationToken: token })
@@ -63,7 +64,7 @@ describe('profile handler', () => {
         })
     })
 
-    test('retrieve initial configuration - Uint8Array, and validates', async () => {
+    it('retrieve initial configuration - Uint8Array, and validates', async () => {
         await asyncForAll(tuple(string(), dict(json())), async ([token, config]) => {
             appConfigDataMock.reset()
             appConfigDataMock.on(StartConfigurationSessionCommand).resolvesOnce({ InitialConfigurationToken: token })
@@ -83,7 +84,7 @@ describe('profile handler', () => {
         })
     })
 
-    test('retrieve initial configuration, and validates - caches results', async () => {
+    it('retrieve initial configuration, and validates - caches results', async () => {
         await asyncForAll(tuple(string(), dict(json())), async ([token, config]) => {
             appConfigDataMock.reset()
             appConfigDataMock.on(StartConfigurationSessionCommand).resolvesOnce({ InitialConfigurationToken: token })
@@ -103,7 +104,7 @@ describe('profile handler', () => {
         })
     })
 
-    test('retrieve initial configuration and updates, and validates', async () => {
+    it('retrieve initial configuration and updates, and validates', async () => {
         await asyncForAll(
             tuple(string(), string(), string(), dict(json())),
             async ([token1, token2, token3, config]) => {
@@ -121,7 +122,7 @@ describe('profile handler', () => {
 
                 expect(await handler.before()).toEqual(config)
 
-                jest.setSystemTime(new Date().getTime() + 10)
+                vi.setSystemTime(new Date().getTime() + 10)
 
                 expect(await handler.before()).toEqual(config)
 
@@ -138,7 +139,7 @@ describe('profile handler', () => {
         )
     })
 
-    test('retrieve initial configuration and ignores empty configurations, and validates', async () => {
+    it('retrieve initial configuration and ignores empty configurations, and validates', async () => {
         await asyncForAll(tuple(string(), string(), string(), dict(json())), async ([token1, token2, token3, config]) => {
             appConfigDataMock.reset()
             appConfigDataMock.on(StartConfigurationSessionCommand).resolvesOnce({ InitialConfigurationToken: token1 })
@@ -154,7 +155,7 @@ describe('profile handler', () => {
 
             expect(await handler.before()).toEqual(config)
 
-            jest.setSystemTime(new Date().getTime() + 10)
+            vi.setSystemTime(new Date().getTime() + 10)
 
             expect(await handler.before()).toEqual(config)
 
@@ -166,7 +167,7 @@ describe('profile handler', () => {
         })
     })
 
-    test('retrieve initial configuration, and not validates', async () => {
+    it('retrieve initial configuration, and not validates', async () => {
         await asyncForAll(tuple(string(), dict(json())), async ([token, config]) => {
             appConfigDataMock.reset()
             appConfigDataMock.on(StartConfigurationSessionCommand).resolvesOnce({ InitialConfigurationToken: token })

@@ -7,13 +7,14 @@ import { context, SNSEvent } from '@skyleague/event-horizon-dev'
 import type { Schema } from '@skyleague/therefore'
 import { arbitrary } from '@skyleague/therefore'
 import type { SNSEventRecord } from 'aws-lambda/trigger/sns.js'
+import { expect, describe, it, vi } from 'vitest'
 
 describe('handler', () => {
-    test('binary events does not give failures', async () => {
+    it('binary events does not give failures', async () => {
         await asyncForAll(tuple(arbitrary(SNSEvent), await context()), async ([{ Records }, ctx]) => {
             ctx.mockClear()
 
-            const handler = jest.fn()
+            const handler = vi.fn()
 
             const response = await handleSNSEvent(
                 { sns: { schema: {}, handler, payloadType: 'binary' } },
@@ -39,11 +40,11 @@ describe('handler', () => {
         })
     })
 
-    test('plaintext events does not give failures', async () => {
+    it('plaintext events does not give failures', async () => {
         await asyncForAll(tuple(arbitrary(SNSEvent), await context()), async ([{ Records }, ctx]) => {
             ctx.mockClear()
 
-            const handler = jest.fn()
+            const handler = vi.fn()
             const response = await handleSNSEvent(
                 { sns: { schema: {}, handler, payloadType: 'plaintext' } },
                 Records as SNSEventRecord[],
@@ -68,7 +69,7 @@ describe('handler', () => {
         })
     })
 
-    test('json events does not give failures', async () => {
+    it('json events does not give failures', async () => {
         await asyncForAll(
             tuple(arbitrary(SNSEvent), await context()).map(([e, ctx]) => {
                 for (const record of e.Records) {
@@ -79,7 +80,7 @@ describe('handler', () => {
             async ([{ Records }, ctx]) => {
                 ctx.mockClear()
 
-                const handler = jest.fn()
+                const handler = vi.fn()
                 const response = await handleSNSEvent({ sns: { schema: {}, handler } }, Records as SNSEventRecord[], ctx)
 
                 expect(response).toEqual(undefined)
@@ -101,7 +102,7 @@ describe('handler', () => {
         )
     })
 
-    test('json parse failure, gives failure', async () => {
+    it('json parse failure, gives failure', async () => {
         await asyncForAll(
             tuple(arbitrary(SNSEvent), await context()).map(([e, ctx]) => {
                 for (const record of e.Records) {
@@ -112,7 +113,7 @@ describe('handler', () => {
             async ([{ Records }, ctx]) => {
                 ctx.mockClear()
 
-                const handler = jest.fn()
+                const handler = vi.fn()
                 const response = await handleSNSEvent({ sns: { schema: {}, handler } }, Records as SNSEventRecord[], ctx)
 
                 if (Records.length > 0) {
@@ -139,7 +140,7 @@ describe('handler', () => {
         )
     })
 
-    test('schema validation, gives failure', async () => {
+    it('schema validation, gives failure', async () => {
         const neverTrue = {
             is: () => false,
             errors: [],
@@ -154,7 +155,7 @@ describe('handler', () => {
             async ([{ Records }, ctx]) => {
                 ctx.mockClear()
 
-                const handler = jest.fn()
+                const handler = vi.fn()
                 const response = await handleSNSEvent(
                     { sns: { schema: { payload: neverTrue }, handler } },
                     Records as SNSEventRecord[],
@@ -186,11 +187,11 @@ describe('handler', () => {
         )
     })
 
-    test.each([new Error(), EventError.badRequest(), 'foobar'])('promise reject with Error, gives failure', async (error) => {
+    it.each([new Error(), EventError.badRequest(), 'foobar'])('promise reject with Error, gives failure', async (error) => {
         await asyncForAll(tuple(arbitrary(SNSEvent), await context()), async ([{ Records }, ctx]) => {
             ctx.mockClear()
 
-            const handler = jest.fn().mockRejectedValue(error)
+            const handler = vi.fn().mockRejectedValue(error)
             const response = await handleSNSEvent(
                 { sns: { schema: {}, handler, payloadType: 'binary' } },
                 Records as SNSEventRecord[],
@@ -223,11 +224,11 @@ describe('handler', () => {
         })
     })
 
-    test.each([new Error(), EventError.badRequest(), 'foobar'])('promise throws with Error, gives failure', async (error) => {
+    it.each([new Error(), EventError.badRequest(), 'foobar'])('promise throws with Error, gives failure', async (error) => {
         await asyncForAll(tuple(arbitrary(SNSEvent), await context()), async ([{ Records }, ctx]) => {
             ctx.mockClear()
 
-            const handler = jest.fn().mockImplementation(() => {
+            const handler = vi.fn().mockImplementation(() => {
                 throw error
             })
             const response = await handleSNSEvent(

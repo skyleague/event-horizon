@@ -12,7 +12,7 @@ export interface Query {
 }
 
 export const Query = {
-    validate: require('./schemas/query.schema.js') as ValidateFunction<Query>,
+    validate: (await import('./schemas/query.schema.js')).validate10 as unknown as ValidateFunction<Query>,
     get schema() {
         return Query.validate.schema
     },

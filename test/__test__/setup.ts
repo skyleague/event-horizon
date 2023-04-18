@@ -1,4 +1,9 @@
-import { jest } from '@jest/globals'
+import { vi, afterAll } from 'vitest'
 
-global.jest = jest as typeof global.jest
-process.env.IS_DEBUG = 'true'
+import 'aws-sdk-client-mock-jest'
+
+vi.stubEnv('IS_DEBUG', 'true')
+
+afterAll(() => {
+    vi.restoreAllMocks()
+})

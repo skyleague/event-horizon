@@ -6,6 +6,7 @@ import { DescribeSecretCommand, SecretsManager, SecretsManagerClient } from '@aw
 import { asyncForAll, Nothing, tuple } from '@skyleague/axioms'
 import { secretRotationEvent, context } from '@skyleague/event-horizon-dev'
 import { mockClient } from 'aws-sdk-client-mock'
+import { expect, describe, beforeEach, it } from 'vitest'
 
 describe('validate', () => {
     const mockSecrets = mockClient(SecretsManagerClient)
@@ -13,9 +14,11 @@ describe('validate', () => {
         secretsManager: new SecretsManager({}),
     }
 
-    beforeEach(() => mockSecrets.reset())
+    beforeEach(() => {
+        mockSecrets.reset()
+    })
 
-    test('identity function when validates', async () => {
+    it('identity function when validates', async () => {
         await asyncForAll(tuple(secretRotationEvent(), await context({ services })), async ([rotation, ctx]) => {
             ctx.mockClear()
             mockSecrets.reset()
@@ -34,7 +37,7 @@ describe('validate', () => {
         })
     })
 
-    test('fails when rotation is disabled', async () => {
+    it('fails when rotation is disabled', async () => {
         await asyncForAll(tuple(secretRotationEvent(), await context({ services })), async ([rotation, ctx]) => {
             ctx.mockClear()
             mockSecrets.reset()
@@ -52,7 +55,7 @@ describe('validate', () => {
         })
     })
 
-    test('fails when crt is not available', async () => {
+    it('fails when crt is not available', async () => {
         await asyncForAll(tuple(secretRotationEvent(), await context({ services })), async ([rotation, ctx]) => {
             ctx.mockClear()
             mockSecrets.reset()
@@ -68,7 +71,7 @@ describe('validate', () => {
         })
     })
 
-    test('Nothing when crt is current', async () => {
+    it('Nothing when crt is current', async () => {
         await asyncForAll(tuple(secretRotationEvent(), await context({ services })), async ([rotation, ctx]) => {
             ctx.mockClear()
             mockSecrets.reset()
@@ -87,7 +90,7 @@ describe('validate', () => {
         })
     })
 
-    test('fails when crt is not pending', async () => {
+    it('fails when crt is not pending', async () => {
         await asyncForAll(tuple(secretRotationEvent(), await context({ services })), async ([rotation, ctx]) => {
             ctx.mockClear()
             mockSecrets.reset()

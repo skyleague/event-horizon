@@ -6,20 +6,21 @@ import type { EventHandler } from '../../handlers/types.js'
 import { asyncForAll, failure, json, tuple } from '@skyleague/axioms'
 import { context } from '@skyleague/event-horizon-dev'
 import type { Schema } from '@skyleague/therefore'
+import { expect, describe, it, vi } from 'vitest'
 
 describe('handler', () => {
-    test('not implemented gives failure', async () => {
+    it('not implemented gives failure', async () => {
         await asyncForAll(tuple(json(), await context({})), async ([value, ctx]) => {
             const response = await handleRawEvent({} as EventHandler, value, ctx)
             expect(response).toEqual(EventError.notImplemented())
         })
     })
 
-    test('success does not give failures', async () => {
+    it('success does not give failures', async () => {
         await asyncForAll(tuple(json(), json(), await context({})), async ([value, ret, ctx]) => {
             ctx.mockClear()
 
-            const handler = jest.fn().mockReturnValue(ret)
+            const handler = vi.fn().mockReturnValue(ret)
             const response = await handleRawEvent({ raw: { schema: {}, handler } }, value, ctx)
 
             expect(response).toEqual(ret)
@@ -34,7 +35,7 @@ describe('handler', () => {
         })
     })
 
-    test('schema validation, gives failure', async () => {
+    it('schema validation, gives failure', async () => {
         const neverTrue = {
             is: () => false,
             errors: [],
@@ -42,7 +43,7 @@ describe('handler', () => {
         await asyncForAll(tuple(json(), await context({})), async ([value, ctx]) => {
             ctx.mockClear()
 
-            const handler = jest.fn()
+            const handler = vi.fn()
             const response = await handleRawEvent({ raw: { schema: { payload: neverTrue }, handler } }, value, ctx)
 
             expect(response).toEqual(EventError.validation())
@@ -57,11 +58,11 @@ describe('handler', () => {
         })
     })
 
-    test.each([new Error(), EventError.badRequest(), 'foobar'])('promise reject with Error, gives failure', async (error) => {
+    it.each([new Error(), EventError.badRequest(), 'foobar'])('promise reject with Error, gives failure', async (error) => {
         await asyncForAll(tuple(json(), await context({})), async ([value, ctx]) => {
             ctx.mockClear()
 
-            const handler = jest.fn().mockRejectedValue(error)
+            const handler = vi.fn().mockRejectedValue(error)
             const response = await handleRawEvent({ raw: { schema: {}, handler } }, value, ctx)
 
             expect(response).toEqual(failure(error))
@@ -74,11 +75,11 @@ describe('handler', () => {
         })
     })
 
-    test.each([new Error(), EventError.badRequest(), 'foobar'])('promise throws with Error, gives failure', async (error) => {
+    it.each([new Error(), EventError.badRequest(), 'foobar'])('promise throws with Error, gives failure', async (error) => {
         await asyncForAll(tuple(json(), await context({})), async ([value, ctx]) => {
             ctx.mockClear()
 
-            const handler = jest.fn().mockImplementation(() => {
+            const handler = vi.fn().mockImplementation(() => {
                 throw error
             })
             const response = await handleRawEvent({ raw: { schema: {}, handler } }, value, ctx)

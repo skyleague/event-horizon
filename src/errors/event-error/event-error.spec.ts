@@ -1,12 +1,12 @@
 import { EventError, httpStatusCodes } from './event-error.js'
 
 import { constant, forAll, integer, oneOf, string, tuple } from '@skyleague/axioms'
-
-test('EventError === EventError', () => {
+import { expect, it } from 'vitest'
+it('EventError === EventError', () => {
     expect(EventError.is(EventError.badGateway())).toBe(true)
 })
 
-test.each([
+it.each([
     [EventError.badRequest, 400],
     [EventError.unauthorized, 401],
     [EventError.paymentRequired, 402],
@@ -60,7 +60,7 @@ test.each([
     })
 })
 
-test('validation', () => {
+it('validation', () => {
     const e = EventError.validation({})
     expect(e).toBeInstanceOf(EventError)
     expect(e).toEqual(expect.any(EventError))
@@ -71,7 +71,7 @@ test('validation', () => {
     expect(e.stack).not.toMatch(/\/event-error\.ts/)
 })
 
-test('methodNotAllowed', () => {
+it('methodNotAllowed', () => {
     const e = EventError.methodNotAllowed({ allow: ['get'] })
     expect(e).toBeInstanceOf(EventError)
     expect(e).toEqual(expect.any(EventError))
@@ -82,25 +82,25 @@ test('methodNotAllowed', () => {
     expect(e.stack).not.toMatch(/\/event-error\.ts/)
 })
 
-test('level - server error is error', () => {
+it('level - server error is error', () => {
     forAll(integer({ min: 500, max: 600 }), (statusCode) => {
         expect(new EventError(undefined, { statusCode }).level).toBe('error')
     })
 })
 
-test('level - client error is warning', () => {
+it('level - client error is warning', () => {
     forAll(integer({ min: 400, max: 500 }), (statusCode) => {
         expect(new EventError(undefined, { statusCode }).level).toBe('warning')
     })
 })
 
-test('level - other error is info', () => {
+it('level - other error is info', () => {
     forAll(integer({ min: 0, max: 400 }), (statusCode) => {
         expect(new EventError(undefined, { statusCode }).level).toBe('info')
     })
 })
 
-test('level - level overrides default', () => {
+it('level - level overrides default', () => {
     forAll(
         tuple(integer({ min: 0, max: 600 }), oneOf(constant('warning'), constant('info'), constant('error'))),
         ([statusCode, level]) => {

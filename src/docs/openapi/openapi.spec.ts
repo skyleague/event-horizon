@@ -4,9 +4,10 @@ import { HttpError } from '../../events/http/functions/http-error.type.js'
 import { httpHandler } from '../../handlers/index.js'
 
 import { alpha, array, dict, entriesOf, forAll, json, omit, omitUndefined, random, string, tuple } from '@skyleague/axioms'
+import { expect, describe, it, vi } from 'vitest'
 
 describe('jsonptrToName', () => {
-    test('refs schemas', () => {
+    it('refs schemas', () => {
         forAll(
             tuple(
                 array(alpha({ minLength: 1 })).map((xs) => xs.join('/')),
@@ -21,7 +22,7 @@ describe('jsonptrToName', () => {
 
 describe('addComponent', () => {
     let openapi: any = {}
-    test('adds components', () => {
+    it('adds components', () => {
         forAll(tuple(string(), dict(json())), ([title, schema]) => {
             openapi = {}
             expect(addComponent({ openapi } as any, { ...schema, title })).toEqual(title)
@@ -29,7 +30,7 @@ describe('addComponent', () => {
         })
     })
 
-    test('only adds first value', () => {
+    it('only adds first value', () => {
         forAll(tuple(string(), dict(json()), dict(json())), ([title, schema1, schema2]) => {
             openapi = {}
             expect(addComponent({ openapi } as any, { ...schema1, title })).toEqual(title)
@@ -41,7 +42,7 @@ describe('addComponent', () => {
 
 describe('ensureTarget', () => {
     let openapi: any = {}
-    test.each(['requestBodies', 'responses'] as const)('content $target', (target) => {
+    it.each(['requestBodies', 'responses'] as const)('content $target', (target) => {
         forAll(
             tuple(
                 array(alpha({ minLength: 1 }), { minLength: 1 }).map((xs) => xs.join('/')),
@@ -64,7 +65,7 @@ describe('ensureTarget', () => {
         )
     })
 
-    test('parameters', () => {
+    it('parameters', () => {
         forAll(
             tuple(
                 array(alpha({ minLength: 1 }), { minLength: 1 }).map((xs) => xs.join('/')),
@@ -80,7 +81,7 @@ describe('ensureTarget', () => {
         )
     })
 
-    test('schemas', () => {
+    it('schemas', () => {
         forAll(
             tuple(
                 array(alpha({ minLength: 1 }), { minLength: 1 }).map((xs) => xs.join('/')),
@@ -98,7 +99,7 @@ describe('ensureTarget', () => {
 
 describe('normalizeSchema', () => {
     let openapi: any = {}
-    test('refs schemas', () => {
+    it('refs schemas', () => {
         forAll(
             tuple(
                 dict(json()),
@@ -116,7 +117,7 @@ describe('normalizeSchema', () => {
         )
     })
 
-    test('refs parameters', () => {
+    it('refs parameters', () => {
         forAll(
             tuple(
                 dict(json()),
@@ -136,7 +137,7 @@ describe('normalizeSchema', () => {
         )
     })
 
-    test.each(['requestBodies', 'responses'] as const)('refs $target', (target) => {
+    it.each(['requestBodies', 'responses'] as const)('refs $target', (target) => {
         forAll(
             tuple(
                 dict(json()),
@@ -163,7 +164,7 @@ describe('normalizeSchema', () => {
         )
     })
 
-    test('array with ref', () => {
+    it('array with ref', () => {
         forAll(
             tuple(dict(json()), dict(json()), alpha({ minLength: 1 })).map(
                 ([jsonschema, definition, name]) =>
@@ -186,7 +187,7 @@ describe('normalizeSchema', () => {
         )
     })
 
-    test('array with refs', () => {
+    it('array with refs', () => {
         forAll(
             tuple(dict(json()), dict(json()), alpha({ minLength: 1 })).map(
                 ([jsonschema, definition, name]) =>
@@ -211,7 +212,7 @@ describe('normalizeSchema', () => {
         )
     })
 
-    test('object with ref properties', () => {
+    it('object with ref properties', () => {
         forAll(
             tuple(dict(json()), dict(json()), alpha({ minLength: 1 })).map(
                 ([jsonschema, definition, name]) =>
@@ -237,7 +238,7 @@ describe('normalizeSchema', () => {
         )
     })
 
-    test('object with ref patternProperties', () => {
+    it('object with ref patternProperties', () => {
         forAll(
             tuple(dict(json()), dict(json()), alpha({ minLength: 1 })).map(
                 ([jsonschema, definition, name]) =>
@@ -263,7 +264,7 @@ describe('normalizeSchema', () => {
         )
     })
 
-    test('object with ref additionalProperties', () => {
+    it('object with ref additionalProperties', () => {
         forAll(
             tuple(dict(json()), dict(json()), alpha({ minLength: 1 })).map(
                 ([jsonschema, definition, name]) =>
@@ -289,7 +290,7 @@ describe('normalizeSchema', () => {
         )
     })
 
-    test('object with ref properties to component', () => {
+    it('object with ref properties to component', () => {
         forAll(
             tuple(dict(json()), dict(json()), alpha({ minLength: 1 }), string()).map(
                 ([jsonschema, definition, name, title]) =>
@@ -322,7 +323,7 @@ describe('normalizeSchema', () => {
         )
     })
 
-    test('definition only object with ref properties', () => {
+    it('definition only object with ref properties', () => {
         forAll(
             tuple(dict(json()), dict(json()), alpha({ minLength: 1 })).map(
                 ([jsonschema, definition, name]) =>
@@ -350,8 +351,8 @@ describe('openapiFromHandlers', () => {
     const title = random(string())
     const version = random(string())
 
-    test('simple', () => {
-        const h = jest.fn()
+    it('simple', () => {
+        const h = vi.fn()
         forAll(tuple(string(), string()), ([method, path]) => {
             const helloWorld = httpHandler({
                 http: {
@@ -383,8 +384,8 @@ describe('openapiFromHandlers', () => {
         })
     })
 
-    test('request body', () => {
-        const h = jest.fn()
+    it('request body', () => {
+        const h = vi.fn()
         forAll(tuple(string(), string(), dict(json())), ([method, path, schema]) => {
             const helloWorld = httpHandler({
                 http: {
@@ -416,8 +417,8 @@ describe('openapiFromHandlers', () => {
         })
     })
 
-    test('response', () => {
-        const h = jest.fn()
+    it('response', () => {
+        const h = vi.fn()
         forAll(tuple(string(), string(), dict(json())), ([method, path, schema]) => {
             const helloWorld = httpHandler({
                 http: {
@@ -456,8 +457,8 @@ describe('openapiFromHandlers', () => {
         })
     })
 
-    test('response default overrides', () => {
-        const h = jest.fn()
+    it('response default overrides', () => {
+        const h = vi.fn()
         forAll(tuple(string(), string(), dict(json())), ([method, path, schema]) => {
             const helloWorld = httpHandler({
                 http: {
@@ -496,8 +497,8 @@ describe('openapiFromHandlers', () => {
         })
     })
 
-    test('headers', () => {
-        const h = jest.fn()
+    it('headers', () => {
+        const h = vi.fn()
         forAll(
             tuple(
                 string(),
@@ -552,8 +553,8 @@ describe('openapiFromHandlers', () => {
         )
     })
 
-    test('path', () => {
-        const h = jest.fn()
+    it('path', () => {
+        const h = vi.fn()
         forAll(
             tuple(
                 string(),
@@ -608,8 +609,8 @@ describe('openapiFromHandlers', () => {
         )
     })
 
-    test('query', () => {
-        const h = jest.fn()
+    it('query', () => {
+        const h = vi.fn()
         forAll(
             tuple(
                 string(),

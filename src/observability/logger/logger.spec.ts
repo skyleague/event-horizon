@@ -1,13 +1,14 @@
 import { createLogger } from './logger.js'
 
 import { forAll, string } from '@skyleague/axioms'
+import { expect, describe, it, vi } from 'vitest'
 
 describe('Logger', () => {
     const logger = createLogger()
 
-    test('debug', () => {
+    it('debug', () => {
         forAll(string(), (message) => {
-            jest.spyOn(logger, 'debug').mockImplementation(() => {
+            vi.spyOn(logger, 'debug').mockImplementation(() => {
                 //
             })
 
@@ -17,9 +18,9 @@ describe('Logger', () => {
         })
     })
 
-    test('info', () => {
+    it('info', () => {
         forAll(string(), (message) => {
-            jest.spyOn(logger, 'info').mockImplementation(() => {
+            vi.spyOn(logger, 'info').mockImplementation(() => {
                 //
             })
 
@@ -29,9 +30,9 @@ describe('Logger', () => {
         })
     })
 
-    test('warn', () => {
+    it('warn', () => {
         forAll(string(), (message) => {
-            jest.spyOn(logger, 'warn').mockImplementation(() => {
+            vi.spyOn(logger, 'warn').mockImplementation(() => {
                 //
             })
 
@@ -41,15 +42,27 @@ describe('Logger', () => {
         })
     })
 
-    test('error', () => {
+    it('error', () => {
         forAll(string(), (message) => {
-            jest.spyOn(logger, 'error').mockImplementation(() => {
+            vi.spyOn(logger, 'error').mockImplementation(() => {
                 //
             })
 
             logger.error(message)
 
             expect(logger.error).toHaveBeenCalledWith(message)
+        })
+    })
+
+    it('critical', () => {
+        forAll(string(), (message) => {
+            vi.spyOn(logger, 'critical').mockImplementation(() => {
+                //
+            })
+
+            logger.critical(message)
+
+            expect(logger.critical).toHaveBeenCalledWith(message)
         })
     })
 })

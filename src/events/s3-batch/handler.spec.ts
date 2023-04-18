@@ -5,9 +5,10 @@ import { EventError } from '../../errors/index.js'
 import { array, asyncForAll, enumerate, isString, json, omit, random, tuple } from '@skyleague/axioms'
 import { context, S3BatchEvent } from '@skyleague/event-horizon-dev'
 import { arbitrary } from '@skyleague/therefore'
+import { expect, describe, it, vi } from 'vitest'
 
 describe('handler', () => {
-    test('events do not give failures', async () => {
+    it('events do not give failures', async () => {
         await asyncForAll(
             tuple(arbitrary(S3BatchEvent), await context({})).map(
                 (xs) => [...xs, random(array(json(), { minLength: xs[0].tasks.length, maxLength: xs[0].tasks.length }))] as const
@@ -15,7 +16,7 @@ describe('handler', () => {
             async ([event, ctx, payloads]) => {
                 ctx.mockClear()
 
-                const handler = jest.fn()
+                const handler = vi.fn()
 
                 for (const p of payloads) {
                     handler.mockReturnValueOnce({
@@ -73,11 +74,11 @@ describe('handler', () => {
         )
     })
 
-    test.each([new Error(), 'foobar'])('promise reject with Error, gives failure', async (error) => {
+    it.each([new Error(), 'foobar'])('promise reject with Error, gives failure', async (error) => {
         await asyncForAll(tuple(arbitrary(S3BatchEvent), await context({})), async ([event, ctx]) => {
             ctx.mockClear()
 
-            const handler = jest.fn().mockRejectedValue(error)
+            const handler = vi.fn().mockRejectedValue(error)
 
             const response = await handleS3Batch({ s3Batch: { handler, schema: {} } }, event, ctx)
 
@@ -128,11 +129,11 @@ describe('handler', () => {
         })
     })
 
-    test.each([EventError.badRequest()])('promise reject with client error, gives errors', async (error) => {
+    it.each([EventError.badRequest()])('promise reject with client error, gives errors', async (error) => {
         await asyncForAll(tuple(arbitrary(S3BatchEvent), await context({})), async ([event, ctx]) => {
             ctx.mockClear()
 
-            const handler = jest.fn().mockRejectedValue(error)
+            const handler = vi.fn().mockRejectedValue(error)
 
             const response = await handleS3Batch({ s3Batch: { handler, schema: {} } }, event, ctx)
 
@@ -183,11 +184,11 @@ describe('handler', () => {
         })
     })
 
-    test.each([new Error(), 'foobar'])('promise throws with Error, gives failure', async (error) => {
+    it.each([new Error(), 'foobar'])('promise throws with Error, gives failure', async (error) => {
         await asyncForAll(tuple(arbitrary(S3BatchEvent), await context({})), async ([event, ctx]) => {
             ctx.mockClear()
 
-            const handler = jest.fn().mockImplementation(() => {
+            const handler = vi.fn().mockImplementation(() => {
                 throw error
             })
 
@@ -240,11 +241,11 @@ describe('handler', () => {
         })
     })
 
-    test.each([EventError.badRequest()])('promise throws with client error, gives errors', async (error) => {
+    it.each([EventError.badRequest()])('promise throws with client error, gives errors', async (error) => {
         await asyncForAll(tuple(arbitrary(S3BatchEvent), await context({})), async ([event, ctx]) => {
             ctx.mockClear()
 
-            const handler = jest.fn().mockImplementation(() => {
+            const handler = vi.fn().mockImplementation(() => {
                 throw error
             })
 

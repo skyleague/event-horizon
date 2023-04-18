@@ -6,6 +6,7 @@ import { DescribeSecretCommand, SecretsManager, SecretsManagerClient } from '@aw
 import { asyncForAll, failure, tuple } from '@skyleague/axioms'
 import { context, secretRotationEvent } from '@skyleague/event-horizon-dev'
 import { mockClient } from 'aws-sdk-client-mock'
+import { expect, describe, beforeEach, it, vi } from 'vitest'
 
 describe('handler', () => {
     const mockSecrets = mockClient(SecretsManagerClient)
@@ -13,9 +14,11 @@ describe('handler', () => {
         secretsManager: new SecretsManager({}),
     }
 
-    beforeEach(() => mockSecrets.reset())
+    beforeEach(() => {
+        mockSecrets.reset()
+    })
 
-    test('success does not give failures', async () => {
+    it('success does not give failures', async () => {
         await asyncForAll(tuple(secretRotationEvent(), await context({ services })), async ([rotation, ctx]) => {
             ctx.mockClear()
             mockSecrets.reset()
@@ -27,7 +30,7 @@ describe('handler', () => {
                 },
             })
 
-            const handler = jest.fn()
+            const handler = vi.fn()
             const response = await handleSecretRotationEvent({ services, secretRotation: { handler } }, rotation.raw, ctx)
 
             expect(response).not.toBeDefined()
@@ -43,7 +46,7 @@ describe('handler', () => {
         })
     })
 
-    test('schema validation, gives failure', async () => {
+    it('schema validation, gives failure', async () => {
         await asyncForAll(tuple(secretRotationEvent(), await context({ services })), async ([rotation, ctx]) => {
             ctx.mockClear()
             mockSecrets.reset()
@@ -55,7 +58,7 @@ describe('handler', () => {
                 },
             })
 
-            const handler = jest.fn()
+            const handler = vi.fn()
             const response = await handleSecretRotationEvent({ services, secretRotation: { handler } }, rotation.raw, ctx)
 
             expect(response).toEqual(expect.any(EventError))
@@ -71,7 +74,7 @@ describe('handler', () => {
         })
     })
 
-    test.each([new Error()])('promise reject with Error, gives failure', async (error) => {
+    it.each([new Error()])('promise reject with Error, gives failure', async (error) => {
         await asyncForAll(tuple(secretRotationEvent(), await context({ services })), async ([rotation, ctx]) => {
             ctx.mockClear()
             mockSecrets.reset()
@@ -83,7 +86,7 @@ describe('handler', () => {
                 },
             })
 
-            const handler = jest.fn().mockRejectedValue(error)
+            const handler = vi.fn().mockRejectedValue(error)
             const response = await handleSecretRotationEvent({ services, secretRotation: { handler } }, rotation.raw, ctx)
 
             expect(response).toEqual(error)
@@ -99,7 +102,7 @@ describe('handler', () => {
         })
     })
 
-    test.each([new Error(), EventError.badRequest(), 'foobar'])('promise throws with Error, gives failure', async (error) => {
+    it.each([new Error(), EventError.badRequest(), 'foobar'])('promise throws with Error, gives failure', async (error) => {
         await asyncForAll(tuple(secretRotationEvent(), await context({ services })), async ([rotation, ctx]) => {
             ctx.mockClear()
             mockSecrets.reset()
@@ -111,7 +114,7 @@ describe('handler', () => {
                 },
             })
 
-            const handler = jest.fn().mockImplementation(() => {
+            const handler = vi.fn().mockImplementation(() => {
                 throw error
             })
             const response = await handleSecretRotationEvent({ services, secretRotation: { handler } }, rotation.raw, ctx)
