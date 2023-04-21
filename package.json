@@ -31,12 +31,11 @@
     "check:project": "npx node-standards lint",
     "check:types": "npx tsc -p tsconfig.json",
     "format": "npx prettier \"**/*.{ts,js,json,yml,yaml,md}\" --write",
-    "install": "npm run build",
     "lint": "npx eslint \"./{src,test,typings}/**/*.ts\" --cache --no-eslintrc --config .eslintrc.cjs",
     "lint:fix": "npm run lint -- --fix",
     "lint:full": "bash -c \"FULL_LINT=true npm run lint\"",
     "package": "rm -rf .dist && npm run build",
-    "prepare": "npx husky install || true",
+    "prepare": "(npx husky install || true) && npm run build",
     "test": "npx vitest run"
   },
   "dependencies": {
@@ -75,6 +74,9 @@
     "ignorePatterns": [
       ".github/workflows/package.yml",
       "vitest.config.ts"
-    ]
+    ],
+    "rules":{
+      "scripts": false
+    }
   }
 }
