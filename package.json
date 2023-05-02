@@ -42,21 +42,21 @@
     "@aws-lambda-powertools/logger": "^1.8.0",
     "@aws-lambda-powertools/metrics": "^1.8.0",
     "@aws-lambda-powertools/tracer": "^1.8.0",
-    "@skyleague/axioms": "^2.0.2",
+    "@skyleague/axioms": "^2.0.3",
     "@types/aws-lambda": "^8.10.114",
     "secure-json-parse": "^2.7.0",
     "tslib": "^2.5.0"
   },
   "devDependencies": {
     "@skyleague/event-horizon": "./",
-    "@skyleague/event-horizon-dev": "^3.0.3",
-    "@skyleague/node-standards": "^3.0.0",
-    "@skyleague/therefore": "^2.0.2",
-    "@types/node": "^18.15.11",
+    "@skyleague/event-horizon-dev": "^4.0.1",
+    "@skyleague/node-standards": "^3.5.0",
+    "@skyleague/therefore": "^2.1.0",
+    "@types/node": "^18.16.3",
     "aws-sdk-client-mock": "^2.1.1",
     "aws-sdk-client-mock-jest": "^2.1.1",
     "got": "^12.6.0",
-    "nock": "^13.3.0",
+    "nock": "^13.3.1",
     "typescript": "^5.0.4"
   },
   "engines": {
@@ -64,6 +64,7 @@
   },
   "publishConfig": {
     "access": "public",
+    "provenance": true,
     "registry": "https://registry.npmjs.org"
   },
   "node-standards": {
@@ -75,7 +76,7 @@
       ".github/workflows/package.yml",
       "vitest.config.ts"
     ],
-    "rules":{
+    "rules": {
       "scripts": false
     }
   }

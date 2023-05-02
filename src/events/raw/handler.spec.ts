@@ -4,7 +4,7 @@ import { EventError } from '../../errors/index.js'
 import type { EventHandler } from '../../handlers/types.js'
 
 import { asyncForAll, failure, json, tuple } from '@skyleague/axioms'
-import { context } from '@skyleague/event-horizon-dev'
+import { context } from '@skyleague/event-horizon-dev/test'
 import type { Schema } from '@skyleague/therefore'
 import { expect, describe, it, vi } from 'vitest'
 

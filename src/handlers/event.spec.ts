@@ -41,7 +41,6 @@ import {
     unknown,
 } from '@skyleague/axioms'
 import {
-    context,
     eventBridgeEvent,
     FirehoseTransformationEvent,
     httpEvent,
@@ -51,8 +50,8 @@ import {
     secretRotationEvent,
     SNSEvent,
     SQSEvent,
-    unsafeMock,
 } from '@skyleague/event-horizon-dev'
+import { context, unsafeMock } from '@skyleague/event-horizon-dev/test'
 import { arbitrary } from '@skyleague/therefore'
 import type { SNSEvent as LambdaSnsEvent } from 'aws-lambda'
 import { expect, describe, beforeEach, it, vi } from 'vitest'
