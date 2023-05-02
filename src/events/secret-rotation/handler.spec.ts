@@ -4,7 +4,8 @@ import { EventError } from '../../errors/index.js'
 
 import { DescribeSecretCommand, SecretsManager, SecretsManagerClient } from '@aws-sdk/client-secrets-manager'
 import { asyncForAll, failure, tuple } from '@skyleague/axioms'
-import { context, secretRotationEvent } from '@skyleague/event-horizon-dev'
+import { secretRotationEvent } from '@skyleague/event-horizon-dev'
+import { context } from '@skyleague/event-horizon-dev/test'
 import { mockClient } from 'aws-sdk-client-mock'
 import { expect, describe, beforeEach, it, vi } from 'vitest'
 

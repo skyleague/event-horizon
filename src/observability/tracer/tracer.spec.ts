@@ -2,7 +2,7 @@ import { createTracer } from './tracer.js'
 
 import type { Tracer as AWSTracer } from '@aws-lambda-powertools/tracer'
 import { asyncForAll, string, tuple, unknown } from '@skyleague/axioms'
-import { unsafeMock } from '@skyleague/event-horizon-dev'
+import { unsafeMock } from '@skyleague/event-horizon-dev/test'
 import { expect, describe, beforeEach, it, vi } from 'vitest'
 
 describe('tracer', () => {

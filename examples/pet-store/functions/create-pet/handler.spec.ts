@@ -1,10 +1,11 @@
-import { it } from 'vitest'
 import { handler } from './handler.js'
 
 import { Pet } from '../../lib/models.type.js'
 
 import { forAll, tuple } from '@skyleague/axioms'
-import { context, httpEvent } from '@skyleague/event-horizon-dev'
+import { httpEvent } from '@skyleague/event-horizon-dev'
+import { context } from '@skyleague/event-horizon-dev/test'
+import { it } from 'vitest'
 
 it('handler', async () => {
     forAll(tuple(httpEvent(handler as any), await context()), ([x, ctx]) => {

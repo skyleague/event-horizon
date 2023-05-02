@@ -3,8 +3,9 @@ import { errorHandler } from './error-handler.js'
 import { EventError } from '../../errors/index.js'
 
 import { forAll, string, tuple, unknown } from '@skyleague/axioms'
-import { context } from '@skyleague/event-horizon-dev'
+import { context } from '@skyleague/event-horizon-dev/test'
 import { expect, it } from 'vitest'
+
 it('unrelated error becomes internal server event error', async () => {
     forAll(tuple(await context(), unknown()), ([ctx, error]) => {
         ctx.mockClear()

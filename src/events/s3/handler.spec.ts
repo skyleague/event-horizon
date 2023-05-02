@@ -3,7 +3,8 @@ import { handleS3Event } from './handler.js'
 import { EventError } from '../../errors/event-error/index.js'
 
 import { asyncForAll, enumerate, failure, tuple } from '@skyleague/axioms'
-import { context, S3Event } from '@skyleague/event-horizon-dev'
+import { S3Event } from '@skyleague/event-horizon-dev'
+import { context } from '@skyleague/event-horizon-dev/test'
 import { arbitrary } from '@skyleague/therefore'
 import { expect, describe, it, vi } from 'vitest'
 

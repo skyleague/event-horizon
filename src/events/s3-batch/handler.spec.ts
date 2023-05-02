@@ -3,7 +3,8 @@ import { handleS3Batch } from './handler.js'
 import { EventError } from '../../errors/index.js'
 
 import { array, asyncForAll, enumerate, isString, json, omit, random, tuple } from '@skyleague/axioms'
-import { context, S3BatchEvent } from '@skyleague/event-horizon-dev'
+import { S3BatchEvent } from '@skyleague/event-horizon-dev'
+import { context } from '@skyleague/event-horizon-dev/test'
 import { arbitrary } from '@skyleague/therefore'
 import { expect, describe, it, vi } from 'vitest'
 
