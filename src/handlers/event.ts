@@ -15,8 +15,8 @@ import { handleFirehoseTransformation } from '../events/firehose/handler.js'
 import { handleHTTPEvent } from '../events/http/handler.js'
 import { handleKinesisEvent } from '../events/kinesis/handler.js'
 import { handleRawEvent } from '../events/raw/handler.js'
-import { handleS3Event } from '../events/s3/handler.js'
 import { handleS3Batch } from '../events/s3-batch/handler.js'
+import { handleS3Event } from '../events/s3/handler.js'
 import { handleSecretRotationEvent } from '../events/secret-rotation/handler.js'
 import type { SecretRotationHandler } from '../events/secret-rotation/types.js'
 import { handleSNSEvent } from '../events/sns/handler.js'
@@ -193,21 +193,24 @@ export async function createLambdaContext({
     }
 }
 
-export interface EventHandlerOptions<R> {
+export interface EventHandlerOptions {
+    logger?: Logger
+    metrics?: Metrics
+    tracer?: Tracer
+}
+
+export interface ExtendedEventHandlerOptions<R> extends EventHandlerOptions {
     traceId?: (request: R) => string | undefined
     requestId?: (request: R) => string | undefined
     eventHandler?: typeof handleEvent
     eagerHandlerInitialization?: boolean
-    logger?: Logger
-    metrics?: Metrics
-    tracer?: Tracer
 }
 
 AWSXRay.setContextMissingStrategy(() => {
     // do not log errors on the cold start
 })
 
-export function eventHandler<H extends EventHandler, R>(definition: H, options: EventHandlerOptions<R> = {}): AWSLambdaHandler {
+export function eventHandler<H extends EventHandler, R>(definition: H, options: ExtendedEventHandlerOptions<R> = {}): AWSLambdaHandler {
     const {
         eventHandler: eventHandlerImpl = handleEvent,
         eagerHandlerInitialization = constants.eagerHandlerInitialization,
