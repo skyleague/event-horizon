@@ -193,14 +193,14 @@ export async function createLambdaContext({
     }
 }
 
+/**
+ * @internal
+ */
 export interface EventHandlerOptions<R> {
     traceId?: (request: R) => string | undefined
     requestId?: (request: R) => string | undefined
     eventHandler?: typeof handleEvent
     eagerHandlerInitialization?: boolean
-    logger?: Logger
-    metrics?: Metrics
-    tracer?: Tracer
 }
 
 AWSXRay.setContextMissingStrategy(() => {
@@ -208,13 +208,9 @@ AWSXRay.setContextMissingStrategy(() => {
 })
 
 export function eventHandler<H extends EventHandler, R>(definition: H, options: EventHandlerOptions<R> = {}): AWSLambdaHandler {
-    const {
-        eventHandler: eventHandlerImpl = handleEvent,
-        eagerHandlerInitialization = constants.eagerHandlerInitialization,
-        logger = globalLogger,
-        metrics = globalMetrics,
-        tracer = globalTracer,
-    } = options
+    const { eventHandler: eventHandlerImpl = handleEvent, eagerHandlerInitialization = constants.eagerHandlerInitialization } =
+        options
+    const { logger = globalLogger, metrics = globalMetrics, tracer = globalTracer } = definition
 
     const traceServicesFn = traceServices({ tracer })
 

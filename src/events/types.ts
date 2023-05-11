@@ -31,6 +31,9 @@ export interface EventHandlerDefinition<Configuration = never, Service = never, 
     description?: string
     tags?: string[]
     isSensitive?: boolean
+    logger?: Logger
+    tracer?: Tracer
+    metrics?: Metrics
 }
 
 export type Config<C> = C | (() => C | Promise<C>)
