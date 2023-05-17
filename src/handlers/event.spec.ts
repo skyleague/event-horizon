@@ -552,12 +552,12 @@ describe('eventHandler', () => {
                     services,
                     raw: { schema: {}, handler: vi.fn() },
                     profile: { schema: { schema: { type: 'object' }, is: () => true } },
-                }
-                const handler = eventHandler(definition as unknown as EventHandler, {
-                    eventHandler: handlerImpl,
                     logger: l,
                     metrics: m,
                     tracer: t,
+                }
+                const handler = eventHandler(definition as unknown as EventHandler, {
+                    eventHandler: handlerImpl,
                 }) as LambdaHandler
 
                 expect(await handler(request, ctx.raw)).toBe(ret)
@@ -615,12 +615,12 @@ describe('eventHandler', () => {
                     services,
                     raw: { schema: {}, handler: vi.fn() },
                     profile: { schema: { schema: { type: 'object' }, is: () => false } },
-                }
-                const handler = eventHandler(definition as unknown as EventHandler, {
-                    eventHandler: handlerImpl,
                     logger: l,
                     metrics: m,
                     tracer: t,
+                }
+                const handler = eventHandler(definition as unknown as EventHandler, {
+                    eventHandler: handlerImpl,
                 }) as LambdaHandler
 
                 await expect(() => handler(request, ctx.raw)).rejects.toThrowError(expect.any(EventError))
@@ -657,12 +657,12 @@ describe('eventHandler', () => {
                     config,
                     services,
                     raw: { schema: {}, handler: vi.fn() },
-                }
-                const handler = eventHandler(definition, {
-                    eventHandler: handlerImpl,
                     logger: l,
                     metrics: m,
                     tracer: t,
+                }
+                const handler = eventHandler(definition, {
+                    eventHandler: handlerImpl,
                 }) as LambdaHandler
 
                 expect(await handler(request, ctx.raw)).toBe(ret)
@@ -710,12 +710,12 @@ describe('eventHandler', () => {
                     config,
                     services,
                     raw: { schema: {}, handler: vi.fn() },
-                }
-                const handler = eventHandler(definition, {
-                    eventHandler: handlerImpl,
                     logger: l,
                     metrics: m,
                     tracer: t,
+                }
+                const handler = eventHandler(definition, {
+                    eventHandler: handlerImpl,
                 }) as LambdaHandler
 
                 await expect(() => handler(request, ctx.raw)).rejects.toEqual(ret)
@@ -772,12 +772,12 @@ describe('eventHandler', () => {
                     config,
                     services,
                     raw: { schema: {}, handler: vi.fn() },
-                }
-                const handler = eventHandler(definition, {
-                    eventHandler: handlerImpl,
                     logger: l,
                     metrics: m,
                     tracer: t,
+                }
+                const handler = eventHandler(definition, {
+                    eventHandler: handlerImpl,
                 }) as LambdaHandler
 
                 expect(await handler(request, ctx.raw)).toEqual({})

@@ -12,7 +12,8 @@ export function httpParseEvent({ bodyType = 'json' }: HTTPEventHandler) {
                 const unencodedBody = event.isBase64Encoded ? Buffer.from(event.body, 'base64').toString() : event.body
                 body = bodyType === 'json' ? parseJSON(unencodedBody) : unencodedBody
             }
-            const headers = Object.fromEntries(Object.entries(event.headers).map(([h, v]) => [h.toLowerCase(), v]))
+            // headers on the event may be undefined due to test events fron the AWS console
+            const headers = Object.fromEntries(Object.entries(event.headers ?? {}).map(([h, v]) => [h.toLowerCase(), v]))
 
             return {
                 body,
