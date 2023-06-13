@@ -637,6 +637,7 @@ describe('eventHandler', () => {
             }
         )
     })
+
     it('success resolves to success', async () => {
         await asyncForAll(
             tuple(unknown(), unknown(), unknown(), unknown(), await context()),

@@ -20,7 +20,6 @@
     "**/.coverage": true,
     "**/.husky": true,
     "**/.dist": true,
-    "**/dist": true,
     "src/**/*.d.ts": true,
     "**/node_modules": true
   },

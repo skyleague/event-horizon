@@ -1,6 +1,6 @@
 {
   "name": "@skyleague/event-horizon",
-  "version": "4.0.2",
+  "version": "4.2.0",
   "description": "A standardized boilerplate for lambda handlers.",
   "homepage": "https://skyleague.github.io/event-horizon/",
   "repository": {
@@ -12,13 +12,13 @@
   "sideEffects": false,
   "type": "module",
   "exports": {
-    ".": "./dist/index.js",
+    ".": "./.dist/index.js",
     "./package.json": "./package.json",
-    "./*.js": "./dist/*.js"
+    "./*.js": "./.dist/*.js"
   },
-  "types": "./dist/index.d.ts",
+  "types": "./.dist/index.d.ts",
   "files": [
-    "dist",
+    ".dist",
     "package.json"
   ],
   "scripts": {
@@ -39,25 +39,25 @@
     "test": "npx vitest run"
   },
   "dependencies": {
-    "@aws-lambda-powertools/logger": "^1.8.0",
-    "@aws-lambda-powertools/metrics": "^1.8.0",
-    "@aws-lambda-powertools/tracer": "^1.8.0",
-    "@skyleague/axioms": "^2.0.3",
-    "@types/aws-lambda": "^8.10.114",
+    "@aws-lambda-powertools/logger": "^1.9.0",
+    "@aws-lambda-powertools/metrics": "^1.9.0",
+    "@aws-lambda-powertools/tracer": "^1.9.0",
+    "@skyleague/axioms": "^2.0.5",
+    "@types/aws-lambda": "^8.10.119",
     "secure-json-parse": "^2.7.0",
-    "tslib": "^2.5.0"
+    "tslib": "^2.5.3"
   },
   "devDependencies": {
     "@skyleague/event-horizon": "./",
-    "@skyleague/event-horizon-dev": "^4.0.1",
-    "@skyleague/node-standards": "^3.5.0",
-    "@skyleague/therefore": "^2.1.0",
-    "@types/node": "^18.16.3",
+    "@skyleague/event-horizon-dev": "^4.0.3",
+    "@skyleague/node-standards": "^3.8.3",
+    "@skyleague/therefore": "^2.2.4",
+    "@types/node": "^20.3.1",
     "aws-sdk-client-mock": "^2.1.1",
     "aws-sdk-client-mock-jest": "^2.1.1",
-    "got": "^12.6.0",
+    "got": "^13.0.0",
     "nock": "^13.3.1",
-    "typescript": "^5.0.4"
+    "typescript": "^5.1.3"
   },
   "engines": {
     "node": ">=18"
