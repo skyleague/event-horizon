@@ -1,10 +1,6 @@
 .*
 node_modules
-yalc.lock
-src/**/*.d.ts
 **/*.schema.js
-/index.d.ts
-/dist
 
 !.github
 !.vscode

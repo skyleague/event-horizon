@@ -3,7 +3,7 @@
   "include": ["src/**/*.ts", "index.ts"],
   "exclude": ["src/**/*.spec.ts", "src/**/*.schema.ts"],
   "compilerOptions": {
-    "outDir": "dist",
+    "outDir": ".dist",
     "typeRoots": ["./typings", "./node_modules/@types"],
     "incremental": false,
     "noEmit": false

@@ -6,14 +6,15 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const distDir = '.dist'
 async function main() {
-    execFileSync(`rm`, ['-rf', 'dist'], { stdio: 'inherit', cwd: __dirname })
+    execFileSync(`rm`, ['-rf', distDir], { stdio: 'inherit', cwd: __dirname })
     execFileSync('npx', ['tsc', '-p', 'tsconfig.dist.json'], { stdio: 'inherit', cwd: __dirname })
 
     const srcDir = path.join(__dirname, 'src')
     await Promise.all(
         [...new Set((await glob(path.join(srcDir, '**/*.schema.js'))).map((x) => path.dirname(x)))].map((d) =>
-            fs.promises.cp(d, path.join(__dirname, 'dist', path.relative(srcDir, d)), { recursive: true })
+            fs.promises.cp(d, path.join(__dirname, distDir, path.relative(srcDir, d)), { recursive: true })
         )
     )
 }

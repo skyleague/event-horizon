@@ -14,7 +14,11 @@ export function metricsContext(
     } = {}
 ) {
     function publishMetrics() {
-        metrics.instance.publishStoredMetrics()
+        // prevent logging an error inside the cloudwatch logs
+        const storedMetrics = (metrics.instance as unknown as { storedMetrics?: object }).storedMetrics
+        if (storedMetrics === undefined || Object.keys(storedMetrics).length > 0) {
+            metrics.instance.publishStoredMetrics()
+        }
     }
 
     return {
