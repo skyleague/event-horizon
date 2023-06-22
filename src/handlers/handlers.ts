@@ -9,6 +9,7 @@ import type {
     GatewayVersion,
     HTTPHandler,
     KinesisHandler,
+    PipesSQSHandler,
     RawHandler,
     S3BatchHandler,
     S3Handler,
@@ -17,6 +18,7 @@ import type {
     SNSHandler,
     SQSHandler,
 } from '../events/index.js'
+import { handlePipesSQS } from '../events/pipes/sqs/handler.js'
 
 import type { UndefinedFields } from '@skyleague/axioms'
 import type { APIGatewayProxyEvent, APIGatewayProxyEventV2 } from 'aws-lambda'
@@ -86,4 +88,10 @@ export function s3Handler<Configuration, Service, Profile, D>(
     definition: D & S3Handler<Configuration, Service, Profile>
 ): D & LambdaHandler {
     return eventHandler(definition as unknown as EventHandler) as D & LambdaHandler
+}
+
+export function pipesHandler<Configuration, Service, Profile, Payload, Result, D>(
+    definition: D & PipesSQSHandler<Configuration, Service, Profile, Payload, Result>
+): D & LambdaHandler {
+    return eventHandler(definition as unknown as EventHandler, { handlers: { sqs: handlePipesSQS } }) as D & LambdaHandler
 }

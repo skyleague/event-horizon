@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 
 import type { LambdaHandler } from './aws.js'
-import type { allHandlers } from './event.js'
 import { createLambdaContext, eventHandler, handleEvent } from './event.js'
 import {
     eventBridgeHandler,
@@ -54,15 +53,11 @@ import {
 import { context, unsafeMock } from '@skyleague/event-horizon-dev/test'
 import { arbitrary } from '@skyleague/therefore'
 import type { SNSEvent as LambdaSnsEvent } from 'aws-lambda'
-import { expect, describe, beforeEach, it, vi } from 'vitest'
+import { expect, describe, it, vi } from 'vitest'
 
 describe('handleEvent', () => {
-    const eventHandlers = unsafeMock<typeof allHandlers>()
-
     const method = random(oneOf(constant('get'), constant('put')))
     const path = `/${random(alpha())}` as const
-
-    beforeEach(() => eventHandlers.mockClear())
 
     it('http', async () => {
         const handler = httpHandler({
@@ -74,47 +69,53 @@ describe('handleEvent', () => {
                 handler: vi.fn(),
             },
         })
+        const http = vi.fn()
         await asyncForAll(tuple(httpEvent(handler), unknown(), await context()), async ([event, ret, ctx]) => {
-            eventHandlers.mockClear()
-            eventHandlers.http.mockReturnValue(ret as any)
+            http.mockClear()
+            http.mockReturnValue(ret as any)
 
-            expect(await handleEvent({ definition: handler, request: event.raw, context: ctx, handlers: eventHandlers })).toBe(
-                ret
-            )
+            expect(await handleEvent({ definition: handler, request: event.raw, context: ctx, handlers: { http } })).toBe(ret)
 
-            expect(eventHandlers.http).toHaveBeenCalledWith(handler, event.raw, ctx)
+            expect(http).toHaveBeenCalledWith(handler, event.raw, ctx)
         })
     })
 
     it('eventBridge', async () => {
         const handler = eventBridgeHandler({ eventBridge: { schema: {}, handler: vi.fn() } })
+        const eventBridge = vi.fn()
         await asyncForAll(tuple(eventBridgeEvent(handler), unknown(), await context()), async ([event, ret, ctx]) => {
-            eventHandlers.mockClear()
-            eventHandlers.eventBridge.mockReturnValue(ret as any)
+            eventBridge.mockClear()
+            eventBridge.mockReturnValue(ret as any)
 
-            expect(await handleEvent({ definition: handler, request: event.raw, context: ctx, handlers: eventHandlers })).toBe(
+            expect(await handleEvent({ definition: handler, request: event.raw, context: ctx, handlers: { eventBridge } })).toBe(
                 ret
             )
 
-            expect(eventHandlers.eventBridge).toHaveBeenCalledWith(handler, event.raw, ctx)
+            expect(eventBridge).toHaveBeenCalledWith(handler, event.raw, ctx)
         })
     })
 
     it('secretRotation', async () => {
-        const services = { secretsManager: unsafeMock<SecretsManager>() as SecretsManager }
+        const services = { secretsManager: vi.fn() as unknown as SecretsManager }
         const handler = secretRotationHandler({
             services,
             secretRotation: { handler: vi.fn() },
         })
+        const secretRotation = vi.fn()
         await asyncForAll(tuple(secretRotationEvent(), unknown(), await context()), async ([event, ret, ctx]) => {
-            eventHandlers.mockClear()
-            eventHandlers.secretRotation.mockReturnValue(ret as any)
+            secretRotation.mockClear()
+            secretRotation.mockReturnValue(ret as any)
 
             expect(
-                await handleEvent({ definition: handler as any, request: event.raw, context: ctx, handlers: eventHandlers })
+                await handleEvent({
+                    definition: handler as any,
+                    request: event.raw,
+                    context: ctx,
+                    handlers: { secretRotation },
+                })
             ).toBe(ret)
 
-            expect(eventHandlers.secretRotation).toHaveBeenCalledWith(handler, event.raw, ctx)
+            expect(secretRotation).toHaveBeenCalledWith(handler, event.raw, ctx)
         })
     })
 
@@ -122,22 +123,27 @@ describe('handleEvent', () => {
         const handler = sqsHandler({
             sqs: { handler: vi.fn(), schema: {} },
         })
+        const sqs = vi.fn()
+        const raw = vi.fn()
         await asyncForAll(tuple(arbitrary(SQSEvent), unknown(), await context()), async ([event, ret, ctx]) => {
-            eventHandlers.mockClear()
-            eventHandlers.sqs.mockReturnValue(ret as any)
+            raw.mockClear()
+            sqs.mockClear()
+            sqs.mockReturnValue(ret as any)
 
             const response = await handleEvent({
                 definition: handler as any,
                 request: event,
                 context: ctx,
-                handlers: eventHandlers,
+                handlers: { sqs, raw },
             })
             if (event.Records.length > 0) {
                 expect(response).toBe(ret)
-                expect(eventHandlers.sqs).toHaveBeenCalledWith(handler, event.Records, ctx)
+                expect(sqs).toHaveBeenCalledWith(handler, event.Records, ctx)
+                expect(raw).not.toHaveBeenCalled()
             } else {
                 expect(response).toBe(undefined)
-                expect(eventHandlers.sqs).not.toHaveBeenCalled()
+                expect(sqs).not.toHaveBeenCalled()
+                expect(raw).toHaveBeenCalledWith(handler, { Records: [] }, ctx)
             }
         })
     })
@@ -146,46 +152,88 @@ describe('handleEvent', () => {
         const handler = snsHandler({
             sns: { handler: vi.fn(), schema: {} },
         })
-        await asyncForAll(tuple(arbitrary(SNSEvent), unknown(), await context()), async ([event, ret, ctx]) => {
-            eventHandlers.mockClear()
-            eventHandlers.sns.mockReturnValue(ret as any)
+        const raw = vi.fn()
+        const sns = vi.fn()
+        await asyncForAll(
+            tuple(arbitrary(SNSEvent), unknown(), await context()),
+            async ([event, ret, ctx]) => {
+                raw.mockClear()
+                sns.mockClear()
+                sns.mockReturnValue(ret as any)
 
-            const response = await handleEvent({
-                definition: handler as any,
-                request: event as LambdaSnsEvent,
-                context: ctx,
-                handlers: eventHandlers,
-            })
-            if (event.Records.length > 0) {
-                expect(response).toBe(ret)
-                expect(eventHandlers.sns).toHaveBeenCalledWith(handler, event.Records, ctx)
-            } else {
-                expect(response).toBe(undefined)
-                expect(eventHandlers.sns).not.toHaveBeenCalled()
+                const response = await handleEvent({
+                    definition: handler as any,
+                    request: event as LambdaSnsEvent,
+                    context: ctx,
+                    handlers: { sns },
+                })
+                if (event.Records.length > 0) {
+                    expect(response).toBe(ret)
+                    expect(sns).toHaveBeenCalledWith(handler, event.Records, ctx)
+                    expect(raw).not.toHaveBeenCalled()
+                } else {
+                    expect(response).toBe(undefined)
+                    expect(raw).toHaveBeenCalledWith(handler, { Records: [] }, ctx)
+                    expect(sns).not.toHaveBeenCalled()
+                }
+            },
+            {
+                counterExample: [
+                    {
+                        Records: [
+                            {
+                                EventVersion: '',
+                                EventSubscriptionArn: '',
+                                EventSource: '',
+                                Sns: {
+                                    SignatureVersion: '',
+                                    Timestamp: '',
+                                    Signature: '',
+                                    SigningCertURL: '',
+                                    MessageId: '',
+                                    Message: '',
+                                    MessageAttributes: {},
+                                    Type: '',
+                                    UnsubscribeURL: '',
+                                    TopicArn: '',
+                                    Subject: '',
+                                    Token: '',
+                                },
+                            },
+                        ],
+                    },
+                    0,
+                    random(await context()),
+                ],
             }
-        })
+        )
     })
 
     it('kinesis', async () => {
         const handler = kinesisHandler({
             kinesis: { handler: vi.fn(), schema: {} },
         })
+        const kinesis = vi.fn()
+        const raw = vi.fn()
         await asyncForAll(tuple(arbitrary(KinesisStreamEvent), unknown(), await context()), async ([event, ret, ctx]) => {
-            eventHandlers.mockClear()
-            eventHandlers.kinesis.mockReturnValue(ret as any)
+            raw.mockClear()
+            kinesis.mockClear()
+            kinesis.mockReturnValue(ret as any)
 
             const response = await handleEvent({
                 definition: handler as any,
                 request: event,
                 context: ctx,
-                handlers: eventHandlers,
+                handlers: { raw, kinesis },
             })
             if (event.Records.length > 0) {
                 expect(response).toBe(ret)
-                expect(eventHandlers.kinesis).toHaveBeenCalledWith(handler, event.Records, ctx)
+                expect(kinesis).toHaveBeenCalledWith(handler, event.Records, ctx)
+                expect(raw).not.toHaveBeenCalled()
             } else {
                 expect(response).toBe(undefined)
-                expect(eventHandlers.kinesis).not.toHaveBeenCalled()
+                expect(raw).toHaveBeenCalledWith(handler, { Records: [] }, ctx)
+                expect(kinesis).not.toHaveBeenCalled()
             }
         })
     })
@@ -194,22 +242,27 @@ describe('handleEvent', () => {
         const handler = s3Handler({
             s3: { handler: vi.fn() },
         })
+        const s3 = vi.fn()
+        const raw = vi.fn()
         await asyncForAll(tuple(arbitrary(S3Event), unknown(), await context()), async ([event, ret, ctx]) => {
-            eventHandlers.mockClear()
-            eventHandlers.s3.mockReturnValue(ret as any)
+            raw.mockClear()
+            s3.mockClear()
+            s3.mockReturnValue(ret as any)
 
             const response = await handleEvent({
                 definition: handler as any,
                 request: event,
                 context: ctx,
-                handlers: eventHandlers,
+                handlers: { s3, raw },
             })
             if (event.Records.length > 0) {
                 expect(response).toBe(ret)
-                expect(eventHandlers.s3).toHaveBeenCalledWith(handler, event.Records, ctx)
+                expect(raw).not.toHaveBeenCalled()
+                expect(s3).toHaveBeenCalledWith(handler, event.Records, ctx)
             } else {
                 expect(response).toBe(undefined)
-                expect(eventHandlers.s3).not.toHaveBeenCalled()
+                expect(s3).not.toHaveBeenCalled()
+                expect(raw).toHaveBeenCalledWith(handler, { Records: [] }, ctx)
             }
         })
     })
@@ -218,24 +271,29 @@ describe('handleEvent', () => {
         const handler = firehoseHandler({
             firehose: { handler: vi.fn(), schema: {} },
         })
+        const firehose = vi.fn()
+        const raw = vi.fn()
         await asyncForAll(
             tuple(arbitrary(FirehoseTransformationEvent), unknown(), await context()),
             async ([event, ret, ctx]) => {
-                eventHandlers.mockClear()
-                eventHandlers.firehose.mockReturnValue(ret as any)
+                raw.mockClear()
+                firehose.mockClear()
+                firehose.mockReturnValue(ret as any)
 
                 const response = await handleEvent({
                     definition: handler as any,
                     request: event,
                     context: ctx,
-                    handlers: eventHandlers,
+                    handlers: { firehose, raw },
                 })
                 if (event.records.length > 0) {
                     expect(response).toBe(ret)
-                    expect(eventHandlers.firehose).toHaveBeenCalledWith(handler, event.records, ctx)
+                    expect(raw).not.toHaveBeenCalled()
+                    expect(firehose).toHaveBeenCalledWith(handler, event.records, ctx)
                 } else {
                     expect(response).toBe(undefined)
-                    expect(eventHandlers.firehose).not.toHaveBeenCalled()
+                    expect(raw).toHaveBeenCalledWith(handler, event, ctx)
+                    expect(firehose).not.toHaveBeenCalled()
                 }
             }
         )
@@ -245,22 +303,23 @@ describe('handleEvent', () => {
         const handler = s3BatchHandler({
             s3Batch: { handler: vi.fn(), schema: {} },
         })
+        const s3Batch = vi.fn()
         await asyncForAll(tuple(arbitrary(S3BatchEvent), unknown(), await context()), async ([event, ret, ctx]) => {
-            eventHandlers.mockClear()
-            eventHandlers.s3Batch.mockReturnValue(ret as any)
+            s3Batch.mockClear()
+            s3Batch.mockReturnValue(ret as any)
 
             const response = await handleEvent({
                 definition: handler as any,
                 request: event,
                 context: ctx,
-                handlers: eventHandlers,
+                handlers: { s3Batch },
             })
             if (event.tasks.length > 0) {
                 expect(response).toBe(ret)
-                expect(eventHandlers.s3Batch).toHaveBeenCalledWith(handler, event, ctx)
+                expect(s3Batch).toHaveBeenCalledWith(handler, event, ctx)
             } else {
                 expect(response).toBe(undefined)
-                expect(eventHandlers.s3Batch).not.toHaveBeenCalled()
+                expect(s3Batch).not.toHaveBeenCalled()
             }
         })
     })
@@ -269,9 +328,10 @@ describe('handleEvent', () => {
         const handler = rawHandler({
             raw: { handler: vi.fn(), schema: {} },
         })
+        const raw = vi.fn()
         await asyncForAll(tuple(unknown(), await context()), async ([ret, ctx]) => {
-            eventHandlers.mockClear()
-            eventHandlers.raw.mockReturnValue(ret as any)
+            raw.mockClear()
+            raw.mockReturnValue(ret as any)
 
             const records = event.records ?? event.Records
 
@@ -279,30 +339,29 @@ describe('handleEvent', () => {
                 definition: handler as any,
                 request: event as any,
                 context: ctx,
-                handlers: eventHandlers,
+                handlers: { raw },
             })
             // @todo: is this what we want?
             if (records.length > 0) {
                 expect(response).toBe(ret)
-                expect(eventHandlers.raw).toHaveBeenCalledWith(handler, event, ctx)
+                expect(raw).toHaveBeenCalledWith(handler, event, ctx)
             } else {
                 expect(response).toBe(undefined)
-                expect(eventHandlers.raw).not.toHaveBeenCalled()
+                expect(raw).not.toHaveBeenCalled()
             }
         })
     })
 
     it('raw', async () => {
         const handler = rawHandler({ raw: { schema: {}, handler: vi.fn() } })
+        const raw = vi.fn()
         await asyncForAll(tuple(unknown(), unknown(), await context()), async ([event, ret, ctx]) => {
-            eventHandlers.mockClear()
-            eventHandlers.raw.mockReturnValue(ret as any)
+            raw.mockClear()
+            raw.mockReturnValue(ret as any)
 
-            expect(await handleEvent({ definition: handler, request: event as any, context: ctx, handlers: eventHandlers })).toBe(
-                ret
-            )
+            expect(await handleEvent({ definition: handler, request: event as any, context: ctx, handlers: { raw } })).toBe(ret)
 
-            expect(eventHandlers.raw).toHaveBeenCalledWith(handler, event, ctx)
+            expect(raw).toHaveBeenCalledWith(handler, event, ctx)
         })
     })
 })
