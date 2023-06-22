@@ -10,6 +10,7 @@ import type {
     SecretRotationServices,
     SecretRotationHandler,
     S3Handler,
+    PipesHandler,
 } from '../events/index.js'
 
 export type EventHandler<Service = never> =
@@ -17,9 +18,11 @@ export type EventHandler<Service = never> =
     | FirehoseTransformationHandler
     | HTTPHandler
     | KinesisHandler
+    | PipesHandler
     | RawHandler
     | S3BatchHandler
     | S3Handler
+    | Service
     | SNSHandler
     | SQSHandler
     | (Service extends SecretRotationServices ? SecretRotationHandler<unknown, Service> : never)

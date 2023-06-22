@@ -14,6 +14,7 @@ import type {
     S3Handler,
     SecretRotationHandler,
     SecretRotationServices,
+    PipesHandler,
     SNSHandler,
     SQSHandler,
 } from '../events/index.js'
@@ -84,6 +85,12 @@ export function s3BatchHandler<Configuration, Service, Profile, Result, D>(
 
 export function s3Handler<Configuration, Service, Profile, D>(
     definition: D & S3Handler<Configuration, Service, Profile>
+): D & LambdaHandler {
+    return eventHandler(definition as unknown as EventHandler) as D & LambdaHandler
+}
+
+export function pipesHandler<Configuration, Service, Profile, Payload, Result, D>(
+    definition: D & PipesHandler<Configuration, Service, Profile, Payload, Result>
 ): D & LambdaHandler {
     return eventHandler(definition as unknown as EventHandler) as D & LambdaHandler
 }
