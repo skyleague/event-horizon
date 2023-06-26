@@ -3,9 +3,10 @@ import { EventError } from '../../errors/index.js'
 import { parseJSON } from '../../parsers/json/index.js'
 import { createAppConfigData } from '../../services/appconfig/index.js'
 
+import { AppConfigProvider } from '@aws-lambda-powertools/parameters/appconfig'
 import type { AppConfigData } from '@aws-sdk/client-appconfigdata'
 import type { Try } from '@skyleague/axioms'
-import { memoize, ttlCacheResolver } from '@skyleague/axioms'
+import { memoize } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
 
 export interface ProfileServices {
@@ -32,38 +33,22 @@ export function profileHandler<T>(options: ProfileOptions<T>, services: () => Pr
         profile,
     } = options
     const maxAge = profile?.maxAge ?? 5
-    const appConfigData = memoize(async () => {
+    const appConfigDataClient = memoize(async () => {
         const s = await services()
         return s?.appConfigData ?? createAppConfigData()
     })
 
-    let nextToken: string | undefined
-    let configuration: string
-    async function getRawConfiguration(): Promise<string> {
-        const appConfig = await appConfigData()
-        if (nextToken === undefined) {
-            const response = await appConfig.startConfigurationSession({
-                ApplicationIdentifier: application,
-                EnvironmentIdentifier: environment,
-                ConfigurationProfileIdentifier: name,
-            })
-            nextToken = response.InitialConfigurationToken!
-        }
-        const response = await appConfig.getLatestConfiguration({ ConfigurationToken: nextToken })
-
-        nextToken = response.NextPollConfigurationToken
-        const returnedConfiguration = Buffer.from(response.Configuration ?? '').toString()
-        if (returnedConfiguration.length > 0) {
-            configuration = returnedConfiguration
-        }
-        return configuration
-    }
-    const get = memoize(getRawConfiguration, ttlCacheResolver(maxAge * 1_000))
+    const appConfig = new AppConfigProvider({
+        application: application,
+        environment: environment,
+    })
 
     return {
         before: async (): Promise<Try<T>> => {
             if (profile !== undefined) {
-                const json = await get()
+                appConfig.client = await appConfigDataClient()
+
+                const json = Buffer.from((await appConfig.get<string>(name, { maxAge })) ?? '{}').toString()
                 const parsed: unknown = parseJSON(json)
                 if (!profile.schema.is(parsed)) {
                     throw EventError.validation({ errors: profile.schema.errors, location: 'profile', statusCode: 500 })

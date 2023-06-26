@@ -19,7 +19,13 @@ import type { EventHandler } from './types.js'
 import { EventError } from '../errors/index.js'
 import { logger } from '../observability/logger/logger.js'
 
-import { AppConfigData } from '@aws-sdk/client-appconfigdata'
+import 'aws-sdk-client-mock-jest'
+import {
+    AppConfigData,
+    AppConfigDataClient,
+    GetLatestConfigurationCommand,
+    StartConfigurationSessionCommand,
+} from '@aws-sdk/client-appconfigdata'
 import type { SecretsManager } from '@aws-sdk/client-secrets-manager'
 import {
     alpha,
@@ -50,6 +56,7 @@ import {
 import { context, mockLogger, mockMetrics, mockTracer } from '@skyleague/event-horizon-dev/test'
 import { arbitrary } from '@skyleague/therefore'
 import type { SNSEvent as LambdaSnsEvent } from 'aws-lambda'
+import { mockClient } from 'aws-sdk-client-mock'
 import { expect, describe, it, vi } from 'vitest'
 
 describe('handleEvent', () => {
@@ -186,12 +193,12 @@ describe('handleEvent', () => {
                                     SignatureVersion: '',
                                     Timestamp: '',
                                     Signature: '',
-                                    SigningCertURL: '',
+                                    SigningCertUrl: '',
                                     MessageId: '',
                                     Message: '',
                                     MessageAttributes: {},
                                     Type: '',
-                                    UnsubscribeURL: '',
+                                    UnsubscribeUrl: '',
                                     TopicArn: '',
                                     Subject: '',
                                     Token: '',
@@ -466,6 +473,8 @@ describe('eventHandler', () => {
         addResponseAsMetadata: vi.fn(),
     })
 
+    const appConfigDataMock = mockClient(AppConfigDataClient)
+
     it('handler is definition', () => {
         forAll(dict(unknown()), (meta) => {
             const handler = eventHandler({
@@ -595,12 +604,11 @@ describe('eventHandler', () => {
             tuple(unknown(), unknown(), unknown(), await context(), string(), dict(json())),
             async ([request, c, ret, ctx, token, profile]) => {
                 vi.clearAllMocks()
-                vi.spyOn(appConfigData, 'startConfigurationSession').mockReturnValue({
-                    InitialConfigurationToken: token,
-                } as any)
-                vi.spyOn(appConfigData, 'getLatestConfiguration').mockReturnValue({
-                    Configuration: JSON.stringify(profile),
-                } as any)
+                appConfigDataMock.reset()
+                appConfigDataMock.on(StartConfigurationSessionCommand).resolvesOnce({ InitialConfigurationToken: token })
+                appConfigDataMock
+                    .on(GetLatestConfigurationCommand)
+                    .resolvesOnce({ Configuration: JSON.stringify(profile) as any })
 
                 const setbinding = vi.spyOn(ctx.logger, 'setBindings')
 
@@ -609,7 +617,10 @@ describe('eventHandler', () => {
                     close: vi.fn(),
                 }
                 ;(ctx.metrics.instance as unknown as { storedMetrics: any }).storedMetrics.foo = true
-                vi.spyOn(ctx.metrics.instance, 'publishStoredMetrics')
+                vi.spyOn(ctx.metrics.instance, 'publishStoredMetrics').mockImplementation(() => {
+                    //
+                })
+                vi.spyOn(ctx.metrics.instance, 'captureColdStartMetric')
 
                 const tracerInstance = tracerInstanceMock()
                 tracerInstance.getSegment.mockReturnValue(getSegmentVal)
@@ -649,10 +660,12 @@ describe('eventHandler', () => {
                 expect(rCtx.logger).not.toBe(logger)
                 expect(rCtx.profile).toEqual(profile)
                 expect(ctx.metrics.instance.publishStoredMetrics).toHaveBeenCalled()
+                expect(ctx.metrics.instance.captureColdStartMetric).toHaveBeenCalled()
 
                 expect(getSegmentVal.addNewSubsegment).toHaveBeenLastCalledWith('## ')
                 expect(getSegmentVal.close).toHaveBeenCalled()
-            }
+            },
+            { counterExample: [null, 0, 0, random(await context()), '+2', {}] }
         )
     })
 
@@ -663,19 +676,22 @@ describe('eventHandler', () => {
             tuple(unknown(), unknown(), unknown(), await context(), string(), dict(json())),
             async ([request, c, ret, ctx, token, profile]) => {
                 vi.clearAllMocks()
-                vi.spyOn(appConfigData, 'startConfigurationSession').mockReturnValue({
-                    InitialConfigurationToken: token,
-                } as any)
-                vi.spyOn(appConfigData, 'getLatestConfiguration').mockReturnValue({
-                    Configuration: JSON.stringify(profile),
-                } as any)
+
+                appConfigDataMock.reset()
+                appConfigDataMock.on(StartConfigurationSessionCommand).resolvesOnce({ InitialConfigurationToken: token })
+                appConfigDataMock
+                    .on(GetLatestConfigurationCommand)
+                    .resolvesOnce({ Configuration: JSON.stringify(profile) as any })
 
                 const getSegmentVal = {
                     addNewSubsegment: vi.fn(),
                     close: vi.fn(),
                 }
                 ;(ctx.metrics.instance as unknown as { storedMetrics: any }).storedMetrics.foo = true
-                vi.spyOn(ctx.metrics.instance, 'publishStoredMetrics')
+                vi.spyOn(ctx.metrics.instance, 'publishStoredMetrics').mockImplementation(() => {
+                    //
+                })
+                vi.spyOn(ctx.metrics.instance, 'captureColdStartMetric')
 
                 const tracerInstance = tracerInstanceMock()
                 ctx.tracer.instance = tracerInstance as any
@@ -705,6 +721,7 @@ describe('eventHandler', () => {
 
                 expect(handlerImpl).not.toHaveBeenCalled()
                 expect(ctx.metrics.instance.publishStoredMetrics).toHaveBeenCalled()
+                expect(ctx.metrics.instance.captureColdStartMetric).toHaveBeenCalled()
 
                 expect(getSegmentVal.addNewSubsegment).toHaveBeenLastCalledWith('## ')
                 expect(getSegmentVal.close).toHaveBeenCalled()
@@ -723,7 +740,10 @@ describe('eventHandler', () => {
                     close: vi.fn(),
                 }
                 ;(ctx.metrics.instance as unknown as { storedMetrics: any }).storedMetrics.foo = true
-                vi.spyOn(ctx.metrics.instance, 'publishStoredMetrics')
+                vi.spyOn(ctx.metrics.instance, 'publishStoredMetrics').mockImplementation(() => {
+                    //
+                })
+                vi.spyOn(ctx.metrics.instance, 'captureColdStartMetric')
 
                 const tracerInstance = tracerInstanceMock()
                 ctx.tracer.instance = tracerInstance as any
@@ -761,6 +781,7 @@ describe('eventHandler', () => {
                 expect(rCtx.logger).toBe(ctx.logger)
                 expect(rCtx.logger).not.toBe(logger)
                 expect(ctx.metrics.instance.publishStoredMetrics).toHaveBeenCalled()
+                expect(ctx.metrics.instance.captureColdStartMetric).toHaveBeenCalled()
 
                 expect(getSegmentVal.addNewSubsegment).toHaveBeenLastCalledWith('## ')
                 expect(getSegmentVal.close).toHaveBeenCalled()
@@ -774,7 +795,10 @@ describe('eventHandler', () => {
             async ([request, c, s, ret, ctx]) => {
                 const setbinding = vi.spyOn(ctx.logger, 'setBindings')
                 ;(ctx.metrics.instance as unknown as { storedMetrics: any }).storedMetrics.foo = true
-                vi.spyOn(ctx.metrics.instance, 'publishStoredMetrics')
+                vi.spyOn(ctx.metrics.instance, 'publishStoredMetrics').mockImplementation(() => {
+                    //
+                })
+                vi.spyOn(ctx.metrics.instance, 'captureColdStartMetric')
 
                 const tracerInstance = tracerInstanceMock()
                 ctx.tracer.instance = tracerInstance as any
@@ -818,6 +842,7 @@ describe('eventHandler', () => {
                 expect(rCtx.logger).toBe(ctx.logger)
                 expect(rCtx.logger).not.toBe(logger)
                 expect(ctx.metrics.instance.publishStoredMetrics).toHaveBeenCalled()
+                expect(ctx.metrics.instance.captureColdStartMetric).toHaveBeenCalled()
 
                 expect(getSegment.addNewSubsegment).toHaveBeenLastCalledWith('## ')
                 expect(getSegment.close).toHaveBeenCalled()
@@ -842,7 +867,10 @@ describe('eventHandler', () => {
                     close: vi.fn(),
                 }
                 ;(ctx.metrics.instance as unknown as { storedMetrics: any }).storedMetrics.foo = true
-                vi.spyOn(ctx.metrics.instance, 'publishStoredMetrics')
+                vi.spyOn(ctx.metrics.instance, 'publishStoredMetrics').mockImplementation(() => {
+                    //
+                })
+                vi.spyOn(ctx.metrics.instance, 'captureColdStartMetric')
 
                 const tracerInstance = tracerInstanceMock()
                 ctx.tracer.instance = tracerInstance as any
@@ -880,6 +908,7 @@ describe('eventHandler', () => {
                 expect(rCtx.logger).toBe(ctx.logger)
                 expect(rCtx.logger).not.toBe(logger)
                 expect(ctx.metrics.instance.publishStoredMetrics).toHaveBeenCalled()
+                expect(ctx.metrics.instance.captureColdStartMetric).toHaveBeenCalled()
 
                 expect(getSegmentVal.addNewSubsegment).toHaveBeenLastCalledWith('## ')
                 expect(getSegmentVal.close).toHaveBeenCalled()
