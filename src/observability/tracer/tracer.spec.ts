@@ -2,12 +2,22 @@ import { createTracer } from './tracer.js'
 
 import type { Tracer as AWSTracer } from '@aws-lambda-powertools/tracer'
 import { asyncForAll, string, tuple, unknown } from '@skyleague/axioms'
-import { unsafeMock } from '@skyleague/event-horizon-dev/test'
 import { expect, describe, beforeEach, it, vi } from 'vitest'
 
 describe('tracer', () => {
-    const instance = unsafeMock<AWSTracer>()
-    const tracer = createTracer(instance)
+    const instance = {
+        getSegment: vi.fn(),
+        setSegment: vi.fn(),
+        addResponseAsMetadata: vi.fn(),
+        addErrorAsMetadata: vi.fn(),
+        mockClear: () => {
+            instance.getSegment.mockClear()
+            instance.setSegment.mockClear()
+            instance.addResponseAsMetadata.mockClear()
+            instance.addErrorAsMetadata.mockClear()
+        },
+    }
+    const tracer = createTracer(instance as unknown as AWSTracer)
 
     beforeEach(() => instance.mockClear())
 
