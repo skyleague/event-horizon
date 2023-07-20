@@ -101,7 +101,9 @@ export interface EventOptions {
  */
 export class EventError extends Error {
     public isEventError = true
-    public level: 'error' | 'info' | 'warning'
+    public forceLevel: 'error' | 'info' | 'warning' | undefined
+    public thrown: boolean
+    public original: unknown
     public errorHandling: 'graceful' | 'throw'
     public error: string
     public expose: boolean
@@ -127,6 +129,8 @@ export class EventError extends Error {
         super(isError(message) ? message.message : message, isError(message) ? { cause: message } : undefined)
         // cleanup stack trace
         Error.captureStackTrace(this, ctor)
+
+        this.thrown = isThrown(message)
         this.statusCode = statusCode
         this.expose = expose ?? this.statusCode < 500
         this.headers = headers
@@ -134,8 +138,7 @@ export class EventError extends Error {
         this.error = httpStatusCodes[this.statusCode] ?? 'Unknown'
         this.name = name ?? ctor.name
         this.cause = cause
-        this.level =
-            level ?? (isThrown(message) ? 'error' : this.isServerError ? 'error' : this.isClientError ? 'warning' : 'info')
+        this.forceLevel = level
         this.errorHandling = errorHandling ?? 'throw'
         if (isError(message)) {
             this.message = message.message
@@ -146,6 +149,13 @@ export class EventError extends Error {
         } else {
             this.message = message ?? this.name
         }
+    }
+
+    public get level(): 'error' | 'info' | 'warning' {
+        return (
+            this.forceLevel ??
+            (this.thrown || isThrown(this) ? 'error' : this.isServerError ? 'error' : this.isClientError ? 'warning' : 'info')
+        )
     }
 
     public get isInformational(): boolean {

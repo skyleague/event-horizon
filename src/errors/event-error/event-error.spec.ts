@@ -1,6 +1,6 @@
 import { EventError, httpStatusCodes } from './event-error.js'
 
-import { constant, forAll, integer, oneOf, string, tuple } from '@skyleague/axioms'
+import { asTry, constant, forAll, integer, oneOf, string, tuple } from '@skyleague/axioms'
 import { expect, it } from 'vitest'
 it('EventError === EventError', () => {
     expect(EventError.is(EventError.badGateway())).toBe(true)
@@ -86,6 +86,16 @@ it('level - server error is error', () => {
     forAll(integer({ min: 500, max: 600 }), (statusCode) => {
         expect(new EventError(undefined, { statusCode }).level).toBe('error')
     })
+})
+
+it('level - thrown try errors default to error', () => {
+    expect(
+        (
+            asTry((): EventError => {
+                throw EventError.expectationFailed(undefined)
+            }) as EventError
+        ).level
+    ).toMatchInlineSnapshot('"error"')
 })
 
 it('level - client error is warning', () => {
