@@ -3,18 +3,23 @@ import type { LambdaContext } from '../types.js'
 import type { Segment, Subsegment } from 'aws-xray-sdk-core'
 
 export function traceInvocation({ tracer, traceId, requestId }: LambdaContext) {
-    let lambdaSegment: Segment | Subsegment
+    let lambdaSegment: Segment | Subsegment | undefined
 
     function startSegment(): void {
-        lambdaSegment = tracer.instance.getSegment()!
-        const handlerSegment = lambdaSegment.addNewSubsegment(`## ${process.env._HANDLER ?? ''}`)
-        tracer.instance.setSegment(handlerSegment)
+        lambdaSegment = tracer.instance.getSegment()
+        if (lambdaSegment !== undefined) {
+            const handlerSegment = lambdaSegment.addNewSubsegment(`## ${process.env._HANDLER ?? ''}`)
+            tracer.instance.setSegment(handlerSegment)
+        }
     }
 
     function endSegment(): void {
-        const subsegment = tracer.instance.getSegment()!
-        subsegment.close()
-        tracer.instance.setSegment(lambdaSegment as Segment)
+        const subsegment = tracer.instance.getSegment()
+        subsegment?.close()
+        subsegment?.flush()
+        if (lambdaSegment !== undefined) {
+            tracer.instance.setSegment(lambdaSegment as Segment)
+        }
     }
 
     return {

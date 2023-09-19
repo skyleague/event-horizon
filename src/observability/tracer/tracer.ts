@@ -10,28 +10,26 @@ export interface Tracer {
 
 export function createTracer(instance: AWSTracer = new AWSTracer({ serviceName: constants.serviceName })): Tracer {
     async function trace<R>(segmentName: string, fn: () => Promise<R>): Promise<R> {
-        const segment = instance.getSegment()!
-        const subsegment = segment.addNewSubsegment(segmentName)
-        instance.setSegment(subsegment)
-
-        let response: R
-        try {
-            response = await fn()
-
-            // Add the response as metadata
-            instance.addResponseAsMetadata(response, process.env._HANDLER)
-        } catch (err) {
-            // Add the error as metadata
-            instance.addErrorAsMetadata(err as Error)
-            throw err
-        } finally {
-            // Close subsegment (the AWS Lambda one is closed automatically)
-            subsegment.close()
-            // Set back the facade segment as active again
-            instance.setSegment(segment)
+        if (!instance.isTracingEnabled()) {
+            return fn()
         }
+        return instance.provider.captureAsyncFunc(segmentName, async (subsegment) => {
+            let response: R
+            try {
+                response = await fn()
 
-        return response
+                // Add the response as metadata
+                instance.addResponseAsMetadata(response, process.env._HANDLER)
+            } catch (err) {
+                // Add the error as metadata
+                instance.addErrorAsMetadata(err as Error)
+                throw err
+            } finally {
+                // Close subsegment (the AWS Lambda one is closed automatically)
+                subsegment?.close()
+                subsegment?.flush()
+            }
+        }) as Promise<R>
     }
 
     function captureAWSv3Client<T>(service: T): T {
