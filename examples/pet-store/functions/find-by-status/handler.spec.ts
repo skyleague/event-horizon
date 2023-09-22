@@ -9,6 +9,7 @@ import { it } from 'vitest'
 
 it('handler', async () => {
     forAll(tuple(httpEvent(handler as any), await context()), ([x, ctx]) => {
+        ctx.getRemainingTimeInMillis = () => 1000
         const { statusCode, body } = handler.http.handler(x as any, ctx)
         return statusCode === 200 && PetArray.is(body) && body.every((p) => p.status === (x.query as any).status)
     })
