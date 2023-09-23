@@ -14,9 +14,10 @@ import { handleEventBridgeEvent } from '../events/eventbridge/handler.js'
 import { handleFirehoseTransformation } from '../events/firehose/handler.js'
 import { handleHTTPEvent } from '../events/http/handler.js'
 import { handleKinesisEvent } from '../events/kinesis/handler.js'
+import type { handlePipesSQS } from '../events/pipes/sqs/handler.js'
 import { handleRawEvent } from '../events/raw/handler.js'
 import { handleS3Event } from '../events/s3/handler.js'
-import { handleS3Batch } from '../events/s3-batch/handler.js'
+import { handleS3Batch as handleS3BatchEvent } from '../events/s3-batch/handler.js'
 import { handleSecretRotationEvent } from '../events/secret-rotation/handler.js'
 import type { SecretRotationHandler } from '../events/secret-rotation/types.js'
 import { handleSNSEvent } from '../events/sns/handler.js'
@@ -52,33 +53,44 @@ export const allHandlers = {
     kinesis: handleKinesisEvent,
     s3: handleS3Event,
     firehose: handleFirehoseTransformation,
-    s3Batch: handleS3Batch,
+    s3Batch: handleS3BatchEvent,
     raw: handleRawEvent,
 }
+
+type Handlers =
+    | typeof allHandlers
+    | {
+          sqs: typeof handlePipesSQS
+      }
 
 export async function handleEvent({
     definition,
     request,
     context,
-    handlers = allHandlers,
+    handlers,
 }: {
     definition: EventHandler
     request: RawRequest | null | undefined
     context: LambdaContext
-    handlers?: typeof allHandlers
+    handlers?: Partial<Handlers> | undefined
 }): Promise<Try<unknown>> {
+    const localHandlers = {
+        ...allHandlers,
+        ...(handlers ?? {}),
+    }
+
     if (typeof request === 'object' && request !== null) {
         if ('headers' in request) {
             if ('http' in definition) {
-                return handlers.http(definition, request, context)
+                return localHandlers.http(definition, request, context)
             }
         } else if ('detail' in request) {
             if ('eventBridge' in definition) {
-                return handlers.eventBridge(definition, request, context)
+                return localHandlers.eventBridge(definition, request, context)
             }
         } else if ('SecretId' in request && 'Step' in request) {
             if ('secretRotation' in definition) {
-                return handlers.secretRotation(definition as SecretRotationHandler, request, context)
+                return localHandlers.secretRotation(definition as SecretRotationHandler, request, context)
             }
         } else if ('tasks' in request) {
             if (request.tasks.length === 0) {
@@ -86,7 +98,7 @@ export async function handleEvent({
             }
 
             if ('s3Batch' in definition) {
-                return handlers.s3Batch(definition, request, context)
+                return localHandlers.s3Batch(definition, request, context)
             }
         } else if ('Records' in request || 'records' in request || Array.isArray(request)) {
             const records = 'Records' in request ? request.Records : 'records' in request ? request.records : request
@@ -118,30 +130,30 @@ export async function handleEvent({
 
                 if (sqsRecords.length > 0 && sqsRecords.length === records.length) {
                     if ('sqs' in definition) {
-                        return handlers.sqs(definition, sqsRecords, context)
+                        return localHandlers.sqs(definition, sqsRecords, context)
                     }
                 } else if (snsRecords.length > 0 && snsRecords.length === records.length) {
                     if ('sns' in definition) {
-                        return handlers.sns(definition, snsRecords, context)
+                        return localHandlers.sns(definition, snsRecords, context)
                     }
                 } else if (kinesisRecords.length > 0 && kinesisRecords.length === records.length) {
                     if ('kinesis' in definition) {
-                        return handlers.kinesis(definition, kinesisRecords, context)
+                        return localHandlers.kinesis(definition, kinesisRecords, context)
                     }
                 } else if (s3Records.length > 0 && s3Records.length === records.length) {
                     if ('s3' in definition) {
-                        return handlers.s3(definition, s3Records, context)
+                        return localHandlers.s3(definition, s3Records, context)
                     }
                 } else if (firehoseRecords.length > 0 && firehoseRecords.length === records.length) {
                     if ('firehose' in definition) {
-                        return handlers.firehose(definition, firehoseRecords, context)
+                        return localHandlers.firehose(definition, firehoseRecords, context)
                     }
                 }
             }
         }
     }
 
-    return handlers.raw(definition, request, context)
+    return localHandlers.raw(definition, request, context)
 }
 
 export async function createLambdaContext({
@@ -191,6 +203,7 @@ export interface EventHandlerOptions<R> {
     requestId?: (request: R) => string | undefined
     eventHandler?: typeof handleEvent
     eagerHandlerInitialization?: boolean
+    handlers?: Partial<Handlers>
 }
 
 AWSXRay.setContextMissingStrategy(() => {
@@ -198,8 +211,11 @@ AWSXRay.setContextMissingStrategy(() => {
 })
 
 export function eventHandler<H extends EventHandler, R>(definition: H, options: EventHandlerOptions<R> = {}): AWSLambdaHandler {
-    const { eventHandler: eventHandlerImpl = handleEvent, eagerHandlerInitialization = constants.eagerHandlerInitialization } =
-        options
+    const {
+        eventHandler: eventHandlerImpl = handleEvent,
+        eagerHandlerInitialization = constants.eagerHandlerInitialization,
+        handlers,
+    } = options
     const { logger = globalLogger, metrics = globalMetrics, tracer = globalTracer } = definition
 
     const traceServicesFn = traceServices({ tracer })
@@ -251,7 +267,7 @@ export function eventHandler<H extends EventHandler, R>(definition: H, options: 
         })
 
         const tryResponse = await mapTry(ctx, (c) =>
-            eventHandlerImpl({ definition: definition as unknown as EventHandler, request, context: c })
+            eventHandlerImpl({ definition: definition as unknown as EventHandler, request, context: c, handlers })
         )
 
         const response = transformTry(
