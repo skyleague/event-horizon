@@ -1,17 +1,13 @@
-import { constants } from '../../constants.js'
-import { EventError } from '../../errors/index.js'
-import { parseJSON } from '../../parsers/json/index.js'
-import { createAppConfigData } from '../../services/appconfig/index.js'
+import { constants } from '../../../constants.js'
+import { EventError } from '../../../errors/index.js'
+import { parseJSON } from '../../../parsers/json/index.js'
+import { createAppConfigData } from '../../../services/appconfig/index.js'
+import type { DefaultServices } from '../../types.js'
 
 import { AppConfigProvider } from '@aws-lambda-powertools/parameters/appconfig'
-import type { AppConfigData } from '@aws-sdk/client-appconfigdata'
 import type { Try } from '@skyleague/axioms'
 import { memoize } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
-
-export interface ProfileServices {
-    appConfigData?: AppConfigData
-}
 
 export interface ProfileSchema<T> {
     schema: Schema<T>
@@ -25,7 +21,10 @@ export interface ProfileOptions<T> {
     name?: string
 }
 
-export function profileHandler<T>(options: ProfileOptions<T>, services: () => Promise<ProfileServices | undefined>) {
+export function profileHandler<T, Services extends DefaultServices | undefined>(
+    options: ProfileOptions<T>,
+    services: () => Promise<Services> | Services
+): { before: () => Promise<Try<T>> } {
     const {
         application = constants.namespace,
         environment = constants.environment,

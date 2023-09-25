@@ -23,11 +23,10 @@
   ],
   "scripts": {
     "build": "npx ts-node --esm build.config.ts",
-    "build:clean": "npx tsc --build --clean && rm -rf dist",
     "build:docs": "(cd docs; npm install; npm run build)",
     "check:cost": "npx cost-of-modules --no-install --include-dev",
     "check:coverage": "npx vitest run --coverage=true",
-    "check:full": "npm run lint && npm run check:types && npm run check:coverage && npm run build && npm run check:project",
+    "check:full": "npm run lint && npm run check:types && npm run check:coverage && npm run check:project",
     "check:project": "npx node-standards lint",
     "check:types": "npx tsc -p tsconfig.json",
     "format": "npx prettier \"**/*.{ts,js,json,yml,yaml,md}\" --write",
@@ -35,25 +34,25 @@
     "lint:fix": "npm run lint -- --fix",
     "lint:full": "bash -c \"FULL_LINT=true npm run lint\"",
     "package": "rm -rf .dist && npm run build",
-    "prepare": "(npx husky install || true) && npm run build",
+    "prepare": "npx husky install || true",
     "test": "npx vitest run"
   },
   "dependencies": {
-    "@aws-lambda-powertools/logger": "^1.13.0",
-    "@aws-lambda-powertools/metrics": "^1.13.0",
-    "@aws-lambda-powertools/parameters": "1.13.0",
-    "@aws-lambda-powertools/tracer": "^1.13.0",
+    "@aws-lambda-powertools/logger": "^1.13.1",
+    "@aws-lambda-powertools/metrics": "^1.13.1",
+    "@aws-lambda-powertools/parameters": "1.13.1",
+    "@aws-lambda-powertools/tracer": "^1.13.1",
     "@skyleague/axioms": "^2.4.1",
-    "@types/aws-lambda": "^8.10.121",
+    "@types/aws-lambda": "^8.10.122",
     "secure-json-parse": "^2.7.0",
     "tslib": "^2.6.2"
   },
   "devDependencies": {
     "@skyleague/event-horizon": "./",
     "@skyleague/event-horizon-dev": "^4.0.5",
-    "@skyleague/node-standards": "^3.8.4",
+    "@skyleague/node-standards": "^3.10.2",
     "@skyleague/therefore": "^2.2.7",
-    "@types/node": "^20.6.2",
+    "@types/node": "^20.6.4",
     "aws-sdk-client-mock": "^3.0.0",
     "aws-sdk-client-mock-jest": "^3.0.0",
     "got": "^13.0.0",
@@ -76,9 +75,6 @@
     "ignorePatterns": [
       ".github/workflows/package.yml",
       "vitest.config.ts"
-    ],
-    "rules": {
-      "scripts": false
-    }
+    ]
   }
 }

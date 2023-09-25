@@ -3,7 +3,7 @@ import type { KinesisEvent, KinesisEventHandler } from '../types.js'
 
 import type { KinesisStreamRecord } from 'aws-lambda'
 
-export function kinesisParseEvent({ payloadType: dataType = 'json' }: KinesisEventHandler) {
+export function kinesisParseEvent({ payloadType: dataType = 'json' }: Pick<KinesisEventHandler, 'payloadType'>) {
     return {
         before: (event: KinesisStreamRecord): KinesisEvent => {
             let payload: unknown = event.kinesis.data

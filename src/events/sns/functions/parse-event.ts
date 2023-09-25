@@ -3,7 +3,7 @@ import type { SNSEvent, SNSEventHandler } from '../types.js'
 
 import type { SNSEventRecord } from 'aws-lambda'
 
-export function snsParseEvent({ payloadType = 'json' }: SNSEventHandler) {
+export function snsParseEvent({ payloadType = 'json' }: Pick<SNSEventHandler, 'payloadType'>) {
     return {
         before: (event: SNSEventRecord): SNSEvent => {
             let payload: unknown = event.Sns.Message

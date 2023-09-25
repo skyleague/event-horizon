@@ -1,7 +1,6 @@
-import type { EventHandlerDefinition, LambdaContext } from '../types.js'
+import type { DefaultServices, EventHandlerDefinition, LambdaContext } from '../types.js'
 
-import type { SecretsManager } from '@aws-sdk/client-secrets-manager'
-import type { Promisable, Try } from '@skyleague/axioms'
+import type { Promisable, RequireKeys, Try } from '@skyleague/axioms'
 import type { SecretsManagerRotationEvent } from 'aws-lambda'
 
 export interface SecretRotationRequest {
@@ -12,21 +11,17 @@ export interface SecretRotationRequest {
 }
 
 export interface SecretRotationEventHandler<
-    Configuration = never,
-    Service extends SecretRotationServices = SecretRotationServices,
-    Profile = never
+    Configuration = unknown,
+    Service extends RequireKeys<DefaultServices, 'secretsManager'> = RequireKeys<DefaultServices, 'secretsManager'>,
+    Profile = unknown,
 > {
     handler: (request: SecretRotationRequest, context: LambdaContext<Configuration, Service, Profile>) => Promisable<Try<void>>
 }
 
-export interface SecretRotationServices {
-    secretsManager: SecretsManager
-}
-
 export interface SecretRotationHandler<
-    Configuration = never,
-    Service extends SecretRotationServices = SecretRotationServices,
-    Profile = never
+    Configuration = unknown,
+    Service extends RequireKeys<DefaultServices, 'secretsManager'> = RequireKeys<DefaultServices, 'secretsManager'>,
+    Profile = unknown,
 > extends EventHandlerDefinition<Configuration, Service, Profile> {
     secretRotation: SecretRotationEventHandler<Configuration, Service, Profile>
 }

@@ -1,4 +1,4 @@
-import type { RawRequest } from '../../handlers/aws.js'
+import type { RawRequest } from '../raw-aws.js'
 
 export function warmup({
     isWarmingUp = (request) => request === '__WARMER__',

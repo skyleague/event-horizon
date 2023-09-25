@@ -3,7 +3,12 @@ import type { FirehoseTransformationResult } from '../types.js'
 import { isString } from '@skyleague/axioms'
 import type { FirehoseTransformationEventRecord, FirehoseTransformationResultRecord } from 'aws-lambda'
 
-export function firehoseSerializeTransformation() {
+export function firehoseSerializeTransformation(): {
+    onAfter: (
+        original: FirehoseTransformationEventRecord,
+        response: FirehoseTransformationResult
+    ) => FirehoseTransformationResultRecord
+} {
     return {
         onAfter: (
             original: FirehoseTransformationEventRecord,

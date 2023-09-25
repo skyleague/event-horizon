@@ -1,11 +1,12 @@
 import { firehoseErrorHandler } from './functions/error-handler.js'
 import { firehoseParseEvent } from './functions/parse-event.js'
 import { firehoseSerializeTransformation } from './functions/serialize-transformation.js'
-import type { FirehoseTransformationEvent, FirehoseTransformationHandler, FirehoseTransformationResult } from './types.js'
+import type { FirehoseTransformationEvent, FirehoseTransformationResult } from './types.js'
+import { type FirehoseTransformationHandler } from './types.js'
 
 import { ioLogger } from '../functions/io-logger.js'
 import { ioValidate } from '../functions/io-validate.js'
-import type { LambdaContext } from '../types.js'
+import type { DefaultServices, LambdaContext } from '../types.js'
 
 import type { Try } from '@skyleague/axioms'
 import { enumerate, mapTry, transformTry, isSuccess } from '@skyleague/axioms'
@@ -15,17 +16,23 @@ import type {
     FirehoseTransformationResultRecord,
 } from 'aws-lambda'
 
-export async function handleFirehoseTransformation(
-    handler: FirehoseTransformationHandler,
+export async function handleFirehoseTransformation<
+    Configuration,
+    Service extends DefaultServices | undefined,
+    Profile,
+    Payload,
+    Result,
+>(
+    handler: FirehoseTransformationHandler<Configuration, Service, Profile, Payload, Result>,
     events: FirehoseTransformationEventRecord[],
-    context: LambdaContext
+    context: LambdaContext<Configuration, Service, Profile>
 ): Promise<Try<AWSFirehoseTransformationResult>> {
     const { firehose } = handler
 
     const serializeTransformationFn = firehoseSerializeTransformation()
     const errorHandlerFn = firehoseErrorHandler(context)
     const parseEventFn = firehoseParseEvent(firehose)
-    const ioValidateFn = ioValidate<FirehoseTransformationEvent, FirehoseTransformationResult>({ input: (e) => e.payload })
+    const ioValidateFn = ioValidate<FirehoseTransformationEvent, FirehoseTransformationResult>()
     const ioLoggerFn = ioLogger({ type: 'firehose' }, context)
 
     const responses: FirehoseTransformationResultRecord[] = []
@@ -34,13 +41,13 @@ export async function handleFirehoseTransformation(
 
         const firehoseEvent = mapTry(event, (e) => {
             const unvalidatedFirehoseEvent = parseEventFn.before(e)
-            return ioValidateFn.before(firehose.schema.payload, unvalidatedFirehoseEvent)
+            return ioValidateFn.before(firehose.schema.payload, unvalidatedFirehoseEvent, 'payload')
         })
 
         ioLoggerFn.before(firehoseEvent, item)
 
         const unvalidatedTransformed = await mapTry(firehoseEvent, (success) => firehose.handler(success, context))
-        const transformed = mapTry(unvalidatedTransformed, (t) => ioValidateFn.after(firehose.schema.result, t))
+        const transformed = mapTry(unvalidatedTransformed, (t) => ioValidateFn.after(firehose.schema.result, t, 'payload'))
 
         const response = transformTry(
             transformed,

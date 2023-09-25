@@ -1,1 +1,1 @@
-export { Metrics, metrics } from './metrics.js'
+export { type Metrics, metrics } from './metrics.js'

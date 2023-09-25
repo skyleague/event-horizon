@@ -1,33 +1,54 @@
 import { EventError } from '../../errors/index.js'
 
-import type { Try } from '@skyleague/axioms'
+import type { SimplifyOnce, Try } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
 
-export interface ValidateOptions<I, O> {
-    input?: (x: I) => unknown
-    output?: (x: O) => unknown
-}
+type MappedSchema<T, Key extends keyof T | undefined, ST> = Key extends keyof T
+    ? SimplifyOnce<Exclude<T, Key> & { [k in Key]: ST }>
+    : never
 
-export function ioValidate<I = unknown, O = unknown>(
-    options?: ValidateOptions<I, O>
-): {
-    before: (schema: Schema<unknown> | undefined, event: I) => Try<I>
-    after: (schema: Schema<unknown> | undefined, event: O) => Try<O>
+export function ioValidate<I = unknown, O = unknown>(): {
+    before: <SI, Key extends keyof I | undefined = undefined, U = Key extends string ? Try<MappedSchema<I, Key, SI>> : Try<SI>>(
+        schema: Schema<SI> | undefined,
+        event: I,
+        path?: Key
+    ) => U
+    after: <SO, Key extends keyof O | undefined = undefined, U = Key extends string ? Try<MappedSchema<O, Key, SO>> : Try<SO>>(
+        schema: Schema<SO> | undefined,
+        event: O,
+        path?: Key
+    ) => U
 } {
     return {
-        before: (schema: Schema<unknown> | undefined, event: I): Try<I> => {
-            const unknownValue = options?.input?.(event) ?? event
+        before: <
+            SI,
+            Key extends keyof I | undefined = undefined,
+            U = Key extends string ? Try<MappedSchema<I, Key, SI>> : Try<SI>,
+        >(
+            schema: Schema<SI> | undefined,
+            event: I,
+            key?: Key
+        ): U => {
+            const unknownValue = key !== undefined ? event[key] : event
             if (schema?.is(unknownValue) === false) {
-                return EventError.validation({ errors: schema.errors })
+                return EventError.validation({ errors: schema.errors }) as U
             }
-            return event
+            return event as unknown as U
         },
-        after: (schema: Schema<unknown> | undefined, event: O): Try<O> => {
-            const unknownValue = options?.output?.(event) ?? event
+        after: <
+            SO,
+            Key extends keyof O | undefined = undefined,
+            U = Key extends string ? Try<MappedSchema<O, Key, SO>> : Try<SO>,
+        >(
+            schema: Schema<SO> | undefined,
+            event: O,
+            key?: Key
+        ): U => {
+            const unknownValue = key !== undefined ? event[key] : event
             if (schema?.is(unknownValue) === false) {
-                return EventError.validation({ errors: schema.errors })
+                return EventError.validation({ errors: schema.errors }) as U
             }
-            return event
+            return event as unknown as U
         },
     }
 }

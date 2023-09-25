@@ -3,7 +3,11 @@ import type { FirehoseTransformationEvent, FirehoseTransformationEventHandler } 
 
 import type { FirehoseTransformationEventRecord } from 'aws-lambda'
 
-export function firehoseParseEvent({ payloadType = 'json' }: FirehoseTransformationEventHandler) {
+export function firehoseParseEvent<H extends Pick<FirehoseTransformationEventHandler, 'payloadType'>>({
+    payloadType = 'json',
+}: H): {
+    before: (event: FirehoseTransformationEventRecord) => FirehoseTransformationEvent
+} {
     return {
         before: (event: FirehoseTransformationEventRecord): FirehoseTransformationEvent => {
             let payload: unknown = event.data

@@ -9,7 +9,7 @@ export interface SQSEvent<Payload = unknown> {
     raw: SQSRecord
 }
 
-export interface SQSEventHandler<Configuration = never, Service = never, Profile = never, Payload = unknown> {
+export interface SQSEventHandler<Configuration = unknown, Service = unknown, Profile = unknown, Payload = unknown> {
     schema: {
         payload?: Schema<Payload>
     }
@@ -17,7 +17,7 @@ export interface SQSEventHandler<Configuration = never, Service = never, Profile
     payloadType?: 'json' | 'plaintext'
 }
 
-export interface SQSHandler<Configuration = never, Service = never, Profile = never, Payload = unknown>
+export interface SQSHandler<Configuration = unknown, Service = unknown, Profile = unknown, Payload = unknown>
     extends EventHandlerDefinition<Configuration, Service, Profile> {
     sqs: SQSEventHandler<Configuration, Service, Profile, Payload>
 }

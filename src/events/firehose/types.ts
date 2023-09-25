@@ -1,4 +1,4 @@
-import type { EventHandlerDefinition, LambdaContext } from '../types.js'
+import type { DefaultServices, EventHandlerDefinition, LambdaContext } from '../types.js'
 
 import type { Promisable, Try } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
@@ -15,11 +15,11 @@ export interface FirehoseTransformationEvent<Payload = unknown> {
 }
 
 export interface FirehoseTransformationEventHandler<
-    Configuration = never,
-    Service = never,
-    Profile = never,
+    Configuration = unknown,
+    Service = unknown,
+    Profile = unknown,
     Payload = unknown,
-    Result = unknown
+    Result = unknown,
 > {
     schema: {
         payload?: Schema<Payload>
@@ -33,11 +33,11 @@ export interface FirehoseTransformationEventHandler<
 }
 
 export interface FirehoseTransformationHandler<
-    Configuration = never,
-    Service = never,
-    Profile = never,
+    Configuration = unknown,
+    Service extends DefaultServices | undefined = {},
+    Profile = unknown,
     Payload = unknown,
-    Result = unknown
+    Result = unknown,
 > extends EventHandlerDefinition<Configuration, Service, Profile> {
     firehose: FirehoseTransformationEventHandler<Configuration, Service, Profile, Payload, Result>
 }

@@ -10,16 +10,16 @@ import type { LambdaContext } from '../types.js'
 import { eitherAsValue, enumerate, isLeft, mapLeft, mapTry, tryToEither } from '@skyleague/axioms'
 import type { SQSBatchItemFailure, SQSBatchResponse, SQSRecord } from 'aws-lambda'
 
-export async function handleSQSEvent(
-    handler: SQSHandler,
+export async function handleSQSEvent<Configuration, Service, Profile, Payload>(
+    handler: SQSHandler<Configuration, Service, Profile, Payload>,
     events: SQSRecord[],
-    context: LambdaContext
+    context: LambdaContext<Configuration, Service, Profile>
 ): Promise<SQSBatchResponse | void> {
     const { sqs } = handler
 
     const errorHandlerFn = sqsErrorHandler(context)
     const parseEventFn = sqsParseEvent(sqs)
-    const ioValidateFn = ioValidate<SQSEvent>({ input: (e) => e.payload })
+    const ioValidateFn = ioValidate<SQSEvent>()
     const ioLoggerFn = ioLogger({ type: 'sqs' }, context)
     const ioLoggerChildFn = ioLoggerChild(context, context.logger)
 
@@ -34,7 +34,7 @@ export async function handleSQSEvent(
                 messageId: unvalidatedSQSEvent.raw.messageId,
             })
 
-            return ioValidateFn.before(sqs.schema.payload, unvalidatedSQSEvent)
+            return ioValidateFn.before(sqs.schema.payload, unvalidatedSQSEvent, 'payload')
         })
 
         ioLoggerFn.before(sqsEvent, item)
@@ -55,5 +55,4 @@ export async function handleSQSEvent(
     if (failures !== undefined) {
         return { batchItemFailures: failures }
     }
-    return
 }

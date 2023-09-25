@@ -366,6 +366,14 @@ export class EventError extends Error {
         return new EventError(message, { statusCode: 501, ctor: EventError.notImplemented, ...options })
     }
 
+    public static unexpectedEventType(message?: ErrorLike, options: EventOptions = {}): EventError {
+        return new EventError(message ?? 'Lambda was invoked with an unexpected event type', {
+            statusCode: 501,
+            ctor: EventError.unexpectedEventType,
+            ...options,
+        })
+    }
+
     public static badGateway(message?: ErrorLike, options: EventOptions = {}): EventError {
         return new EventError(message, { statusCode: 502, ctor: EventError.badGateway, ...options })
     }

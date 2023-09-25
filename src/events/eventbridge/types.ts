@@ -10,11 +10,11 @@ export interface EventBridgeEvent<Payload = unknown> {
 }
 
 export interface EventBridgeEventHandler<
-    Configuration = never,
-    Service = never,
-    Profile = never,
+    Configuration = unknown,
+    Service = unknown,
+    Profile = unknown,
     Payload = unknown,
-    Result = unknown
+    Result = unknown,
 > {
     schema: {
         payload?: Schema<Payload>
@@ -26,7 +26,12 @@ export interface EventBridgeEventHandler<
     ) => Promisable<Try<Result>>
 }
 
-export interface EventBridgeHandler<Configuration = never, Service = never, Profile = never, Payload = unknown, Result = unknown>
-    extends EventHandlerDefinition<Configuration, Service, Profile> {
+export interface EventBridgeHandler<
+    Configuration = unknown,
+    Service = unknown,
+    Profile = unknown,
+    Payload = unknown,
+    Result = unknown,
+> extends EventHandlerDefinition<Configuration, Service, Profile> {
     eventBridge: EventBridgeEventHandler<Configuration, Service, Profile, Payload, Result>
 }

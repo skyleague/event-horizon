@@ -1,5 +1,5 @@
+import type { EventHandler } from '../../events/common/types.js'
 import { HttpError } from '../../events/http/functions/http-error.type.js'
-import type { EventHandler } from '../../handlers/types.js'
 
 import { cloneDeep, entriesOf, isArray, isBoolean, omitUndefined, valuesOf } from '@skyleague/axioms'
 import type { OpenapiV3 } from '@skyleague/therefore'

@@ -14,13 +14,13 @@ export interface HTTPRequest<
     Path = HTTPPathParameters | undefined,
     Query = HTTPQueryParameters | undefined,
     Headers = HTTPHeaders | undefined,
-    GV extends GatewayVersion = 'v1'
+    GV extends GatewayVersion = 'http',
 > {
     body: Body
     headers: Headers
     query: Query
     path: Path
-    raw: GV extends 'v1' ? APIGatewayProxyEvent : APIGatewayProxyEventV2
+    raw: GV extends 'http' ? APIGatewayProxyEvent : APIGatewayProxyEventV2
 }
 
 export interface HTTPResponse<Result = unknown> {
@@ -29,18 +29,18 @@ export interface HTTPResponse<Result = unknown> {
     body: Result
 }
 
-export type GatewayVersion = 'v1' | 'v2'
+export type GatewayVersion = 'http' | 'rest'
 
 export interface HTTPEventHandler<
-    Configuration = never,
-    Service = never,
-    Profile = never,
+    Configuration = unknown,
+    Service = unknown,
+    Profile = unknown,
     Body = unknown,
     Path = unknown,
     Query = unknown,
     Headers = unknown,
     Result = unknown,
-    GV extends GatewayVersion = 'v1'
+    GV extends GatewayVersion = 'http',
 > {
     method: HTTPMethod
     path: `/${string}`
@@ -62,15 +62,15 @@ export interface HTTPEventHandler<
 }
 
 export interface HTTPHandler<
-    Configuration = never,
-    Service = never,
-    Profile = never,
+    Configuration = unknown,
+    Service = unknown,
+    Profile = unknown,
     Body = unknown,
     Path = unknown,
     Query = unknown,
     Headers = unknown,
     Result = unknown,
-    GV extends GatewayVersion = 'v1'
+    GV extends GatewayVersion = 'http',
 > extends EventHandlerDefinition<Configuration, Service, Profile> {
     http: HTTPEventHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, GV>
 }

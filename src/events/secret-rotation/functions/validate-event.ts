@@ -1,11 +1,14 @@
 import { EventError } from '../../../errors/event-error/index.js'
-import type { LambdaContext } from '../../types.js'
-import type { SecretRotationRequest, SecretRotationServices } from '../types.js'
+import type { DefaultServices, LambdaContext } from '../../types.js'
+import type { SecretRotationRequest } from '../types.js'
 
-import type { Maybe, Try } from '@skyleague/axioms'
+import type { Maybe, RequireKeys, Try } from '@skyleague/axioms'
 import { Nothing } from '@skyleague/axioms'
 
-export function secretValidateEvent({ logger, services: { secretsManager } }: LambdaContext<unknown, SecretRotationServices>) {
+export function secretValidateEvent<Configuration, Service extends RequireKeys<DefaultServices, 'secretsManager'>, Profile>({
+    logger,
+    services: { secretsManager },
+}: LambdaContext<Configuration, Service, Profile>) {
     return {
         before: async (request: SecretRotationRequest): Promise<Try<Maybe<SecretRotationRequest>>> => {
             const { secretId, step, clientRequestToken } = request

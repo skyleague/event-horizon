@@ -3,7 +3,7 @@ import type { LambdaContext } from '../../types.js'
 
 import type { KinesisStreamBatchItemFailure, KinesisStreamRecord } from 'aws-lambda'
 
-export function kinesisErrorHandler({ logger, isSensitive }: LambdaContext) {
+export function kinesisErrorHandler({ logger, isSensitive }: Pick<LambdaContext, 'logger' | 'isSensitive'>) {
     return {
         onError: (original: KinesisStreamRecord, error: Error | unknown): KinesisStreamBatchItemFailure => {
             if (!isSensitive) {

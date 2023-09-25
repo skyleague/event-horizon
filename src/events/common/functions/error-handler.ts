@@ -1,9 +1,12 @@
-import { EventError } from '../../errors/event-error/index.js'
-import type { LambdaContext } from '../types.js'
+import { EventError } from '../../../errors/event-error/index.js'
+import type { LambdaContext } from '../../types.js'
 
 import { isError } from '@skyleague/axioms'
 
-export function errorHandler({ logger }: LambdaContext) {
+export function errorHandler({ logger }: LambdaContext): {
+    onError: (error: Error | unknown) => EventError
+    onExit: (response: Error) => unknown
+} {
     return {
         onError: (error: Error | unknown): EventError => {
             return EventError.log(logger, error)

@@ -1,4 +1,4 @@
-export {
+export type {
     HTTPMethod,
     HTTPHeaders,
     HTTPQueryParameters,
@@ -9,3 +9,4 @@ export {
     HTTPEventHandler,
     HTTPHandler,
 } from './types.js'
+export { httpHandler, httpApiHandler, restApiHandler } from './http.js'
