@@ -80,66 +80,6 @@ export async function handleEvent({
             if ('secretRotation' in definition) {
                 return handlers.secretRotation(definition as SecretRotationHandler, request, context)
             }
-        } else if ('Records' in request) {
-            if (request.Records.length === 0) {
-                return
-            }
-
-            const unprocessable: unknown[] = []
-            const snsRecords: SNSEventRecord[] = []
-            const kinesisRecords: KinesisStreamRecord[] = []
-            const sqsRecords: SQSRecord[] = []
-            const s3Records: S3EventRecord[] = []
-            for (const record of request.Records) {
-                if ('Sns' in record) {
-                    snsRecords.push(record)
-                } else if ('messageAttributes' in record) {
-                    sqsRecords.push(record)
-                } else if ('kinesis' in record) {
-                    kinesisRecords.push(record)
-                } else if ('s3' in record) {
-                    s3Records.push(record)
-                } else {
-                    unprocessable.push(record)
-                }
-            }
-
-            if (sqsRecords.length > 0 && sqsRecords.length === request.Records.length) {
-                if ('sqs' in definition) {
-                    return handlers.sqs(definition, sqsRecords, context)
-                }
-            } else if (snsRecords.length > 0 && snsRecords.length === request.Records.length) {
-                if ('sns' in definition) {
-                    return handlers.sns(definition, snsRecords, context)
-                }
-            } else if (kinesisRecords.length > 0 && kinesisRecords.length === request.Records.length) {
-                if ('kinesis' in definition) {
-                    return handlers.kinesis(definition, kinesisRecords, context)
-                }
-            } else if (s3Records.length > 0 && s3Records.length === request.Records.length) {
-                if ('s3' in definition) {
-                    return handlers.s3(definition, s3Records, context)
-                }
-            }
-        } else if ('records' in request) {
-            if (request.records.length === 0) {
-                return
-            }
-
-            const unprocessable: unknown[] = []
-            const firehoseRecords: FirehoseTransformationEventRecord[] = []
-            for (const record of request.records) {
-                if ('recordId' in record) {
-                    firehoseRecords.push(record)
-                } else {
-                    unprocessable.push(record)
-                }
-            }
-            if (firehoseRecords.length > 0 && firehoseRecords.length === request.records.length) {
-                if ('firehose' in definition) {
-                    return handlers.firehose(definition, firehoseRecords, context)
-                }
-            }
         } else if ('tasks' in request) {
             if (request.tasks.length === 0) {
                 return
@@ -147,6 +87,56 @@ export async function handleEvent({
 
             if ('s3Batch' in definition) {
                 return handlers.s3Batch(definition, request, context)
+            }
+        } else if ('Records' in request || 'records' in request || Array.isArray(request)) {
+            const records = 'Records' in request ? request.Records : 'records' in request ? request.records : request
+            if (records.length > 0) {
+                const unprocessable: unknown[] = []
+                const snsRecords: SNSEventRecord[] = []
+                const kinesisRecords: KinesisStreamRecord[] = []
+                const sqsRecords: SQSRecord[] = []
+                const s3Records: S3EventRecord[] = []
+                const firehoseRecords: FirehoseTransformationEventRecord[] = []
+                for (const record of records) {
+                    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+                    if (typeof record !== 'object' || record === null || record === undefined) {
+                        unprocessable.push(record)
+                    } else if ('Sns' in record) {
+                        snsRecords.push(record)
+                    } else if ('messageAttributes' in record) {
+                        sqsRecords.push(record)
+                    } else if ('kinesis' in record) {
+                        kinesisRecords.push(record)
+                    } else if ('s3' in record) {
+                        s3Records.push(record)
+                    } else if ('recordId' in record) {
+                        firehoseRecords.push(record)
+                    } else {
+                        unprocessable.push(record)
+                    }
+                }
+
+                if (sqsRecords.length > 0 && sqsRecords.length === records.length) {
+                    if ('sqs' in definition) {
+                        return handlers.sqs(definition, sqsRecords, context)
+                    }
+                } else if (snsRecords.length > 0 && snsRecords.length === records.length) {
+                    if ('sns' in definition) {
+                        return handlers.sns(definition, snsRecords, context)
+                    }
+                } else if (kinesisRecords.length > 0 && kinesisRecords.length === records.length) {
+                    if ('kinesis' in definition) {
+                        return handlers.kinesis(definition, kinesisRecords, context)
+                    }
+                } else if (s3Records.length > 0 && s3Records.length === records.length) {
+                    if ('s3' in definition) {
+                        return handlers.s3(definition, s3Records, context)
+                    }
+                } else if (firehoseRecords.length > 0 && firehoseRecords.length === records.length) {
+                    if ('firehose' in definition) {
+                        return handlers.firehose(definition, firehoseRecords, context)
+                    }
+                }
             }
         }
     }
