@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 
 import type { LambdaHandler } from './aws.js'
-import type { allHandlers } from './event.js'
 import { createLambdaContext, eventHandler, handleEvent } from './event.js'
 import {
     eventBridgeHandler,
@@ -18,10 +17,7 @@ import {
 import type { EventHandler } from './types.js'
 
 import { EventError } from '../errors/index.js'
-import type { Logger, Metrics, Tracer } from '../observability/index.js'
-import { createLogger, logger } from '../observability/logger/logger.js'
-import { createMetrics } from '../observability/metrics/metrics.js'
-import { createTracer } from '../observability/tracer/tracer.js'
+import { logger } from '../observability/logger/logger.js'
 
 import { AppConfigData } from '@aws-sdk/client-appconfigdata'
 import type { SecretsManager } from '@aws-sdk/client-secrets-manager'
@@ -51,18 +47,14 @@ import {
     SNSEvent,
     SQSEvent,
 } from '@skyleague/event-horizon-dev'
-import { context, unsafeMock } from '@skyleague/event-horizon-dev/test'
+import { context, mockLogger, mockMetrics, mockTracer } from '@skyleague/event-horizon-dev/test'
 import { arbitrary } from '@skyleague/therefore'
 import type { SNSEvent as LambdaSnsEvent } from 'aws-lambda'
-import { expect, describe, beforeEach, it, vi } from 'vitest'
+import { expect, describe, it, vi } from 'vitest'
 
 describe('handleEvent', () => {
-    const eventHandlers = unsafeMock<typeof allHandlers>()
-
     const method = random(oneOf(constant('get'), constant('put')))
     const path = `/${random(alpha())}` as const
-
-    beforeEach(() => eventHandlers.mockClear())
 
     it('http', async () => {
         const handler = httpHandler({
@@ -74,47 +66,53 @@ describe('handleEvent', () => {
                 handler: vi.fn(),
             },
         })
+        const http = vi.fn()
         await asyncForAll(tuple(httpEvent(handler), unknown(), await context()), async ([event, ret, ctx]) => {
-            eventHandlers.mockClear()
-            eventHandlers.http.mockReturnValue(ret as any)
+            http.mockClear()
+            http.mockReturnValue(ret as any)
 
-            expect(await handleEvent({ definition: handler, request: event.raw, context: ctx, handlers: eventHandlers })).toBe(
-                ret
-            )
+            expect(await handleEvent({ definition: handler, request: event.raw, context: ctx, handlers: { http } })).toBe(ret)
 
-            expect(eventHandlers.http).toHaveBeenCalledWith(handler, event.raw, ctx)
+            expect(http).toHaveBeenCalledWith(handler, event.raw, ctx)
         })
     })
 
     it('eventBridge', async () => {
         const handler = eventBridgeHandler({ eventBridge: { schema: {}, handler: vi.fn() } })
+        const eventBridge = vi.fn()
         await asyncForAll(tuple(eventBridgeEvent(handler), unknown(), await context()), async ([event, ret, ctx]) => {
-            eventHandlers.mockClear()
-            eventHandlers.eventBridge.mockReturnValue(ret as any)
+            eventBridge.mockClear()
+            eventBridge.mockReturnValue(ret as any)
 
-            expect(await handleEvent({ definition: handler, request: event.raw, context: ctx, handlers: eventHandlers })).toBe(
+            expect(await handleEvent({ definition: handler, request: event.raw, context: ctx, handlers: { eventBridge } })).toBe(
                 ret
             )
 
-            expect(eventHandlers.eventBridge).toHaveBeenCalledWith(handler, event.raw, ctx)
+            expect(eventBridge).toHaveBeenCalledWith(handler, event.raw, ctx)
         })
     })
 
     it('secretRotation', async () => {
-        const services = { secretsManager: unsafeMock<SecretsManager>() as SecretsManager }
+        const services = { secretsManager: vi.fn() as unknown as SecretsManager }
         const handler = secretRotationHandler({
             services,
             secretRotation: { handler: vi.fn() },
         })
+        const secretRotation = vi.fn()
         await asyncForAll(tuple(secretRotationEvent(), unknown(), await context()), async ([event, ret, ctx]) => {
-            eventHandlers.mockClear()
-            eventHandlers.secretRotation.mockReturnValue(ret as any)
+            secretRotation.mockClear()
+            secretRotation.mockReturnValue(ret as any)
 
             expect(
-                await handleEvent({ definition: handler as any, request: event.raw, context: ctx, handlers: eventHandlers })
+                await handleEvent({
+                    definition: handler as any,
+                    request: event.raw,
+                    context: ctx,
+                    handlers: { secretRotation },
+                })
             ).toBe(ret)
 
-            expect(eventHandlers.secretRotation).toHaveBeenCalledWith(handler, event.raw, ctx)
+            expect(secretRotation).toHaveBeenCalledWith(handler, event.raw, ctx)
         })
     })
 
@@ -122,22 +120,27 @@ describe('handleEvent', () => {
         const handler = sqsHandler({
             sqs: { handler: vi.fn(), schema: {} },
         })
+        const sqs = vi.fn()
+        const raw = vi.fn()
         await asyncForAll(tuple(arbitrary(SQSEvent), unknown(), await context()), async ([event, ret, ctx]) => {
-            eventHandlers.mockClear()
-            eventHandlers.sqs.mockReturnValue(ret as any)
+            raw.mockClear()
+            sqs.mockClear()
+            sqs.mockReturnValue(ret as any)
 
             const response = await handleEvent({
                 definition: handler as any,
                 request: event,
                 context: ctx,
-                handlers: eventHandlers,
+                handlers: { sqs, raw },
             })
             if (event.Records.length > 0) {
                 expect(response).toBe(ret)
-                expect(eventHandlers.sqs).toHaveBeenCalledWith(handler, event.Records, ctx)
+                expect(sqs).toHaveBeenCalledWith(handler, event.Records, ctx)
+                expect(raw).not.toHaveBeenCalled()
             } else {
                 expect(response).toBe(undefined)
-                expect(eventHandlers.sqs).not.toHaveBeenCalled()
+                expect(sqs).not.toHaveBeenCalled()
+                expect(raw).toHaveBeenCalledWith(handler, { Records: [] }, ctx)
             }
         })
     })
@@ -146,46 +149,88 @@ describe('handleEvent', () => {
         const handler = snsHandler({
             sns: { handler: vi.fn(), schema: {} },
         })
-        await asyncForAll(tuple(arbitrary(SNSEvent), unknown(), await context()), async ([event, ret, ctx]) => {
-            eventHandlers.mockClear()
-            eventHandlers.sns.mockReturnValue(ret as any)
+        const raw = vi.fn()
+        const sns = vi.fn()
+        await asyncForAll(
+            tuple(arbitrary(SNSEvent), unknown(), await context()),
+            async ([event, ret, ctx]) => {
+                raw.mockClear()
+                sns.mockClear()
+                sns.mockReturnValue(ret as any)
 
-            const response = await handleEvent({
-                definition: handler as any,
-                request: event as LambdaSnsEvent,
-                context: ctx,
-                handlers: eventHandlers,
-            })
-            if (event.Records.length > 0) {
-                expect(response).toBe(ret)
-                expect(eventHandlers.sns).toHaveBeenCalledWith(handler, event.Records, ctx)
-            } else {
-                expect(response).toBe(undefined)
-                expect(eventHandlers.sns).not.toHaveBeenCalled()
+                const response = await handleEvent({
+                    definition: handler as any,
+                    request: event as LambdaSnsEvent,
+                    context: ctx,
+                    handlers: { sns },
+                })
+                if (event.Records.length > 0) {
+                    expect(response).toBe(ret)
+                    expect(sns).toHaveBeenCalledWith(handler, event.Records, ctx)
+                    expect(raw).not.toHaveBeenCalled()
+                } else {
+                    expect(response).toBe(undefined)
+                    expect(raw).toHaveBeenCalledWith(handler, { Records: [] }, ctx)
+                    expect(sns).not.toHaveBeenCalled()
+                }
+            },
+            {
+                counterExample: [
+                    {
+                        Records: [
+                            {
+                                EventVersion: '',
+                                EventSubscriptionArn: '',
+                                EventSource: '',
+                                Sns: {
+                                    SignatureVersion: '',
+                                    Timestamp: '',
+                                    Signature: '',
+                                    SigningCertURL: '',
+                                    MessageId: '',
+                                    Message: '',
+                                    MessageAttributes: {},
+                                    Type: '',
+                                    UnsubscribeURL: '',
+                                    TopicArn: '',
+                                    Subject: '',
+                                    Token: '',
+                                },
+                            },
+                        ],
+                    },
+                    0,
+                    random(await context()),
+                ],
             }
-        })
+        )
     })
 
     it('kinesis', async () => {
         const handler = kinesisHandler({
             kinesis: { handler: vi.fn(), schema: {} },
         })
+        const kinesis = vi.fn()
+        const raw = vi.fn()
         await asyncForAll(tuple(arbitrary(KinesisStreamEvent), unknown(), await context()), async ([event, ret, ctx]) => {
-            eventHandlers.mockClear()
-            eventHandlers.kinesis.mockReturnValue(ret as any)
+            raw.mockClear()
+            kinesis.mockClear()
+            kinesis.mockReturnValue(ret as any)
 
             const response = await handleEvent({
                 definition: handler as any,
                 request: event,
                 context: ctx,
-                handlers: eventHandlers,
+                handlers: { raw, kinesis },
             })
             if (event.Records.length > 0) {
                 expect(response).toBe(ret)
-                expect(eventHandlers.kinesis).toHaveBeenCalledWith(handler, event.Records, ctx)
+                expect(kinesis).toHaveBeenCalledWith(handler, event.Records, ctx)
+                expect(raw).not.toHaveBeenCalled()
             } else {
                 expect(response).toBe(undefined)
-                expect(eventHandlers.kinesis).not.toHaveBeenCalled()
+                expect(raw).toHaveBeenCalledWith(handler, { Records: [] }, ctx)
+                expect(kinesis).not.toHaveBeenCalled()
             }
         })
     })
@@ -194,22 +239,27 @@ describe('handleEvent', () => {
         const handler = s3Handler({
             s3: { handler: vi.fn() },
         })
+        const s3 = vi.fn()
+        const raw = vi.fn()
         await asyncForAll(tuple(arbitrary(S3Event), unknown(), await context()), async ([event, ret, ctx]) => {
-            eventHandlers.mockClear()
-            eventHandlers.s3.mockReturnValue(ret as any)
+            raw.mockClear()
+            s3.mockClear()
+            s3.mockReturnValue(ret as any)
 
             const response = await handleEvent({
                 definition: handler as any,
                 request: event,
                 context: ctx,
-                handlers: eventHandlers,
+                handlers: { s3, raw },
             })
             if (event.Records.length > 0) {
                 expect(response).toBe(ret)
-                expect(eventHandlers.s3).toHaveBeenCalledWith(handler, event.Records, ctx)
+                expect(raw).not.toHaveBeenCalled()
+                expect(s3).toHaveBeenCalledWith(handler, event.Records, ctx)
             } else {
                 expect(response).toBe(undefined)
-                expect(eventHandlers.s3).not.toHaveBeenCalled()
+                expect(s3).not.toHaveBeenCalled()
+                expect(raw).toHaveBeenCalledWith(handler, { Records: [] }, ctx)
             }
         })
     })
@@ -218,24 +268,29 @@ describe('handleEvent', () => {
         const handler = firehoseHandler({
             firehose: { handler: vi.fn(), schema: {} },
         })
+        const firehose = vi.fn()
+        const raw = vi.fn()
         await asyncForAll(
             tuple(arbitrary(FirehoseTransformationEvent), unknown(), await context()),
             async ([event, ret, ctx]) => {
-                eventHandlers.mockClear()
-                eventHandlers.firehose.mockReturnValue(ret as any)
+                raw.mockClear()
+                firehose.mockClear()
+                firehose.mockReturnValue(ret as any)
 
                 const response = await handleEvent({
                     definition: handler as any,
                     request: event,
                     context: ctx,
-                    handlers: eventHandlers,
+                    handlers: { firehose, raw },
                 })
                 if (event.records.length > 0) {
                     expect(response).toBe(ret)
-                    expect(eventHandlers.firehose).toHaveBeenCalledWith(handler, event.records, ctx)
+                    expect(raw).not.toHaveBeenCalled()
+                    expect(firehose).toHaveBeenCalledWith(handler, event.records, ctx)
                 } else {
                     expect(response).toBe(undefined)
-                    expect(eventHandlers.firehose).not.toHaveBeenCalled()
+                    expect(raw).toHaveBeenCalledWith(handler, event, ctx)
+                    expect(firehose).not.toHaveBeenCalled()
                 }
             }
         )
@@ -245,22 +300,23 @@ describe('handleEvent', () => {
         const handler = s3BatchHandler({
             s3Batch: { handler: vi.fn(), schema: {} },
         })
+        const s3Batch = vi.fn()
         await asyncForAll(tuple(arbitrary(S3BatchEvent), unknown(), await context()), async ([event, ret, ctx]) => {
-            eventHandlers.mockClear()
-            eventHandlers.s3Batch.mockReturnValue(ret as any)
+            s3Batch.mockClear()
+            s3Batch.mockReturnValue(ret as any)
 
             const response = await handleEvent({
                 definition: handler as any,
                 request: event,
                 context: ctx,
-                handlers: eventHandlers,
+                handlers: { s3Batch },
             })
             if (event.tasks.length > 0) {
                 expect(response).toBe(ret)
-                expect(eventHandlers.s3Batch).toHaveBeenCalledWith(handler, event, ctx)
+                expect(s3Batch).toHaveBeenCalledWith(handler, event, ctx)
             } else {
                 expect(response).toBe(undefined)
-                expect(eventHandlers.s3Batch).not.toHaveBeenCalled()
+                expect(s3Batch).not.toHaveBeenCalled()
             }
         })
     })
@@ -269,9 +325,10 @@ describe('handleEvent', () => {
         const handler = rawHandler({
             raw: { handler: vi.fn(), schema: {} },
         })
+        const raw = vi.fn()
         await asyncForAll(tuple(unknown(), await context()), async ([ret, ctx]) => {
-            eventHandlers.mockClear()
-            eventHandlers.raw.mockReturnValue(ret as any)
+            raw.mockClear()
+            raw.mockReturnValue(ret as any)
 
             const records = event.records ?? event.Records
 
@@ -279,30 +336,29 @@ describe('handleEvent', () => {
                 definition: handler as any,
                 request: event as any,
                 context: ctx,
-                handlers: eventHandlers,
+                handlers: { raw },
             })
             // @todo: is this what we want?
             if (records.length > 0) {
                 expect(response).toBe(ret)
-                expect(eventHandlers.raw).toHaveBeenCalledWith(handler, event, ctx)
+                expect(raw).toHaveBeenCalledWith(handler, event, ctx)
             } else {
                 expect(response).toBe(undefined)
-                expect(eventHandlers.raw).not.toHaveBeenCalled()
+                expect(raw).not.toHaveBeenCalled()
             }
         })
     })
 
     it('raw', async () => {
         const handler = rawHandler({ raw: { schema: {}, handler: vi.fn() } })
+        const raw = vi.fn()
         await asyncForAll(tuple(unknown(), unknown(), await context()), async ([event, ret, ctx]) => {
-            eventHandlers.mockClear()
-            eventHandlers.raw.mockReturnValue(ret as any)
+            raw.mockClear()
+            raw.mockReturnValue(ret as any)
 
-            expect(await handleEvent({ definition: handler, request: event as any, context: ctx, handlers: eventHandlers })).toBe(
-                ret
-            )
+            expect(await handleEvent({ definition: handler, request: event as any, context: ctx, handlers: { raw } })).toBe(ret)
 
-            expect(eventHandlers.raw).toHaveBeenCalledWith(handler, event, ctx)
+            expect(raw).toHaveBeenCalledWith(handler, event, ctx)
         })
     })
 })
@@ -310,9 +366,9 @@ describe('handleEvent', () => {
 describe('createLambdaContext', () => {
     it('set manual observability', async () => {
         await asyncForAll(await context(), async (ctx) => {
-            const l = unsafeMock<Logger>()
-            const m = unsafeMock<Metrics>()
-            const t = unsafeMock<Tracer>()
+            const l = mockLogger()
+            const m = mockMetrics()
+            const t = mockTracer()
             const lCtx = await createLambdaContext({
                 definition: { raw: { handler: vi.fn(), schema: {} } },
                 context: ctx.raw,
@@ -338,9 +394,9 @@ describe('createLambdaContext', () => {
 
     it('set trace and request', async () => {
         await asyncForAll(tuple(await context(), string(), string()), async ([ctx, traceId, requestId]) => {
-            const l = unsafeMock<Logger>()
-            const m = unsafeMock<Metrics>()
-            const t = unsafeMock<Tracer>()
+            const l = mockLogger()
+            const m = mockMetrics()
+            const t = mockTracer()
             const lCtx = await createLambdaContext({
                 definition: { raw: { handler: vi.fn(), schema: {} } },
                 context: ctx.raw,
@@ -368,9 +424,9 @@ describe('createLambdaContext', () => {
         await asyncForAll(
             tuple(await context(), string({ minLength: 4 }), string({ minLength: 4 })),
             async ([ctx, traceId, requestId]) => {
-                const l = unsafeMock<Logger>()
-                const m = unsafeMock<Metrics>()
-                const t = unsafeMock<Tracer>()
+                const l = mockLogger()
+                const m = mockMetrics()
+                const t = mockTracer()
                 const lCtx = await createLambdaContext({
                     definition: { raw: { handler: vi.fn(), schema: {} } },
                     context: ctx.raw,
@@ -399,6 +455,17 @@ describe('createLambdaContext', () => {
 })
 
 describe('eventHandler', () => {
+    const tracerInstanceMock = () => ({
+        isTracingEnabled: vi.fn().mockReturnValue(true),
+        getSegment: vi.fn(),
+        setSegment: vi.fn(),
+        putMetadata: vi.fn(),
+        annotateColdStart: vi.fn(),
+        addServiceNameAnnotation: vi.fn(),
+        addErrorAsMetadata: vi.fn(),
+        addResponseAsMetadata: vi.fn(),
+    })
+
     it('handler is definition', () => {
         forAll(dict(unknown()), (meta) => {
             const handler = eventHandler({
@@ -535,14 +602,18 @@ describe('eventHandler', () => {
                     Configuration: JSON.stringify(profile),
                 } as any)
 
-                const l = ctx.logger
-                const setbinding = vi.spyOn(l, 'setBindings')
-                const m = createMetrics(unsafeMock())
-                const t = createTracer(unsafeMock())
+                const setbinding = vi.spyOn(ctx.logger, 'setBindings')
 
-                const getSegment = unsafeMock<any>()
-                ;(t.instance.isTracingEnabled as any).mockReturnValue(true)
-                ;(t.instance.getSegment as any).mockReturnValue(getSegment)
+                const getSegmentVal = {
+                    addNewSubsegment: vi.fn(),
+                    close: vi.fn(),
+                }
+                ;(ctx.metrics.instance as unknown as { storedMetrics: any }).storedMetrics.foo = true
+                vi.spyOn(ctx.metrics.instance, 'publishStoredMetrics')
+
+                const tracerInstance = tracerInstanceMock()
+                tracerInstance.getSegment.mockReturnValue(getSegmentVal)
+                ctx.tracer.instance = tracerInstance as any
 
                 const handlerImpl = vi.fn().mockResolvedValue(ret)
                 const config = vi.fn().mockResolvedValue(c)
@@ -552,9 +623,9 @@ describe('eventHandler', () => {
                     services,
                     raw: { schema: {}, handler: vi.fn() },
                     profile: { schema: { schema: { type: 'object' }, is: () => true } },
-                    logger: l,
-                    metrics: m,
-                    tracer: t,
+                    logger: ctx.logger,
+                    metrics: ctx.metrics,
+                    tracer: ctx.tracer,
                 }
                 const handler = eventHandler(definition as unknown as EventHandler, {
                     eventHandler: handlerImpl,
@@ -574,13 +645,13 @@ describe('eventHandler', () => {
 
                 const rCtx = handlerImpl.mock.calls[0][0].context
                 expect(setbinding).toBeCalledWith({ requestId: rCtx.requestId, traceId: rCtx.traceId })
-                expect(rCtx.logger).toBe(l)
+                expect(rCtx.logger).toBe(ctx.logger)
                 expect(rCtx.logger).not.toBe(logger)
                 expect(rCtx.profile).toEqual(profile)
-                expect(m.instance.publishStoredMetrics).toHaveBeenCalled()
+                expect(ctx.metrics.instance.publishStoredMetrics).toHaveBeenCalled()
 
-                expect(getSegment.addNewSubsegment).toHaveBeenLastCalledWith('## ')
-                expect(getSegment.close).toHaveBeenCalled()
+                expect(getSegmentVal.addNewSubsegment).toHaveBeenLastCalledWith('## ')
+                expect(getSegmentVal.close).toHaveBeenCalled()
             }
         )
     })
@@ -599,13 +670,16 @@ describe('eventHandler', () => {
                     Configuration: JSON.stringify(profile),
                 } as any)
 
-                const l = createLogger({ instance: unsafeMock() })
-                const m = createMetrics(unsafeMock())
-                const t = createTracer(unsafeMock())
+                const getSegmentVal = {
+                    addNewSubsegment: vi.fn(),
+                    close: vi.fn(),
+                }
+                ;(ctx.metrics.instance as unknown as { storedMetrics: any }).storedMetrics.foo = true
+                vi.spyOn(ctx.metrics.instance, 'publishStoredMetrics')
 
-                const getSegment = unsafeMock<any>()
-                ;(t.instance.isTracingEnabled as any).mockReturnValue(true)
-                ;(t.instance.getSegment as any).mockReturnValue(getSegment)
+                const tracerInstance = tracerInstanceMock()
+                ctx.tracer.instance = tracerInstance as any
+                tracerInstance.getSegment.mockReturnValue(getSegmentVal)
 
                 const handlerImpl = vi.fn().mockResolvedValue(ret)
                 const config = vi.fn().mockResolvedValue(c)
@@ -615,9 +689,9 @@ describe('eventHandler', () => {
                     services,
                     raw: { schema: {}, handler: vi.fn() },
                     profile: { schema: { schema: { type: 'object' }, is: () => false } },
-                    logger: l,
-                    metrics: m,
-                    tracer: t,
+                    logger: ctx.logger,
+                    metrics: ctx.metrics,
+                    tracer: ctx.tracer,
                 }
                 const handler = eventHandler(definition as unknown as EventHandler, {
                     eventHandler: handlerImpl,
@@ -630,10 +704,10 @@ describe('eventHandler', () => {
                 expect(services).toHaveBeenCalledWith(c)
 
                 expect(handlerImpl).not.toHaveBeenCalled()
-                expect(m.instance.publishStoredMetrics).toHaveBeenCalled()
+                expect(ctx.metrics.instance.publishStoredMetrics).toHaveBeenCalled()
 
-                expect(getSegment.addNewSubsegment).toHaveBeenLastCalledWith('## ')
-                expect(getSegment.close).toHaveBeenCalled()
+                expect(getSegmentVal.addNewSubsegment).toHaveBeenLastCalledWith('## ')
+                expect(getSegmentVal.close).toHaveBeenCalled()
             }
         )
     })
@@ -642,14 +716,18 @@ describe('eventHandler', () => {
         await asyncForAll(
             tuple(unknown(), unknown(), unknown(), unknown(), await context()),
             async ([request, c, s, ret, ctx]) => {
-                const l = ctx.logger
-                const setbinding = vi.spyOn(l, 'setBindings')
-                const m = createMetrics(unsafeMock())
-                const t = createTracer(unsafeMock())
+                const setbinding = vi.spyOn(ctx.logger, 'setBindings')
 
-                const getSegment = unsafeMock<any>()
-                ;(t.instance.isTracingEnabled as any).mockReturnValue(true)
-                ;(t.instance.getSegment as any).mockReturnValue(getSegment)
+                const getSegmentVal = {
+                    addNewSubsegment: vi.fn(),
+                    close: vi.fn(),
+                }
+                ;(ctx.metrics.instance as unknown as { storedMetrics: any }).storedMetrics.foo = true
+                vi.spyOn(ctx.metrics.instance, 'publishStoredMetrics')
+
+                const tracerInstance = tracerInstanceMock()
+                ctx.tracer.instance = tracerInstance as any
+                tracerInstance.getSegment.mockReturnValue(getSegmentVal)
 
                 const handlerImpl = vi.fn().mockResolvedValue(ret)
                 const config = vi.fn().mockResolvedValue(c)
@@ -658,9 +736,9 @@ describe('eventHandler', () => {
                     config,
                     services,
                     raw: { schema: {}, handler: vi.fn() },
-                    logger: l,
-                    metrics: m,
-                    tracer: t,
+                    logger: ctx.logger,
+                    metrics: ctx.metrics,
+                    tracer: ctx.tracer,
                 }
                 const handler = eventHandler(definition, {
                     eventHandler: handlerImpl,
@@ -680,12 +758,12 @@ describe('eventHandler', () => {
 
                 const rCtx = handlerImpl.mock.calls[0][0].context
                 expect(setbinding).toBeCalledWith({ requestId: rCtx.requestId, traceId: rCtx.traceId })
-                expect(rCtx.logger).toBe(l)
+                expect(rCtx.logger).toBe(ctx.logger)
                 expect(rCtx.logger).not.toBe(logger)
-                expect(m.instance.publishStoredMetrics).toHaveBeenCalled()
+                expect(ctx.metrics.instance.publishStoredMetrics).toHaveBeenCalled()
 
-                expect(getSegment.addNewSubsegment).toHaveBeenLastCalledWith('## ')
-                expect(getSegment.close).toHaveBeenCalled()
+                expect(getSegmentVal.addNewSubsegment).toHaveBeenLastCalledWith('## ')
+                expect(getSegmentVal.close).toHaveBeenCalled()
             }
         )
     })
@@ -694,15 +772,19 @@ describe('eventHandler', () => {
         await asyncForAll(
             tuple(unknown(), unknown(), unknown(), unknown().map(failure), await context()),
             async ([request, c, s, ret, ctx]) => {
-                const l = ctx.logger
-                const setbinding = vi.spyOn(l, 'setBindings')
+                const setbinding = vi.spyOn(ctx.logger, 'setBindings')
+                ;(ctx.metrics.instance as unknown as { storedMetrics: any }).storedMetrics.foo = true
+                vi.spyOn(ctx.metrics.instance, 'publishStoredMetrics')
 
-                const m = createMetrics(unsafeMock())
-                const t = createTracer(unsafeMock())
+                const tracerInstance = tracerInstanceMock()
+                ctx.tracer.instance = tracerInstance as any
 
-                const getSegment = unsafeMock<any>()
-                ;(t.instance.isTracingEnabled as any).mockReturnValue(true)
-                ;(t.instance.getSegment as any).mockReturnValue(getSegment)
+                const getSegment = {
+                    addNewSubsegment: vi.fn(),
+                    close: vi.fn(),
+                }
+                ;(ctx.tracer.instance.isTracingEnabled as any).mockReturnValue(true)
+                ;(ctx.tracer.instance.getSegment as any).mockReturnValue(getSegment)
 
                 const handlerImpl = vi.fn().mockResolvedValue(ret)
                 const config = vi.fn().mockResolvedValue(c)
@@ -711,9 +793,9 @@ describe('eventHandler', () => {
                     config,
                     services,
                     raw: { schema: {}, handler: vi.fn() },
-                    logger: l,
-                    metrics: m,
-                    tracer: t,
+                    logger: ctx.logger,
+                    metrics: ctx.metrics,
+                    tracer: ctx.tracer,
                 }
                 const handler = eventHandler(definition, {
                     eventHandler: handlerImpl,
@@ -733,9 +815,9 @@ describe('eventHandler', () => {
 
                 const rCtx = handlerImpl.mock.calls[0][0].context
                 expect(setbinding).toBeCalledWith({ requestId: rCtx.requestId, traceId: rCtx.traceId })
-                expect(rCtx.logger).toBe(l)
+                expect(rCtx.logger).toBe(ctx.logger)
                 expect(rCtx.logger).not.toBe(logger)
-                expect(m.instance.publishStoredMetrics).toHaveBeenCalled()
+                expect(ctx.metrics.instance.publishStoredMetrics).toHaveBeenCalled()
 
                 expect(getSegment.addNewSubsegment).toHaveBeenLastCalledWith('## ')
                 expect(getSegment.close).toHaveBeenCalled()
@@ -749,22 +831,22 @@ describe('eventHandler', () => {
                 unknown(),
                 unknown(),
                 unknown(),
-                string().map((f) => {
-                    const error = new EventError(f, { errorHandling: 'graceful' })
-                    return error
-                }),
+                string().map((f) => new EventError(f, { errorHandling: 'graceful' })),
                 await context()
             ),
             async ([request, c, s, ret, ctx]) => {
-                const l = ctx.logger
-                const setbinding = vi.spyOn(l, 'setBindings')
+                const setbinding = vi.spyOn(ctx.logger, 'setBindings')
 
-                const m = createMetrics(unsafeMock())
-                const t = createTracer(unsafeMock())
+                const getSegmentVal = {
+                    addNewSubsegment: vi.fn(),
+                    close: vi.fn(),
+                }
+                ;(ctx.metrics.instance as unknown as { storedMetrics: any }).storedMetrics.foo = true
+                vi.spyOn(ctx.metrics.instance, 'publishStoredMetrics')
 
-                const getSegment = unsafeMock<any>()
-                ;(t.instance.isTracingEnabled as any).mockReturnValue(true)
-                ;(t.instance.getSegment as any).mockReturnValue(getSegment)
+                const tracerInstance = tracerInstanceMock()
+                ctx.tracer.instance = tracerInstance as any
+                tracerInstance.getSegment.mockReturnValue(getSegmentVal)
 
                 const handlerImpl = vi.fn().mockResolvedValue(ret)
                 const config = vi.fn().mockResolvedValue(c)
@@ -773,9 +855,9 @@ describe('eventHandler', () => {
                     config,
                     services,
                     raw: { schema: {}, handler: vi.fn() },
-                    logger: l,
-                    metrics: m,
-                    tracer: t,
+                    logger: ctx.logger,
+                    metrics: ctx.metrics,
+                    tracer: ctx.tracer,
                 }
                 const handler = eventHandler(definition, {
                     eventHandler: handlerImpl,
@@ -795,12 +877,12 @@ describe('eventHandler', () => {
 
                 const rCtx = handlerImpl.mock.calls[0][0].context
                 expect(setbinding).toBeCalledWith({ requestId: rCtx.requestId, traceId: rCtx.traceId })
-                expect(rCtx.logger).toBe(l)
+                expect(rCtx.logger).toBe(ctx.logger)
                 expect(rCtx.logger).not.toBe(logger)
-                expect(m.instance.publishStoredMetrics).toHaveBeenCalled()
+                expect(ctx.metrics.instance.publishStoredMetrics).toHaveBeenCalled()
 
-                expect(getSegment.addNewSubsegment).toHaveBeenLastCalledWith('## ')
-                expect(getSegment.close).toHaveBeenCalled()
+                expect(getSegmentVal.addNewSubsegment).toHaveBeenLastCalledWith('## ')
+                expect(getSegmentVal.close).toHaveBeenCalled()
             }
         )
     })
