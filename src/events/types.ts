@@ -9,6 +9,7 @@ import type { SecretsManager } from '@aws-sdk/client-secrets-manager'
 import type { Context } from 'aws-lambda'
 
 export interface DefaultServices {
+    [k: PropertyKey]: unknown
     appConfigData?: AppConfigData
     secretsManager?: SecretsManager
 }
