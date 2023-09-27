@@ -1,11 +1,24 @@
 import { EventError } from '../../../errors/index.js'
-import type { HTTPEventHandler, HTTPRequest } from '../types.js'
+import type { GatewayVersion, HTTPEventHandler, HTTPRequest } from '../types.js'
 
 import type { Try } from '@skyleague/axioms'
 
-export function httpIOValidate() {
+export function httpIOValidate<
+    Configuration,
+    Service,
+    Profile,
+    Body,
+    Path,
+    Query,
+    Headers,
+    Result,
+    GV extends GatewayVersion = 'http',
+>() {
     return {
-        before: (http: HTTPEventHandler, event: HTTPRequest): Try<HTTPRequest> => {
+        before: (
+            http: HTTPEventHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, GV>,
+            event: HTTPRequest
+        ): Try<HTTPRequest<Body, Path, Query, Headers, GV>> => {
             if (http.schema.body?.is(event.body) === false) {
                 return EventError.validation({ errors: http.schema.body.errors, location: 'body' })
             }
@@ -19,7 +32,7 @@ export function httpIOValidate() {
                 return EventError.validation({ errors: http.schema.headers.errors, location: 'headers' })
             }
 
-            return event
+            return event as HTTPRequest<Body, Path, Query, Headers, GV>
         },
     }
 }

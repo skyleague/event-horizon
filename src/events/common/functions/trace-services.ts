@@ -1,5 +1,5 @@
-import type { Tracer } from '../../observability/index.js'
-import { isAWSv3Client } from '../../services/is-client/is-client.js'
+import type { Tracer } from '../../../observability/index.js'
+import { isAWSv3Client } from '../../../services/is-client/is-client.js'
 
 import { isObject } from '@skyleague/axioms'
 

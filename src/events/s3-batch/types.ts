@@ -17,7 +17,7 @@ export interface S3BatchTask {
     raw: { task: S3BatchEventTask; job: Omit<S3BatchEvent, 'tasks'> }
 }
 
-export interface S3BatchEventHandler<Configuration = never, Service = never, Profile = never, Result = unknown> {
+export interface S3BatchEventHandler<Configuration = unknown, Service = unknown, Profile = unknown, Result = unknown> {
     schema: {
         result?: Schema<Result>
     }
@@ -29,7 +29,7 @@ export interface S3BatchEventHandler<Configuration = never, Service = never, Pro
     treatErrorsAs?: S3BatchResultResultCode
 }
 
-export interface S3BatchHandler<Configuration = never, Service = never, Profile = never, Result = unknown>
+export interface S3BatchHandler<Configuration = unknown, Service = unknown, Profile = unknown, Result = unknown>
     extends EventHandlerDefinition<Configuration, Service, Profile> {
     s3Batch: S3BatchEventHandler<Configuration, Service, Profile, Result>
 }

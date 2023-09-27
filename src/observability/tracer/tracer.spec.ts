@@ -2,70 +2,94 @@ import { createTracer } from './tracer.js'
 
 import type { Tracer as AWSTracer } from '@aws-lambda-powertools/tracer'
 import { asyncForAll, string, tuple, unknown } from '@skyleague/axioms'
-import { expect, describe, beforeEach, it, vi } from 'vitest'
+import { expect, beforeEach, it, vi } from 'vitest'
 
-describe('tracer', () => {
-    const instance = {
-        getSegment: vi.fn(),
-        setSegment: vi.fn(),
-        addResponseAsMetadata: vi.fn(),
-        addErrorAsMetadata: vi.fn(),
-        mockClear: () => {
-            instance.getSegment.mockClear()
-            instance.setSegment.mockClear()
-            instance.addResponseAsMetadata.mockClear()
-            instance.addErrorAsMetadata.mockClear()
-        },
-    }
-    const tracer = createTracer(instance as unknown as AWSTracer)
+const subsegment = {
+    close: vi.fn(),
+    flush: vi.fn(),
+    mockClear: () => {
+        subsegment.close.mockClear()
+        subsegment.flush.mockClear()
+    },
+}
+const instance = {
+    addResponseAsMetadata: vi.fn(),
+    addErrorAsMetadata: vi.fn(),
+    isTracingEnabled: vi.fn(),
+    provider: {
+        captureAsyncFunc: vi.fn().mockImplementation((segmentName, fn) => fn(subsegment)),
+    },
+    mockClear: () => {
+        instance.addResponseAsMetadata.mockClear()
+        instance.addErrorAsMetadata.mockClear()
+        instance.isTracingEnabled.mockClear().mockReturnValue(true)
+        instance.provider.captureAsyncFunc.mockClear()
+    },
+}
+const tracer = createTracer(instance as unknown as AWSTracer)
 
-    beforeEach(() => instance.mockClear())
+beforeEach(() => instance.mockClear())
 
-    it('trace successful fn', async () => {
-        await asyncForAll(tuple(string(), unknown()), async ([segment, response]) => {
-            instance.mockClear()
+it('trace successful fn', async () => {
+    await asyncForAll(tuple(string(), unknown()), async ([segment, response]) => {
+        instance.mockClear()
+        subsegment.mockClear()
 
-            const current = { addNewSubsegment: vi.fn() }
+        const fn = vi.fn().mockReturnValue(response)
+        expect(await tracer.trace(segment, fn)).toBe(response)
 
-            const subsegment = { close: vi.fn() }
+        expect(instance.addResponseAsMetadata).toHaveBeenCalledWith(response, process.env._HANDLER)
 
-            current.addNewSubsegment.mockReturnValue(subsegment as any)
-            instance.getSegment.mockReturnValue(current as any)
-
-            const fn = vi.fn().mockReturnValue(response)
-
-            expect(await tracer.trace(segment, fn)).toBe(response)
-
-            expect(instance.setSegment).toHaveBeenNthCalledWith(1, subsegment)
-            expect(instance.setSegment).toHaveBeenNthCalledWith(2, current)
-
-            expect(instance.addResponseAsMetadata).toHaveBeenCalledWith(response, process.env._HANDLER)
-
-            expect(subsegment.close).toHaveBeenCalled()
-        })
+        expect(subsegment.close).toHaveBeenCalled()
+        expect(subsegment.flush).toHaveBeenCalled()
     })
+})
 
-    it('trace rejected fn', async () => {
-        await asyncForAll(tuple(string(), unknown()), async ([segment, response]) => {
-            instance.mockClear()
+it('trace rejected fn', async () => {
+    await asyncForAll(tuple(string(), unknown()), async ([segment, response]) => {
+        instance.mockClear()
+        subsegment.mockClear()
 
-            const current = { addNewSubsegment: vi.fn() }
+        const fn = vi.fn().mockRejectedValue(response)
 
-            const subsegment = { close: vi.fn() }
+        await expect(() => tracer.trace(segment, fn)).rejects.toBe(response)
 
-            current.addNewSubsegment.mockReturnValue(subsegment as any)
-            instance.getSegment.mockReturnValue(current as any)
+        expect(instance.addErrorAsMetadata).toHaveBeenCalledWith(response)
 
-            const fn = vi.fn().mockRejectedValue(response)
+        expect(subsegment.close).toHaveBeenCalled()
+        expect(subsegment.flush).toHaveBeenCalled()
+    })
+})
 
-            await expect(() => tracer.trace(segment, fn)).rejects.toBe(response)
+it('trace successful fn - disabled tracing', async () => {
+    await asyncForAll(tuple(string(), unknown()), async ([segment, response]) => {
+        instance.mockClear()
+        subsegment.mockClear()
+        instance.isTracingEnabled.mockReturnValue(false)
 
-            expect(instance.setSegment).toHaveBeenNthCalledWith(1, subsegment)
-            expect(instance.setSegment).toHaveBeenNthCalledWith(2, current)
+        const fn = vi.fn().mockReturnValue(response)
+        expect(await tracer.trace(segment, fn)).toBe(response)
 
-            expect(instance.addErrorAsMetadata).toHaveBeenCalledWith(response)
+        expect(instance.addResponseAsMetadata).not.toHaveBeenCalled()
 
-            expect(subsegment.close).toHaveBeenCalled()
-        })
+        expect(subsegment.close).not.toHaveBeenCalled()
+        expect(subsegment.flush).not.toHaveBeenCalled()
+    })
+})
+
+it('trace rejected fn - disabled tracing', async () => {
+    await asyncForAll(tuple(string(), unknown()), async ([segment, response]) => {
+        instance.mockClear()
+        subsegment.mockClear()
+        instance.isTracingEnabled.mockReturnValue(false)
+
+        const fn = vi.fn().mockRejectedValue(response)
+
+        await expect(() => tracer.trace(segment, fn)).rejects.toBe(response)
+
+        expect(instance.addErrorAsMetadata).not.toHaveBeenCalled()
+
+        expect(subsegment.close).not.toHaveBeenCalled()
+        expect(subsegment.flush).not.toHaveBeenCalled()
     })
 })

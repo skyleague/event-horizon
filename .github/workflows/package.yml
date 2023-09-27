@@ -2,6 +2,12 @@ name: Typescript Package CI
 
 on:
   push:
+    branches:
+      - main
+  pull_request:
+    types:
+      - opened
+      - synchronize
   workflow_dispatch:
     inputs:
       beta_release:

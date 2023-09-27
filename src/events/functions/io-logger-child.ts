@@ -5,7 +5,7 @@ export interface IOLoggerOptions {
     type: string
 }
 
-export function ioLoggerChild<C extends LambdaContext<unknown, unknown>>(ctx: C, logger: Logger) {
+export function ioLoggerChild<C extends LambdaContext>(ctx: C, logger: Logger) {
     return {
         before: (bindings: Record<string, unknown>) => {
             ctx.logger = logger.child(bindings)

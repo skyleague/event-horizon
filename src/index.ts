@@ -1,7 +1,6 @@
 export * from './docs/index.js'
 export * from './errors/index.js'
 export * from './events/index.js'
-export * from './handlers/index.js'
 export * from './observability/index.js'
 export * from './parsers/index.js'
 export * from './services/index.js'

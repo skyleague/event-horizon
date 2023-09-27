@@ -1,8 +1,12 @@
-import type { LambdaContext } from '../types.js'
+import type { LambdaContext } from '../../types.js'
 
 import type { Segment, Subsegment } from 'aws-xray-sdk-core'
 
-export function traceInvocation({ tracer, traceId, requestId }: LambdaContext) {
+export function traceInvocation({ tracer, traceId, requestId }: LambdaContext): {
+    before: () => void
+    after: (response: unknown) => void
+    onError: (error: Error) => undefined
+} {
     let lambdaSegment: Segment | Subsegment | undefined
 
     function startSegment(): void {

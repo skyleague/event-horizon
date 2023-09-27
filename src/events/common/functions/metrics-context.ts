@@ -1,5 +1,5 @@
-import type { Dimensions } from '../../observability/metrics/metrics.js'
-import type { LambdaContext } from '../types.js'
+import type { Dimensions } from '../../../observability/metrics/metrics.js'
+import type { LambdaContext } from '../../types.js'
 
 export function metricsContext(
     { metrics }: LambdaContext,
@@ -12,8 +12,8 @@ export function metricsContext(
         captureColdStartMetric?: boolean
         functionName?: string
     } = {}
-) {
-    function publishMetrics() {
+): { before: () => void; after: () => void; onError: () => undefined } {
+    function publishMetrics(): undefined {
         // prevent logging an error inside the cloudwatch logs
         const storedMetrics = (metrics.instance as unknown as { storedMetrics?: object }).storedMetrics
         if (storedMetrics === undefined || Object.keys(storedMetrics).length > 0) {

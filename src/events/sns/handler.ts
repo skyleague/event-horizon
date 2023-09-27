@@ -10,10 +10,14 @@ import type { Try } from '@skyleague/axioms'
 import { enumerate, isFailure, mapTry } from '@skyleague/axioms'
 import type { SNSEventRecord } from 'aws-lambda'
 
-export async function handleSNSEvent(handler: SNSHandler, events: SNSEventRecord[], context: LambdaContext): Promise<Try<void>> {
+export async function handleSNSEvent<Configuration, Service, Profile, Payload>(
+    handler: SNSHandler<Configuration, Service, Profile, Payload>,
+    events: SNSEventRecord[],
+    context: LambdaContext<Configuration, Service, Profile>
+): Promise<Try<void>> {
     const { sns } = handler
     const parseEventFn = snsParseEvent(sns)
-    const ioValidateFn = ioValidate<SNSEvent>({ input: (x) => x.payload })
+    const ioValidateFn = ioValidate<SNSEvent>()
     const ioLoggerFn = ioLogger({ type: 'sns' }, context)
     const ioLoggerChildFn = ioLoggerChild(context, context.logger)
 
@@ -27,7 +31,7 @@ export async function handleSNSEvent(handler: SNSHandler, events: SNSEventRecord
                 messageId: unvalidatedSnsEvent.raw.Sns.MessageId,
             })
 
-            return ioValidateFn.before(sns.schema.payload, unvalidatedSnsEvent)
+            return ioValidateFn.before(sns.schema.payload, unvalidatedSnsEvent, 'payload')
         })
 
         ioLoggerFn.before(snsEvent, item)

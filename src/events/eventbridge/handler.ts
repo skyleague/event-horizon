@@ -3,26 +3,36 @@ import type { EventBridgeEvent, EventBridgeHandler } from './types.js'
 
 import { ioLogger } from '../functions/io-logger.js'
 import { ioValidate } from '../functions/io-validate.js'
-import type { LambdaContext } from '../types.js'
+import type { DefaultServices, LambdaContext } from '../types.js'
 
 import type { Try } from '@skyleague/axioms'
 import { mapTry } from '@skyleague/axioms'
 import type { EventBridgeEvent as AWSEventBridgeEvent } from 'aws-lambda'
 
-export async function handleEventBridgeEvent(
-    handler: EventBridgeHandler,
+export async function handleEventBridgeEvent<
+    Configuration,
+    Service extends DefaultServices | undefined,
+    Profile,
+    Payload,
+    Result,
+>(
+    handler: EventBridgeHandler<Configuration, Service, Profile, Payload, Result>,
     event: AWSEventBridgeEvent<string, unknown>,
-    context: LambdaContext
+    context: LambdaContext<Configuration, Service, Profile>
 ): Promise<Try<unknown>> {
     const { eventBridge } = handler
 
     const parseEventFn = eventBridgeParseEvent()
-    const ioValidateFn = ioValidate<EventBridgeEvent>({ input: (x) => x.payload })
+    const ioValidateFn = ioValidate<EventBridgeEvent>()
     const ioLoggerFn = ioLogger({ type: 'eventbridge' }, context)
 
-    const ebEvent = mapTry(event, (e) => {
+    const ebEvent = mapTry(event, (e): EventBridgeEvent<Payload> => {
         const unvalidatedEbEvent = parseEventFn.before(e)
-        return ioValidateFn.before(eventBridge.schema.payload, unvalidatedEbEvent)
+        return ioValidateFn.before<Payload, 'payload', EventBridgeEvent<Payload>>(
+            eventBridge.schema.payload,
+            unvalidatedEbEvent,
+            'payload'
+        )
     })
 
     ioLoggerFn.before(ebEvent)

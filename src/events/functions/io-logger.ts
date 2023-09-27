@@ -5,7 +5,7 @@ export interface IOLoggerOptions {
     type: string
 }
 
-export function ioLogger<C extends LambdaContext<unknown, unknown>>({ type }: IOLoggerOptions, { logger, isSensitive }: C) {
+export function ioLogger<C extends LambdaContext>({ type }: IOLoggerOptions, { logger, isSensitive }: C) {
     return {
         before: (event: unknown, meta?: Record<string, unknown>) => {
             if (!isSensitive) {

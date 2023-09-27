@@ -1,11 +1,15 @@
+import type { HttpError } from './http-error.type.js'
+
 import { constants } from '../../../constants.js'
 import { EventError } from '../../../errors/event-error/index.js'
 import type { LambdaContext } from '../../types.js'
 import type { HTTPResponse } from '../types.js'
 
-export function httpErrorHandler({ logger, isSensitive }: LambdaContext) {
+import { omitUndefined } from '@skyleague/axioms'
+
+export function httpErrorHandler({ logger, isSensitive }: Pick<LambdaContext, 'logger' | 'isSensitive'>) {
     return {
-        onError: (error: Error | unknown): HTTPResponse => {
+        onError: (error: Error | unknown): HTTPResponse<HttpError> => {
             const eventError = EventError.from(error)
 
             if (!isSensitive) {
@@ -20,14 +24,14 @@ export function httpErrorHandler({ logger, isSensitive }: LambdaContext) {
 
             return {
                 statusCode: eventError.statusCode,
-                body: {
+                body: omitUndefined({
                     statusCode: eventError.statusCode,
                     message: eventError.expose && !isSensitive ? eventError.message : eventError.name,
                     stack:
                         constants.isDebug && eventError.expose && eventError.isServerError && !isSensitive
                             ? eventError.stack
                             : undefined,
-                },
+                }),
             }
         },
     }

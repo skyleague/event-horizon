@@ -9,7 +9,7 @@ export interface SNSEvent<Payload = unknown> {
     raw: SNSEventRecord
 }
 
-export interface SNSEventHandler<Configuration = never, Service = never, Profile = never, Payload = unknown> {
+export interface SNSEventHandler<Configuration = unknown, Service = unknown, Profile = unknown, Payload = unknown> {
     schema: {
         payload?: Schema<Payload>
     }
@@ -17,7 +17,7 @@ export interface SNSEventHandler<Configuration = never, Service = never, Profile
     payloadType?: 'binary' | 'json' | 'plaintext'
 }
 
-export interface SNSHandler<Configuration = never, Service = never, Profile = never, Payload = unknown>
+export interface SNSHandler<Configuration = unknown, Service = unknown, Profile = unknown, Payload = unknown>
     extends EventHandlerDefinition<Configuration, Service, Profile> {
     sns: SNSEventHandler<Configuration, Service, Profile, Payload>
 }

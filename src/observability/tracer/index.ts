@@ -1,1 +1,1 @@
-export { Tracer, tracer } from './tracer.js'
+export { type Tracer, tracer } from './tracer.js'

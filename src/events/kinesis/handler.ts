@@ -11,16 +11,16 @@ import type { Try } from '@skyleague/axioms'
 import { enumerate, isLeft, mapLeft, mapTry, tryToEither, tryAsValue } from '@skyleague/axioms'
 import type { KinesisStreamBatchItemFailure, KinesisStreamBatchResponse, KinesisStreamRecord } from 'aws-lambda'
 
-export async function handleKinesisEvent(
-    handler: KinesisHandler,
+export async function handleKinesisEvent<Configuration, Service, Profile, Payload>(
+    handler: KinesisHandler<Configuration, Service, Profile, Payload>,
     events: KinesisStreamRecord[],
-    context: LambdaContext
+    context: LambdaContext<Configuration, Service, Profile>
 ): Promise<Try<KinesisStreamBatchResponse | void>> {
     const { kinesis } = handler
 
     const errorHandlerFn = kinesisErrorHandler(context)
     const parseEventFn = kinesisParseEvent(kinesis)
-    const ioValidateFn = ioValidate<KinesisEvent>({ input: (e) => e.payload })
+    const ioValidateFn = ioValidate<KinesisEvent>()
     const ioLoggerFn = ioLogger({ type: 'kinesis' }, context)
     const ioLoggerChildFn = ioLoggerChild(context, context.logger)
 
@@ -36,7 +36,7 @@ export async function handleKinesisEvent(
                 eventId: unvalidatedKinesisEvent.raw.eventID,
             })
 
-            return ioValidateFn.before(kinesis.schema.payload, unvalidatedKinesisEvent)
+            return ioValidateFn.before(kinesis.schema.payload, unvalidatedKinesisEvent, 'payload')
         })
 
         ioLoggerFn.before(tryAsValue(kinesisEvent), item)

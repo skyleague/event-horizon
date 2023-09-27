@@ -12,17 +12,17 @@ import type { Try } from '@skyleague/axioms'
 import { enumerate, mapTry, transformTry, isSuccess } from '@skyleague/axioms'
 import type { S3BatchEvent, S3BatchResult, S3BatchResultResult } from 'aws-lambda'
 
-export async function handleS3Batch(
-    handler: S3BatchHandler,
+export async function handleS3Batch<Configuration, Service, Profile, Result>(
+    handler: S3BatchHandler<Configuration, Service, Profile, Result>,
     event: S3BatchEvent,
-    context: LambdaContext
+    context: LambdaContext<Configuration, Service, Profile>
 ): Promise<Try<S3BatchResult>> {
     const { s3Batch } = handler
 
     const errorHandlerFn = s3BatchErrorHandler(handler, context)
-    const serializeResult = s3BatchSerializeResult()
+    const serializeResult = s3BatchSerializeResult<Result>()
     const parseEventFn = s3BatchParseEvent()
-    const ioValidateFn = ioValidate<never, S3BatchTaskResult>({ output: (e) => e.payload })
+    const ioValidateFn = ioValidate<never, S3BatchTaskResult>()
     const ioLoggerFn = ioLogger({ type: 's3-batch' }, context)
     const ioLoggerChildFn = ioLoggerChild(context, context.logger)
 
@@ -41,7 +41,7 @@ export async function handleS3Batch(
         ioLoggerFn.before(s3BatchTask, item)
 
         const unvalidatedResponse = await mapTry(s3BatchTask, (t) => s3Batch.handler(t, context))
-        const response = mapTry(unvalidatedResponse, (v) => ioValidateFn.after(s3Batch.schema.result, v))
+        const response = mapTry(unvalidatedResponse, (v) => ioValidateFn.after(s3Batch.schema.result, v, 'payload'))
 
         const result = transformTry(
             response,

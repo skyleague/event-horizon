@@ -20,6 +20,8 @@ export function createTracer(instance: AWSTracer = new AWSTracer({ serviceName: 
 
                 // Add the response as metadata
                 instance.addResponseAsMetadata(response, process.env._HANDLER)
+
+                return response
             } catch (err) {
                 // Add the error as metadata
                 instance.addErrorAsMetadata(err as Error)

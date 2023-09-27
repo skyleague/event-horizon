@@ -8,7 +8,11 @@ import type { Try } from '@skyleague/axioms'
 import { enumerate, isFailure, mapTry } from '@skyleague/axioms'
 import type { S3EventRecord } from 'aws-lambda'
 
-export async function handleS3Event(handler: S3Handler, events: S3EventRecord[], context: LambdaContext): Promise<Try<void>> {
+export async function handleS3Event<Configuration, Service, Profile>(
+    handler: S3Handler<Configuration, Service, Profile>,
+    events: S3EventRecord[],
+    context: LambdaContext<Configuration, Service, Profile>
+): Promise<Try<void>> {
     const { s3 } = handler
     const parseEventFn = s3ParseEvent()
     const ioLoggerFn = ioLogger({ type: 's3' }, context)

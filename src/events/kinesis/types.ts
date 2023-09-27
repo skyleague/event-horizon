@@ -9,7 +9,7 @@ export interface KinesisEvent<Payload = unknown> {
     raw: KinesisStreamRecord
 }
 
-export interface KinesisEventHandler<Configuration = never, Service = never, Profile = never, Payload = unknown> {
+export interface KinesisEventHandler<Configuration = unknown, Service = unknown, Profile = unknown, Payload = unknown> {
     schema: {
         payload?: Schema<Payload>
     }
@@ -20,7 +20,7 @@ export interface KinesisEventHandler<Configuration = never, Service = never, Pro
     payloadType?: 'binary' | 'json' | 'plaintext'
 }
 
-export interface KinesisHandler<Configuration = never, Service = never, Profile = never, Payload = unknown>
+export interface KinesisHandler<Configuration = unknown, Service = unknown, Profile = unknown, Payload = unknown>
     extends EventHandlerDefinition<Configuration, Service, Profile> {
     kinesis: KinesisEventHandler<Configuration, Service, Profile, Payload>
 }

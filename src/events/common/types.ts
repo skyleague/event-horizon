@@ -7,12 +7,14 @@ import type {
     FirehoseTransformationHandler,
     SQSHandler,
     S3BatchHandler,
-    SecretRotationServices,
     SecretRotationHandler,
     S3Handler,
-} from '../events/index.js'
+    DefaultServices,
+} from '../index.js'
 
-export type EventHandler<Service = never> =
+import type { RequireKeys } from '@skyleague/axioms'
+
+export type EventHandler<Service = unknown> =
     | EventBridgeHandler
     | FirehoseTransformationHandler
     | HTTPHandler
@@ -22,4 +24,4 @@ export type EventHandler<Service = never> =
     | S3Handler
     | SNSHandler
     | SQSHandler
-    | (Service extends SecretRotationServices ? SecretRotationHandler<unknown, Service> : never)
+    | (Service extends RequireKeys<DefaultServices, 'secretsManager'> ? SecretRotationHandler<unknown, Service> : never)
