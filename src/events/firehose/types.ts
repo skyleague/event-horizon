@@ -1,4 +1,4 @@
-import type { DefaultServices, EventHandlerDefinition, LambdaContext } from '../types.js'
+import type { EventHandlerDefinition, LambdaContext } from '../types.js'
 
 import type { Promisable, Try } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
@@ -34,7 +34,7 @@ export interface FirehoseTransformationEventHandler<
 
 export interface FirehoseTransformationHandler<
     Configuration = unknown,
-    Service extends DefaultServices | undefined = {},
+    Service = unknown,
     Profile = unknown,
     Payload = unknown,
     Result = unknown,

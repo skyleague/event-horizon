@@ -1,3 +1,4 @@
+export * from './common/index.js'
 export * from './eventbridge/index.js'
 export * from './firehose/index.js'
 export * from './http/index.js'

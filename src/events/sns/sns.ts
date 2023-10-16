@@ -8,7 +8,7 @@ import type { DefaultServices } from '../types.js'
 import type { SNSEventRecord } from 'aws-lambda'
 
 export function snsHandler<Configuration, Service extends DefaultServices | undefined, Profile, Payload, D>(
-    definition: D & SNSHandler<Configuration, Service, Profile>,
+    definition: D & SNSHandler<Configuration, Service, Profile, Payload>,
     { kernel = handleSNSEvent }: { kernel?: typeof handleSNSEvent } = {}
 ): D & EventHandlerFn<Configuration, Service, Profile> {
     return eventHandler(definition, {
