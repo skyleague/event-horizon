@@ -1,4 +1,4 @@
-import type { AWSLambdaHandler, RawRequest, RawResponse } from './raw-aws.js'
+import type { LambdaHandler, RawRequest, RawResponse } from './raw-aws.js'
 
 import { constants } from '../../constants.js'
 import { errorHandler } from '../../events/common/functions/error-handler.js'
@@ -75,7 +75,7 @@ export interface EventHandlerOptions<R, Configuration, Service, Profile> {
 AWSXRay.setContextMissingStrategy(() => {
     // do not log errors on the cold start
 })
-export type EventHandlerFn<Configuration, Service extends DefaultServices | undefined, Profile, R = any> = AWSLambdaHandler &
+export type EventHandlerFn<Configuration, Service extends DefaultServices | undefined, Profile, R = unknown> = LambdaHandler &
     EventHandlerDefinition<Configuration, Service, Profile> & {
         _options: EventHandlerOptions<R, Configuration, Service, Profile>
     }
