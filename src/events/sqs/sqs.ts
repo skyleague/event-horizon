@@ -8,7 +8,7 @@ import type { DefaultServices } from '../types.js'
 import type { SQSRecord } from 'aws-lambda'
 
 export function sqsHandler<Configuration, Service extends DefaultServices | undefined, Profile, Payload, D>(
-    definition: D & SQSHandler<Configuration, Service, Profile>,
+    definition: D & SQSHandler<Configuration, Service, Profile, Payload>,
     { kernel = handleSQSEvent }: { kernel?: typeof handleSQSEvent } = {}
 ): D & EventHandlerFn<Configuration, Service, Profile> {
     return eventHandler(definition, {
