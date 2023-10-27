@@ -92,6 +92,12 @@ export function normalizeSchema({
     if (defsOnly) {
         return {}
     }
+    if (jsonschema.anyOf !== undefined) {
+        jsonschema.anyOf = jsonschema.anyOf.map((i) => normalizeSchema({ ctx, schema: i }))
+    }
+    if (jsonschema.oneOf !== undefined) {
+        jsonschema.oneOf = jsonschema.oneOf.map((i) => normalizeSchema({ ctx, schema: i }))
+    }
 
     if (jsonschema.type === 'array') {
         if (jsonschema.items !== undefined) {
@@ -240,6 +246,7 @@ export function openapiFromHandlers(handlers: Record<string, unknown>, options: 
                 operationId: handler.operationId,
                 summary: handler.summary,
                 description: handler.description,
+                tags: handler.tags,
                 parameters,
                 requestBody,
                 responses,
