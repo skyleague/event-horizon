@@ -163,6 +163,56 @@ describe('normalizeSchema', () => {
         )
     })
 
+    it('anyOf with ref', () => {
+        forAll(
+            tuple(dict(json()), dict(json()), alpha({ minLength: 1 })).map(
+                ([jsonschema, definition, name]) =>
+                    [
+                        { ...jsonschema, anyOf: [{ $ref: `#/$defs/${name}` }], $defs: { [name]: definition } },
+                        definition,
+                        name,
+                    ] as const
+            ),
+            ([jsonschema, definition, name]) => {
+                openapi = {}
+                expect(normalizeSchema({ ctx: { openapi } as any, schema: jsonschema as any })).toEqual({
+                    ...omit(jsonschema, ['$defs']),
+                    anyOf: [
+                        {
+                            $ref: `#/components/schemas/${name}`,
+                        },
+                    ],
+                })
+                expect(openapi.components.schemas).toEqual({ [name]: definition })
+            }
+        )
+    })
+
+    it('oneOf with ref', () => {
+        forAll(
+            tuple(dict(json()), dict(json()), alpha({ minLength: 1 })).map(
+                ([jsonschema, definition, name]) =>
+                    [
+                        { ...jsonschema, oneOf: [{ $ref: `#/$defs/${name}` }], $defs: { [name]: definition } },
+                        definition,
+                        name,
+                    ] as const
+            ),
+            ([jsonschema, definition, name]) => {
+                openapi = {}
+                expect(normalizeSchema({ ctx: { openapi } as any, schema: jsonschema as any })).toEqual({
+                    ...omit(jsonschema, ['$defs']),
+                    oneOf: [
+                        {
+                            $ref: `#/components/schemas/${name}`,
+                        },
+                    ],
+                })
+                expect(openapi.components.schemas).toEqual({ [name]: definition })
+            }
+        )
+    })
+
     it('array with ref', () => {
         forAll(
             tuple(dict(json()), dict(json()), alpha({ minLength: 1 })).map(
