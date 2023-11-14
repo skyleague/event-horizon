@@ -10,7 +10,9 @@ import type { DefaultServices } from '../types.js'
 
 function findHeader(name: string) {
     return (request: RawRequest) =>
-        Object.entries('headers' in request ? request.headers : {}).find(([n]) => n.toLowerCase() === name.toLowerCase())?.[1]
+        Object.entries(typeof request === 'object' && request !== null && 'headers' in request ? request.headers : {}).find(
+            ([n]) => n.toLowerCase() === name.toLowerCase()
+        )?.[1]
 }
 
 export function restApiHandler<

@@ -82,3 +82,19 @@ it('does not handle non http events', async () => {
         }
     )
 })
+
+it('warmup should early exit', async () => {
+    const http = vi.fn()
+    const handler = httpHandler({
+        http: {
+            method,
+            path,
+            schema: { responses: {} },
+            bodyType: 'plaintext' as const,
+            handler: http,
+        },
+    })
+
+    await expect(handler('__WARMER__' as any, {} as any)).resolves.toBe(undefined)
+    expect(http).not.toHaveBeenCalled()
+})
