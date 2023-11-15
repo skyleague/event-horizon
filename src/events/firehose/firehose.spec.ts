@@ -1,6 +1,8 @@
 import { firehoseHandler } from './firehose.js'
 
-import { asyncForAll, oneOf, tuple, unknown } from '@skyleague/axioms'
+import { warmerEvent } from '../../../test/schema.js'
+
+import { asyncForAll, oneOf, random, tuple, unknown } from '@skyleague/axioms'
 import {
     APIGatewayProxyEvent,
     EventBridgeEvent,
@@ -69,4 +71,17 @@ it('does not handle non firehose events', async () => {
             )
         }
     )
+})
+
+it('warmup should early exit', async () => {
+    const firehose = vi.fn()
+    const handler = firehoseHandler(
+        {
+            firehose: { handler: firehose, schema: {} },
+        },
+        { kernel: firehose }
+    )
+
+    await expect(handler(warmerEvent, random(await context()).raw)).resolves.toBe(undefined)
+    expect(firehose).not.toHaveBeenCalled()
 })

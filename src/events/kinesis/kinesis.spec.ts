@@ -1,6 +1,8 @@
 import { kinesisHandler } from './kinesis.js'
 
-import { asyncForAll, oneOf, tuple, unknown } from '@skyleague/axioms'
+import { warmerEvent } from '../../../test/schema.js'
+
+import { asyncForAll, oneOf, random, tuple, unknown } from '@skyleague/axioms'
 import {
     APIGatewayProxyEvent,
     EventBridgeEvent,
@@ -66,4 +68,17 @@ it('does not handle non kinesis events', async () => {
             )
         }
     )
+})
+
+it('warmup should early exit', async () => {
+    const kinesis = vi.fn()
+    const handler = kinesisHandler(
+        {
+            kinesis: { handler: kinesis, schema: {} },
+        },
+        { kernel: kinesis }
+    )
+
+    await expect(handler(warmerEvent, random(await context()).raw)).resolves.toBe(undefined)
+    expect(kinesis).not.toHaveBeenCalled()
 })

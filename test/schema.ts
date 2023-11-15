@@ -15,3 +15,5 @@ export const alwaysTrueSchema = {
         errors: [],
     },
 } as unknown as Schema<string>
+
+export const warmerEvent = '__WARMER__'

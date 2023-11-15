@@ -1,6 +1,8 @@
 import { eventBridgeHandler } from './eventbridge.js'
 
-import { asyncForAll, oneOf, tuple, unknown } from '@skyleague/axioms'
+import { warmerEvent } from '../../../test/schema.js'
+
+import { asyncForAll, oneOf, random, tuple, unknown } from '@skyleague/axioms'
 import {
     APIGatewayProxyEvent,
     EventBridgeEvent,
@@ -20,7 +22,7 @@ it('handles eventbridge events', async () => {
     const eventBridge = vi.fn()
     const handler = eventBridgeHandler(
         {
-            eventBridge: { handler: vi.fn(), schema: {} },
+            eventBridge: { handler: eventBridge, schema: {} },
         },
         { kernel: eventBridge }
     )
@@ -38,7 +40,7 @@ it('does not handle non eventbridge events', async () => {
     const eventBridge = vi.fn()
     const handler = eventBridgeHandler(
         {
-            eventBridge: { handler: vi.fn(), schema: {} },
+            eventBridge: { handler: eventBridge, schema: {} },
         },
         { kernel: eventBridge }
     )
@@ -66,4 +68,17 @@ it('does not handle non eventbridge events', async () => {
             )
         }
     )
+})
+
+it('warmup should early exit', async () => {
+    const eventBridge = vi.fn()
+    const handler = eventBridgeHandler(
+        {
+            eventBridge: { handler: eventBridge, schema: {} },
+        },
+        { kernel: eventBridge }
+    )
+
+    await expect(handler(warmerEvent, random(await context()).raw)).resolves.toBe(undefined)
+    expect(eventBridge).not.toHaveBeenCalled()
 })

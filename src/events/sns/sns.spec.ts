@@ -1,6 +1,8 @@
 import { snsHandler } from './sns.js'
 
-import { asyncForAll, oneOf, tuple, unknown } from '@skyleague/axioms'
+import { warmerEvent } from '../../../test/schema.js'
+
+import { asyncForAll, oneOf, random, tuple, unknown } from '@skyleague/axioms'
 import {
     APIGatewayProxyEvent,
     EventBridgeEvent,
@@ -66,4 +68,17 @@ it('does not handle non sns events', async () => {
             )
         }
     )
+})
+
+it('warmup should early exit', async () => {
+    const sns = vi.fn()
+    const handler = snsHandler(
+        {
+            sns: { handler: sns, schema: {} },
+        },
+        { kernel: sns }
+    )
+
+    await expect(handler(warmerEvent, random(await context()).raw)).resolves.toBe(undefined)
+    expect(sns).not.toHaveBeenCalled()
 })
