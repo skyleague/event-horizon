@@ -3,10 +3,10 @@ import { httpHandler } from './http.js'
 
 import { EventError } from '../../errors/index.js'
 
-import { alpha, asyncForAll, constant, isString, json, oneOf, random, tuple } from '@skyleague/axioms'
+import { alpha, asyncForAll, constant, integer, isString, json, object, oneOf, random, tuple } from '@skyleague/axioms'
 import { httpEvent } from '@skyleague/event-horizon-dev'
 import { context } from '@skyleague/event-horizon-dev/test'
-import type { Schema } from '@skyleague/therefore'
+import { type Schema } from '@skyleague/therefore'
 import { expect, it, vi } from 'vitest'
 
 const neverTrue = {
@@ -319,6 +319,7 @@ it.each([new Error(), EventError.internalServerError(), 'foobar'])('promise thro
         h.mockImplementation(() => {
             throw error
         })
+
         const response = await handleHTTPEvent(handler, req.raw, ctx)
 
         expect(response).toEqual({
@@ -338,3 +339,52 @@ it.each([new Error(), EventError.internalServerError(), 'foobar'])('promise thro
         expect(ctx.logger.error).toHaveBeenCalledWith(`Error found`, expect.any(EventError))
     })
 })
+
+it.each([new Error(), EventError.internalServerError(), 'foobar'])(
+    'promise throws with Error, custom error serializer',
+    async (error) => {
+        const h = vi.fn()
+        const seralizer = vi.fn()
+        const handler = httpHandler({
+            http: {
+                method,
+                path,
+                schema: { responses: {} },
+                handler: h,
+            },
+            serialize: {
+                error: seralizer,
+            },
+        })
+        await asyncForAll(
+            tuple(httpEvent(handler), await context({}), object({ body: json(), headers: json(), statusCode: integer() })),
+            async ([req, ctx, ret]) => {
+                ctx.mockClear()
+
+                seralizer.mockClear()
+                seralizer.mockReturnValue(ret)
+
+                h.mockImplementation(() => {
+                    throw error
+                })
+
+                const response = await handleHTTPEvent(handler, req.raw, ctx)
+
+                expect(response).toEqual({
+                    headers: expect.anything(),
+                    body: JSON.stringify(ret.body),
+                    statusCode: ret.statusCode,
+                })
+                expect(ctx.logger.info).toHaveBeenNthCalledWith(1, `[http] ${handler.http.path} start`, {
+                    request: expect.any(Object),
+                })
+                expect(ctx.logger.info).toHaveBeenNthCalledWith(2, `[http] ${handler.http.path} sent ${ret.statusCode}`, {
+                    response: {
+                        statusCode: ret.statusCode,
+                    },
+                })
+                expect(ctx.logger.error).toHaveBeenCalledWith(`Error found`, expect.any(EventError))
+            }
+        )
+    }
+)

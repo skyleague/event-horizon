@@ -31,7 +31,7 @@ export async function handleHTTPEvent<
     const parseEventFn = httpParseEvent(http)
     const ioValidateFn = httpIOValidate<Configuration, Service, Profile, Body, Path, Query, Headers, Result, GV>()
     const serializeResponseFn = httpSerializeResponse()
-    const errorHandlerFn = httpErrorHandler(context)
+    const errorHandlerFn = httpErrorHandler(context, handler.serialize?.error)
     const inputOutputFn = httpIOLogger(http, context)
     const ioLoggerChildFn = ioLoggerChild(context, context.logger)
 
