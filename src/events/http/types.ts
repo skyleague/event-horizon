@@ -1,3 +1,5 @@
+import type { HttpError } from './functions/http-error.type.js'
+
 import type { EventHandlerDefinition, LambdaContext } from '../types.js'
 
 import type { Promisable, Try } from '@skyleague/axioms'
@@ -61,6 +63,8 @@ export interface HTTPEventHandler<
     gatewayVersion?: GV
 }
 
+export type ErrorSerializer<EventErrorType = HttpError> = (error: EventErrorType) => HTTPResponse<HttpError>
+
 export interface HTTPHandler<
     Configuration = unknown,
     Service = unknown,
@@ -73,4 +77,7 @@ export interface HTTPHandler<
     GV extends GatewayVersion = 'http',
 > extends EventHandlerDefinition<Configuration, Service, Profile> {
     http: HTTPEventHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, GV>
+    serialize?: {
+        error?: ErrorSerializer
+    }
 }
