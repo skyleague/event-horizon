@@ -134,21 +134,23 @@ export function normalizeSchema({
 
 export interface OpenapiOptions {
     info: Info
+    defaultError?: Schema
 }
 
 export function openapiFromHandlers(handlers: Record<string, unknown>, options: OpenapiOptions) {
+    const { defaultError = HttpError.schema } = options
     const openapi: OpenapiV3 = {
         openapi: '3.0.1',
         info: options.info,
         paths: {},
         components: {
             schemas: {
-                Error: HttpError.schema,
+                Error: defaultError,
             },
             requestBodies: {},
             responses: {
                 Error: {
-                    description: HttpError.schema.description!,
+                    description: defaultError.description!,
                     content: {
                         'application/json': {
                             schema: {

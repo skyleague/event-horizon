@@ -6,10 +6,20 @@ import type { LambdaContext } from '../../types.js'
 import type { HTTPResponse } from '../types.js'
 
 import { omitUndefined } from '@skyleague/axioms'
-
-export function httpErrorHandler({ logger, isSensitive }: Pick<LambdaContext, 'logger' | 'isSensitive'>) {
+export function httpErrorHandler<HttpErrorType = HttpError>(
+    { logger, isSensitive }: Pick<LambdaContext, 'isSensitive' | 'logger'>,
+    httpErrorSeralizer: (error: EventError) => HTTPResponse<HttpErrorType> = (eventError) => ({
+        statusCode: eventError.statusCode,
+        body: omitUndefined({
+            statusCode: eventError.statusCode,
+            message: eventError.expose && !isSensitive ? eventError.message : eventError.name,
+            stack:
+                constants.isDebug && eventError.expose && eventError.isServerError && !isSensitive ? eventError.stack : undefined,
+        }) as HttpErrorType,
+    })
+): { onError: (error: Error | unknown) => HTTPResponse<HttpErrorType> } {
     return {
-        onError: (error: Error | unknown): HTTPResponse<HttpError> => {
+        onError: (error: Error | unknown): HTTPResponse<HttpErrorType> => {
             const eventError = EventError.from(error)
 
             if (!isSensitive) {
@@ -22,17 +32,7 @@ export function httpErrorHandler({ logger, isSensitive }: Pick<LambdaContext, 'l
                 }
             }
 
-            return {
-                statusCode: eventError.statusCode,
-                body: omitUndefined({
-                    statusCode: eventError.statusCode,
-                    message: eventError.expose && !isSensitive ? eventError.message : eventError.name,
-                    stack:
-                        constants.isDebug && eventError.expose && eventError.isServerError && !isSensitive
-                            ? eventError.stack
-                            : undefined,
-                }),
-            }
+            return httpErrorSeralizer(eventError)
         },
     }
 }
