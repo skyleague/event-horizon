@@ -33,3 +33,9 @@ export const pet = $validator(
 )
 
 export const petArray = $validator($array($ref(pet), { description: 'A list of Pet objects' }))
+
+export const noPets = $validator(
+    $object({
+        status: $string,
+    })
+)
