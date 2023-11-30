@@ -1,4 +1,4 @@
-# Event Horizon [(@skyleague/event-horizon)](https://skyleague.github.io/event-horizon/)
+# Event Horizon [(@skyleague/event-horizon)](https://skyleague.github.io/event-horizon/) 
 
 <p>
   <img alt="Lines of code" src="https://img.shields.io/tokei/lines/github/skyleague/event-horizon"/>
