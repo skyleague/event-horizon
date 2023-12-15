@@ -1,5 +1,6 @@
 import { handleSQSEvent } from './handler.js'
-import type { SQSHandler } from './types.js'
+import { handleSQSMessageGroup } from './handler.js'
+import type { SQSHandler, SQSMessageGrouping } from './types.js'
 
 import { EventError } from '../../errors/index.js'
 import { eventHandler, type EventHandlerFn } from '../common/event.js'
@@ -7,12 +8,27 @@ import type { DefaultServices } from '../types.js'
 
 import type { SQSRecord } from 'aws-lambda'
 
-export function sqsHandler<Configuration, Service extends DefaultServices | undefined, Profile, Payload, D>(
-    definition: D & SQSHandler<Configuration, Service, Profile, Payload>,
-    { kernel = handleSQSEvent }: { kernel?: typeof handleSQSEvent } = {}
+export type SQSKernel<MessageGrouping> = MessageGrouping extends { by: 'messageGroupId' }
+    ? typeof handleSQSMessageGroup
+    : typeof handleSQSEvent
+
+export function sqsHandler<
+    Configuration,
+    Service extends DefaultServices | undefined,
+    Profile,
+    Payload,
+    D,
+    MessageGrouping extends SQSMessageGrouping = {},
+>(
+    definition: D & SQSHandler<Configuration, Service, Profile, Payload, MessageGrouping>,
+    { kernel }: { kernel?: SQSKernel<MessageGrouping> } = {}
 ): D & EventHandlerFn<Configuration, Service, Profile> {
     return eventHandler(definition, {
         handler: (request, context) => {
+            kernel ??= (
+                definition.sqs.messageGrouping === undefined ? handleSQSEvent : handleSQSMessageGroup
+            ) as SQSKernel<MessageGrouping>
+
             if (typeof request === 'object' && request !== null && 'Records' in request) {
                 const records: SQSRecord[] = []
                 const other = []
