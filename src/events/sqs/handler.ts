@@ -76,21 +76,14 @@ export async function handleSQSMessageGroup<Configuration, Service, Profile, Pay
 ): Promise<SQSBatchResponse | void> {
     const { sqs } = handler
 
-    const errorHandlerFn = sqsErrorHandler(context)
     const parseEventFn = sqsParseEvent(sqs)
     const ioValidateFn = ioValidate<SQSEvent>()
-    const ioLoggerFn = ioLogger({ type: 'sqs' }, context)
-    const ioLoggerChildFn = ioLoggerChild(context, context.logger)
 
     let failures: SQSBatchItemFailure[] | undefined = undefined
     const messageGroups: Record<string, SQSMessageGroup<Payload>['records']> = groupBy(
         map(enumerate(events), ([i, event]) => {
             const sqsEvent = mapTry(event, (e) => {
                 const unvalidatedSQSEvent = parseEventFn.before(e)
-
-                ioLoggerChildFn.before({
-                    messageId: unvalidatedSQSEvent.raw.messageId,
-                })
 
                 return ioValidateFn.before(sqs.schema.payload, unvalidatedSQSEvent, 'payload')
             })
@@ -108,6 +101,13 @@ export async function handleSQSMessageGroup<Configuration, Service, Profile, Pay
     await Promise.all(
         Object.entries(messageGroups).map(([messageGroupId, records]) =>
             pLimit(async () => {
+                const ctx = { ...context }
+                const errorHandlerFn = sqsErrorHandler(ctx)
+                const ioLoggerFn = ioLogger({ type: 'sqs' }, ctx)
+                const ioLoggerChildFn = ioLoggerChild(ctx, ctx.logger)
+
+                ioLoggerChildFn.before({ messageGroupId })
+
                 const messageGroup: SQSMessageGroup<Payload> = {
                     messageGroupId,
                     records,
@@ -116,7 +116,7 @@ export async function handleSQSMessageGroup<Configuration, Service, Profile, Pay
                 ioLoggerFn.before(messageGroup, { messageGroupId })
 
                 const transformed = (await mapTry(messageGroup, (success) =>
-                    sqs.handler(success as SQSPayload<MessageGrouping, Payload>, context)
+                    sqs.handler(success as SQSPayload<MessageGrouping, Payload>, ctx)
                 )) as Try<SQSBatchItemFailure[] | void>
 
                 const eitherTransformed = tryToEither(transformed)
