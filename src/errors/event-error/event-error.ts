@@ -203,8 +203,8 @@ export class EventError extends Error {
         return EventError.is(error)
             ? error
             : isError(error)
-            ? new EventError(error, { cause: error, ctor: EventError.from, name: 'EventError' })
-            : new EventError('unknown', { cause: error, ctor: EventError.from, name: 'EventError' })
+              ? new EventError(error, { cause: error, ctor: EventError.from, name: 'EventError' })
+              : new EventError('unknown', { cause: error, ctor: EventError.from, name: 'EventError' })
     }
 
     public static validation(

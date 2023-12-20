@@ -22,7 +22,7 @@
     "package.json"
   ],
   "scripts": {
-    "build": "npx ts-node --esm build.config.ts",
+    "build": "node --import tsx/esm build.config.ts",
     "build:docs": "(cd docs; npm install; npm run build)",
     "check:cost": "npx cost-of-modules --no-install --include-dev",
     "check:coverage": "npx vitest run --coverage=true",
@@ -38,33 +38,33 @@
     "test": "npx vitest run"
   },
   "dependencies": {
-    "@aws-lambda-powertools/logger": "^1.14.0",
-    "@aws-lambda-powertools/metrics": "^1.14.0",
-    "@aws-lambda-powertools/parameters": "1.14.0",
-    "@aws-lambda-powertools/tracer": "^1.14.0",
-    "@skyleague/axioms": "^2.6.0",
-    "@types/aws-lambda": "^8.10.125",
+    "@aws-lambda-powertools/logger": "^1.17.0",
+    "@aws-lambda-powertools/metrics": "^1.17.0",
+    "@aws-lambda-powertools/parameters": "1.17.0",
+    "@aws-lambda-powertools/tracer": "^1.17.0",
+    "@skyleague/axioms": "^3.0.0",
+    "@types/aws-lambda": "^8.10.130",
     "secure-json-parse": "^2.7.0",
     "tslib": "^2.6.2"
   },
   "peerDependencies": {
-    "@aws-sdk/client-appconfigdata": "^3.429.0",
-    "@aws-sdk/client-secrets-manager": "^3.429.0"
+    "@aws-sdk/client-appconfigdata": "^3.477.0",
+    "@aws-sdk/client-secrets-manager": "^3.477.0"
   },
   "devDependencies": {
     "@skyleague/event-horizon": "./",
-    "@skyleague/event-horizon-dev": "^4.0.11",
-    "@skyleague/node-standards": "^3.10.5",
-    "@skyleague/therefore": "^3.0.2",
-    "@types/node": "^20.8.9",
+    "@skyleague/event-horizon-dev": "^4.0.12",
+    "@skyleague/node-standards": "^4.0.0",
+    "@skyleague/therefore": "^4.0.0",
+    "@types/node": "^20.10.5",
     "aws-sdk-client-mock": "^3.0.0",
     "aws-sdk-client-mock-jest": "^3.0.0",
-    "got": "^13.0.0",
-    "nock": "^13.3.6",
-    "typescript": "^5.2.2"
+    "got": "^14.0.0",
+    "nock": "^13.4.0",
+    "typescript": "^5.3.3"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "publishConfig": {
     "access": "public",

@@ -2,22 +2,63 @@ import type { EventHandlerDefinition, LambdaContext } from '../types.js'
 
 import type { Promisable, Try } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
-import type { SQSRecord } from 'aws-lambda'
+import type { SQSBatchItemFailure, SQSRecord } from 'aws-lambda'
 
 export interface SQSEvent<Payload = unknown> {
     payload: Payload
     raw: SQSRecord
 }
 
-export interface SQSEventHandler<Configuration = unknown, Service = unknown, Profile = unknown, Payload = unknown> {
+export interface SQSMessageGroup<Payload = unknown> {
+    messageGroupId: string
+    records: {
+        payload: Try<Payload>
+        raw: SQSRecord
+        item: number
+    }[]
+}
+
+export interface SQSMessageGrouping {
+    by?: 'message-group-id'
+
+    /**
+     * The number of message groups to process in parallel.
+     *
+     * @default 1
+     */
+    parallelism?: number
+}
+
+export type SQSPayload<MessageGrouping, Payload> = MessageGrouping extends { by: 'message-group-id' }
+    ? SQSMessageGroup<Payload>
+    : SQSEvent<Payload>
+
+export type SQSResult<MessageGrouping> = MessageGrouping extends { by: 'message-group-id' } ? SQSBatchItemFailure[] | void : void
+
+export interface SQSEventHandler<
+    Configuration = unknown,
+    Service = unknown,
+    Profile = unknown,
+    Payload = unknown,
+    MessageGrouping extends SQSMessageGrouping = {},
+> {
     schema: {
         payload?: Schema<Payload>
     }
-    handler: (payload: SQSEvent<Payload>, context: LambdaContext<Configuration, Service, Profile>) => Promisable<Try<void>>
+    handler: (
+        payload: SQSPayload<MessageGrouping, Payload>,
+        context: LambdaContext<Configuration, Service, Profile>
+    ) => Promisable<Try<SQSResult<MessageGrouping>>>
     payloadType?: 'json' | 'plaintext'
+    messageGrouping?: MessageGrouping
 }
 
-export interface SQSHandler<Configuration = unknown, Service = unknown, Profile = unknown, Payload = unknown>
-    extends EventHandlerDefinition<Configuration, Service, Profile> {
-    sqs: SQSEventHandler<Configuration, Service, Profile, Payload>
+export interface SQSHandler<
+    Configuration = unknown,
+    Service = unknown,
+    Profile = unknown,
+    Payload = unknown,
+    MessageGrouping extends SQSMessageGrouping = {},
+> extends EventHandlerDefinition<Configuration, Service, Profile> {
+    sqs: SQSEventHandler<Configuration, Service, Profile, Payload, MessageGrouping>
 }
