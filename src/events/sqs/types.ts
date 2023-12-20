@@ -19,7 +19,7 @@ export interface SQSMessageGroup<Payload = unknown> {
 }
 
 export interface SQSMessageGrouping {
-    by?: 'messageGroupId'
+    by?: 'message-group-id'
 
     /**
      * The number of message groups to process in parallel.
@@ -29,11 +29,11 @@ export interface SQSMessageGrouping {
     parallelism?: number
 }
 
-export type SQSPayload<MessageGrouping, Payload> = MessageGrouping extends { by: 'messageGroupId' }
+export type SQSPayload<MessageGrouping, Payload> = MessageGrouping extends { by: 'message-group-id' }
     ? SQSMessageGroup<Payload>
     : SQSEvent<Payload>
 
-export type SQSResult<MessageGrouping> = MessageGrouping extends { by: 'messageGroupId' } ? SQSBatchItemFailure[] | void : void
+export type SQSResult<MessageGrouping> = MessageGrouping extends { by: 'message-group-id' } ? SQSBatchItemFailure[] | void : void
 
 export interface SQSEventHandler<
     Configuration = unknown,

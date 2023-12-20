@@ -34,11 +34,12 @@ it('handles sqs events', async () => {
         expect(sqs).toHaveBeenCalledWith(expect.anything(), event.Records, ctx)
     })
 })
+
 it('handles sqs events - message grouping', async () => {
     const sqs = vi.fn()
     const handler = sqsHandler(
         {
-            sqs: { handler: vi.fn(), schema: {}, messageGrouping: { by: 'messageGroupId' } },
+            sqs: { handler: vi.fn(), schema: {}, messageGrouping: { by: 'message-group-id' } },
         },
         { kernel: sqs }
     )
@@ -90,7 +91,7 @@ it('does not handle non sqs events - message grouping', async () => {
     const sqs = vi.fn()
     const handler = sqsHandler(
         {
-            sqs: { handler: vi.fn(), schema: {}, messageGrouping: { by: 'messageGroupId' } },
+            sqs: { handler: vi.fn(), schema: {}, messageGrouping: { by: 'message-group-id' } },
         },
         { kernel: sqs }
     )
@@ -142,7 +143,7 @@ it('determines the kernel based on the message grouping', async () => {
             },
             schema: {},
             payloadType: 'plaintext',
-            messageGrouping: { by: 'messageGroupId' },
+            messageGrouping: { by: 'message-group-id' },
         },
     })
 

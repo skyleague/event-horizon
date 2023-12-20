@@ -8,7 +8,7 @@ import type { DefaultServices } from '../types.js'
 
 import type { SQSRecord } from 'aws-lambda'
 
-export type SQSKernel<MessageGrouping> = MessageGrouping extends { by: 'messageGroupId' }
+export type SQSKernel<MessageGrouping> = MessageGrouping extends { by: 'message-group-id' }
     ? typeof handleSQSMessageGroup
     : typeof handleSQSEvent
 
