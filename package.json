@@ -1,6 +1,6 @@
 {
   "name": "@skyleague/event-horizon",
-  "version": "5.0.6",
+  "version": "6.0.0",
   "description": "A standardized boilerplate for lambda handlers.",
   "homepage": "https://skyleague.github.io/event-horizon/",
   "repository": {
@@ -48,12 +48,12 @@
     "tslib": "^2.6.2"
   },
   "peerDependencies": {
-    "@aws-sdk/client-appconfigdata": "^3.477.0",
-    "@aws-sdk/client-secrets-manager": "^3.477.0"
+    "@aws-sdk/client-appconfigdata": "^3.478.0",
+    "@aws-sdk/client-secrets-manager": "^3.478.0"
   },
   "devDependencies": {
     "@skyleague/event-horizon": "./",
-    "@skyleague/event-horizon-dev": "^4.0.12",
+    "@skyleague/event-horizon-dev": "^5.0.0",
     "@skyleague/node-standards": "^4.0.0",
     "@skyleague/therefore": "^4.0.0",
     "@types/node": "^20.10.5",
