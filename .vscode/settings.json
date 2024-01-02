@@ -39,6 +39,7 @@
   "typescript.inlayHints.parameterNames.suppressWhenArgumentMatchesName": true,
   "typescript.referencesCodeLens.enabled": true,
   "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.preferences.autoImportFileExcludePatterns": ["**/index.ts"],
   "debug.javascript.terminalOptions": {
     "skipFiles": ["<node_internals>/**"],
     "sourceMaps": true,

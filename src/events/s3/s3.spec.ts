@@ -1,6 +1,8 @@
 import { s3Handler } from './s3.js'
 
-import { asyncForAll, oneOf, tuple, unknown } from '@skyleague/axioms'
+import { warmerEvent } from '../../../test/schema.js'
+
+import { asyncForAll, oneOf, random, tuple, unknown } from '@skyleague/axioms'
 import {
     APIGatewayProxyEvent,
     EventBridgeEvent,
@@ -66,4 +68,17 @@ it('does not handle non kinesis events', async () => {
             )
         }
     )
+})
+
+it('warmup should early exit', async () => {
+    const s3 = vi.fn()
+    const handler = s3Handler(
+        {
+            s3: { handler: s3 },
+        },
+        { kernel: s3 }
+    )
+
+    await expect(handler(warmerEvent, random(await context()).raw)).resolves.toBe(undefined)
+    expect(s3).not.toHaveBeenCalled()
 })

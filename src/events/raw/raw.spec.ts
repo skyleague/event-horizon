@@ -1,6 +1,8 @@
 import { rawHandler } from './raw.js'
 
-import { asyncForAll, json, oneOf, tuple, unknown } from '@skyleague/axioms'
+import { warmerEvent } from '../../../test/schema.js'
+
+import { asyncForAll, json, oneOf, random, tuple, unknown } from '@skyleague/axioms'
 import {
     APIGatewayProxyEvent,
     EventBridgeEvent,
@@ -50,4 +52,17 @@ it('does handle raw events', async () => {
             expect(raw).toHaveBeenCalledWith(expect.anything(), event, ctx)
         }
     )
+})
+
+it('warmup should early exit', async () => {
+    const raw = vi.fn()
+    const handler = rawHandler(
+        {
+            raw: { handler: raw, schema: {} },
+        },
+        { kernel: raw }
+    )
+
+    await expect(handler(warmerEvent, random(await context()).raw)).resolves.toBe(undefined)
+    expect(raw).not.toHaveBeenCalled()
 })

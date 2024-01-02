@@ -1,7 +1,9 @@
 import { secretRotationHandler } from './secret-rotation.js'
 
+import { warmerEvent } from '../../../test/schema.js'
+
 import type { SecretsManager } from '@aws-sdk/client-secrets-manager'
-import { asyncForAll, oneOf, tuple, unknown } from '@skyleague/axioms'
+import { asyncForAll, oneOf, random, tuple, unknown } from '@skyleague/axioms'
 import {
     APIGatewayProxyEvent,
     EventBridgeEvent,
@@ -71,4 +73,19 @@ it('does not handle non secret rotation events', async () => {
             )
         }
     )
+})
+
+it('warmup should early exit', async () => {
+    const secretRotation = vi.fn()
+    const services = { secretsManager: vi.fn() as unknown as SecretsManager }
+    const handler = secretRotationHandler(
+        {
+            services,
+            secretRotation: { handler: secretRotation },
+        },
+        { kernel: secretRotation }
+    )
+
+    await expect(handler(warmerEvent, random(await context()).raw)).resolves.toBe(undefined)
+    expect(secretRotation).not.toHaveBeenCalled()
 })

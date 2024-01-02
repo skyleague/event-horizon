@@ -1,6 +1,8 @@
 import { s3BatchHandler } from './s3-batch.js'
 
-import { asyncForAll, oneOf, tuple, unknown } from '@skyleague/axioms'
+import { warmerEvent } from '../../../test/schema.js'
+
+import { asyncForAll, oneOf, random, tuple, unknown } from '@skyleague/axioms'
 import {
     APIGatewayProxyEvent,
     EventBridgeEvent,
@@ -66,4 +68,17 @@ it('does not handle non s3Batch events', async () => {
             )
         }
     )
+})
+
+it('warmup should early exit', async () => {
+    const s3Batch = vi.fn()
+    const handler = s3BatchHandler(
+        {
+            s3Batch: { handler: s3Batch, schema: {} },
+        },
+        { kernel: s3Batch }
+    )
+
+    await expect(handler(warmerEvent, random(await context()).raw)).resolves.toBe(undefined)
+    expect(s3Batch).not.toHaveBeenCalled()
 })

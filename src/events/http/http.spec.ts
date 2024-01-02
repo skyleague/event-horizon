@@ -1,5 +1,7 @@
 import { httpHandler } from './http.js'
 
+import { warmerEvent } from '../../../test/schema.js'
+
 import { alpha, asyncForAll, constant, oneOf, random, tuple, unknown } from '@skyleague/axioms'
 import {
     APIGatewayProxyEvent,
@@ -85,16 +87,19 @@ it('does not handle non http events', async () => {
 
 it('warmup should early exit', async () => {
     const http = vi.fn()
-    const handler = httpHandler({
-        http: {
-            method,
-            path,
-            schema: { responses: {} },
-            bodyType: 'plaintext' as const,
-            handler: http,
+    const handler = httpHandler(
+        {
+            http: {
+                method,
+                path,
+                schema: { responses: {} },
+                bodyType: 'plaintext' as const,
+                handler: http,
+            },
         },
-    })
+        { kernel: http }
+    )
 
-    await expect(handler('__WARMER__' as any, {} as any)).resolves.toBe(undefined)
+    await expect(handler(warmerEvent, random(await context()).raw)).resolves.toBe(undefined)
     expect(http).not.toHaveBeenCalled()
 })

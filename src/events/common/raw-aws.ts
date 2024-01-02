@@ -33,5 +33,5 @@ export type AWSLambdaHandler =
 
 export type LambdaHandler = (payload: unknown, context: Context, cb?: unknown) => unknown
 
-export type RawRequest = Parameters<AWSLambdaHandler>[0]
+export type RawRequest = Parameters<AWSLambdaHandler>[0] | string
 export type RawResponse = ReturnType<AWSLambdaHandler> | unknown
