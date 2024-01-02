@@ -5,17 +5,15 @@ import type { Schema } from '@skyleague/therefore'
 import type { SQSBatchItemFailure, SQSRecord } from 'aws-lambda'
 
 export interface SQSEvent<Payload = unknown> {
+    messageGroupId: string
     payload: Payload
     raw: SQSRecord
+    item: number
 }
 
 export interface SQSMessageGroup<Payload = unknown> {
     messageGroupId: string
-    records: {
-        payload: Try<Payload>
-        raw: SQSRecord
-        item: number
-    }[]
+    records: SQSEvent<Try<Payload>>[]
 }
 
 export interface SQSMessageGrouping {

@@ -40,7 +40,7 @@ export async function handleSQSEvent<Configuration, Service, Profile, Payload>(
         const item = { item: i }
 
         const sqsEvent = mapTry(event, (e) => {
-            const unvalidatedSQSEvent = parseEventFn.before(e)
+            const unvalidatedSQSEvent = parseEventFn.before(e, i)
 
             ioLoggerChildFn.before({
                 messageId: unvalidatedSQSEvent.raw.messageId,
@@ -83,18 +83,19 @@ export async function handleSQSMessageGroup<Configuration, Service, Profile, Pay
     const messageGroups: Record<string, SQSMessageGroup<Payload>['records']> = groupBy(
         map(enumerate(events), ([i, event]) => {
             const sqsEvent = mapTry(event, (e) => {
-                const unvalidatedSQSEvent = parseEventFn.before(e)
+                const unvalidatedSQSEvent = parseEventFn.before(e, i)
 
                 return ioValidateFn.before(sqs.schema.payload, unvalidatedSQSEvent, 'payload')
             })
 
             return {
+                messageGroupId: event.attributes.MessageGroupId ?? 'unknown',
                 payload: mapTry(sqsEvent, (e) => e.payload) as Try<Payload>,
                 raw: event,
                 item: i,
             }
         }),
-        ({ raw }) => raw.attributes.MessageGroupId ?? 'unknown'
+        ({ messageGroupId }) => messageGroupId
     )
 
     const pLimit = parallelLimit(sqs.messageGrouping?.parallelism ?? 1)
