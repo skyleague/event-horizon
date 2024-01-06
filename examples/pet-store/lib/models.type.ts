@@ -3,8 +3,8 @@
  * Do not manually touch this
  */
 /* eslint-disable */
-import AjvValidator from 'ajv'
 import type { ValidateFunction } from 'ajv'
+import { ValidationError } from 'ajv'
 
 export interface Category {
     id: number
@@ -12,7 +12,7 @@ export interface Category {
 }
 
 export const Category = {
-    validate: (await import('./schemas/category.schema.js')).validate10 as unknown as ValidateFunction<Category>,
+    validate: (await import('./schemas/category.schema.js')).validate as ValidateFunction<Category>,
     get schema() {
         return Category.validate.schema
     },
@@ -22,7 +22,27 @@ export const Category = {
     is: (o: unknown): o is Category => Category.validate(o) === true,
     assert: (o: unknown) => {
         if (!Category.validate(o)) {
-            throw new AjvValidator.ValidationError(Category.errors ?? [])
+            throw new ValidationError(Category.errors ?? [])
+        }
+    },
+} as const
+
+export interface NoPets {
+    status: string
+}
+
+export const NoPets = {
+    validate: (await import('./schemas/no-pets.schema.js')).validate as ValidateFunction<NoPets>,
+    get schema() {
+        return NoPets.validate.schema
+    },
+    get errors() {
+        return NoPets.validate.errors ?? undefined
+    },
+    is: (o: unknown): o is NoPets => NoPets.validate(o) === true,
+    assert: (o: unknown) => {
+        if (!NoPets.validate(o)) {
+            throw new ValidationError(NoPets.errors ?? [])
         }
     },
 } as const
@@ -40,7 +60,7 @@ export interface Pet {
 }
 
 export const Pet = {
-    validate: (await import('./schemas/pet.schema.js')).validate10 as unknown as ValidateFunction<Pet>,
+    validate: (await import('./schemas/pet.schema.js')).validate as ValidateFunction<Pet>,
     get schema() {
         return Pet.validate.schema
     },
@@ -50,7 +70,7 @@ export const Pet = {
     is: (o: unknown): o is Pet => Pet.validate(o) === true,
     assert: (o: unknown) => {
         if (!Pet.validate(o)) {
-            throw new AjvValidator.ValidationError(Pet.errors ?? [])
+            throw new ValidationError(Pet.errors ?? [])
         }
     },
 } as const
@@ -61,7 +81,7 @@ export const Pet = {
 export type PetArray = Pet[]
 
 export const PetArray = {
-    validate: (await import('./schemas/pet-array.schema.js')).validate10 as unknown as ValidateFunction<PetArray>,
+    validate: (await import('./schemas/pet-array.schema.js')).validate as ValidateFunction<PetArray>,
     get schema() {
         return PetArray.validate.schema
     },
@@ -71,7 +91,7 @@ export const PetArray = {
     is: (o: unknown): o is PetArray => PetArray.validate(o) === true,
     assert: (o: unknown) => {
         if (!PetArray.validate(o)) {
-            throw new AjvValidator.ValidationError(PetArray.errors ?? [])
+            throw new ValidationError(PetArray.errors ?? [])
         }
     },
 } as const
@@ -79,7 +99,7 @@ export const PetArray = {
 export type Status = 'available' | 'pending' | 'sold'
 
 export const Status = {
-    validate: (await import('./schemas/status.schema.js')).validate10 as unknown as ValidateFunction<Status>,
+    validate: (await import('./schemas/status.schema.js')).validate as ValidateFunction<Status>,
     get schema() {
         return Status.validate.schema
     },
@@ -89,7 +109,7 @@ export const Status = {
     is: (o: unknown): o is Status => Status.validate(o) === true,
     assert: (o: unknown) => {
         if (!Status.validate(o)) {
-            throw new AjvValidator.ValidationError(Status.errors ?? [])
+            throw new ValidationError(Status.errors ?? [])
         }
     },
 } as const
@@ -100,7 +120,7 @@ export interface Tag {
 }
 
 export const Tag = {
-    validate: (await import('./schemas/tag.schema.js')).validate10 as unknown as ValidateFunction<Tag>,
+    validate: (await import('./schemas/tag.schema.js')).validate as ValidateFunction<Tag>,
     get schema() {
         return Tag.validate.schema
     },
@@ -110,7 +130,7 @@ export const Tag = {
     is: (o: unknown): o is Tag => Tag.validate(o) === true,
     assert: (o: unknown) => {
         if (!Tag.validate(o)) {
-            throw new AjvValidator.ValidationError(Tag.errors ?? [])
+            throw new ValidationError(Tag.errors ?? [])
         }
     },
 } as const

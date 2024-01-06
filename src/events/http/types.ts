@@ -3,7 +3,7 @@ import type { HttpError } from './functions/http-error.type.js'
 import type { EventHandlerDefinition, LambdaContext } from '../types.js'
 
 import type { Promisable, Try } from '@skyleague/axioms'
-import type { Schema } from '@skyleague/therefore'
+import type { InferSchemaType, Schema } from '@skyleague/therefore'
 import type { APIGatewayProxyEvent, APIGatewayProxyEventV2 } from 'aws-lambda'
 
 export type HTTPMethod = 'delete' | 'get' | 'head' | 'options' | 'patch' | 'post' | 'put' | 'trace'
@@ -41,7 +41,7 @@ export interface HTTPEventHandler<
     Path = unknown,
     Query = unknown,
     Headers = unknown,
-    Result = unknown,
+    ResultSchema = unknown,
     GV extends GatewayVersion = 'http',
 > {
     method: HTTPMethod
@@ -51,12 +51,12 @@ export interface HTTPEventHandler<
         path?: Schema<Path>
         query?: Schema<Query>
         headers?: Schema<Headers>
-        responses: Record<PropertyKey, Schema<Result>>
+        responses: Record<PropertyKey, ResultSchema>
     }
     handler: (
         request: HTTPRequest<Body, Path, Query, Headers, GV>,
         context: LambdaContext<Configuration, Service, Profile>
-    ) => Promisable<Try<HTTPResponse<Result>>>
+    ) => Promisable<Try<HTTPResponse<InferSchemaType<ResultSchema>>>>
 
     bodyType?: 'binary' | 'json' | 'plaintext'
 
@@ -73,10 +73,10 @@ export interface HTTPHandler<
     Path = unknown,
     Query = unknown,
     Headers = unknown,
-    Result = unknown,
+    ResultSchema = unknown,
     GV extends GatewayVersion = 'http',
 > extends EventHandlerDefinition<Configuration, Service, Profile> {
-    http: HTTPEventHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, GV>
+    http: HTTPEventHandler<Configuration, Service, Profile, Body, Path, Query, Headers, ResultSchema, GV>
     serialize?: {
         error?: ErrorSerializer
     }

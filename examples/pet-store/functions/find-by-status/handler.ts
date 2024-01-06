@@ -1,7 +1,7 @@
 import { Query } from './request.type.js'
 
 import { httpHandler } from '../../../../src/index.js'
-import { Pet, PetArray } from '../../lib/models.type.js'
+import { NoPets, Pet, PetArray } from '../../lib/models.type.js'
 
 import { array, random } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
@@ -16,6 +16,7 @@ export const handler = httpHandler({
             query: Query,
             responses: {
                 200: PetArray,
+                400: NoPets,
             },
         },
         handler: ({ query }, { logger }) => {
@@ -24,9 +25,18 @@ export const handler = httpHandler({
             })
 
             const petsArb = array(arbitrary(Pet))
+            const pets = random(petsArb)
+            if (pets.length === 0) {
+                return {
+                    statusCode: 400,
+                    body: {
+                        status: 'EMPTY',
+                    },
+                }
+            }
             return {
                 statusCode: 200,
-                body: random(petsArb).filter((p) => p.status === query.status),
+                body: pets.filter((p) => p.status === query.status),
             }
         },
     },
