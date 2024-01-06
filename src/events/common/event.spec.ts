@@ -462,8 +462,8 @@ describe('eventHandler', () => {
                     close: vi.fn(),
                     flush: vi.fn(),
                 }
-                ;(ctx.tracer.instance.isTracingEnabled as any).mockReturnValue(true)
-                ;(ctx.tracer.instance.getSegment as any).mockReturnValue(getSegmentVal)
+                ctx.tracer.instance.isTracingEnabled.mockReturnValue(true)
+                ctx.tracer.instance.getSegment.mockReturnValue(getSegmentVal)
 
                 const handlerImpl = vi.fn().mockResolvedValue(ret)
                 const config = vi.fn().mockResolvedValue(c)
