@@ -2,8 +2,13 @@
   "[json]": {
     "editor.tabSize": 2
   },
+  "debug.javascript.terminalOptions": {
+    "remoteRoot": null,
+    "skipFiles": ["<node_internals>/**"],
+    "sourceMaps": true
+  },
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true
+    "source.fixAll.eslint": "always"
   },
   "editor.formatOnSave": true,
   "editor.wordSeparators": "`~!@#%^&*()-=+[{]}\\|;:'\",.<>/?",
@@ -12,38 +17,27 @@
   "eslint.validate": ["javascript", "typescript"],
   "files.eol": "\n",
   "files.exclude": {
+    "**/.coverage": true,
+    "**/.dist": true,
     "**/.DS_Store": true,
     "**/.git": true,
     "**/.hg": true,
+    "**/.husky": true,
     "**/.svn": true,
     "**/CVS": true,
-    "**/.coverage": true,
-    "**/.husky": true,
-    "**/.dist": true,
-    "src/**/*.d.ts": true,
     "**/node_modules": true
   },
   "files.watcherExclude": {
-    "**/.git/objects/**": true,
-    "**/.git/subtree-cache/**": true,
     "**/.coverage/*/**": true,
     "**/.dist/**": true,
-    "src/**/*.d.ts": true,
-    "**/node_modules/*/**": true
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/node_modules/*/**": true,
+    "src/**/*.d.ts": true
   },
   "typescript.format.semicolons": "remove",
   "typescript.implementationsCodeLens.enabled": true,
-  "typescript.inlayHints.enumMemberValues.enabled": true,
-  "typescript.inlayHints.functionLikeReturnTypes.enabled": false,
-  "typescript.inlayHints.parameterNames.enabled": "literals",
-  "typescript.inlayHints.parameterNames.suppressWhenArgumentMatchesName": true,
-  "typescript.referencesCodeLens.enabled": true,
-  "typescript.tsdk": "node_modules/typescript/lib",
   "typescript.preferences.autoImportFileExcludePatterns": ["**/index.ts"],
-  "debug.javascript.terminalOptions": {
-    "skipFiles": ["<node_internals>/**"],
-    "sourceMaps": true,
-    "remoteRoot": null
-  },
-  "debug.javascript.autoAttachFilter": "smart"
+  "typescript.referencesCodeLens.enabled": true,
+  "typescript.tsdk": "./node_modules/typescript/lib"
 }
