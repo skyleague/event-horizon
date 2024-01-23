@@ -1,6 +1,6 @@
 import { rawHandler } from './raw.js'
 
-import { warmerEvent } from '../../../test/schema.js'
+import { literalSchema, warmerEvent } from '../../../test/schema.js'
 
 import { asyncForAll, json, oneOf, random, tuple, unknown } from '@skyleague/axioms'
 import {
@@ -16,7 +16,33 @@ import {
 } from '@skyleague/event-horizon-dev'
 import { context } from '@skyleague/event-horizon-dev/test'
 import { arbitrary } from '@skyleague/therefore'
-import { expect, it, vi } from 'vitest'
+import { expect, it, vi, expectTypeOf } from 'vitest'
+
+it('handles schema types', () => {
+    const handler = rawHandler({
+        raw: {
+            schema: { payload: literalSchema<'payload'>(), result: literalSchema<'result'>() },
+            handler: (request) => {
+                expectTypeOf(request).toEqualTypeOf<'payload'>()
+
+                return 'result'
+            },
+        },
+    })
+    expectTypeOf(handler.raw.handler).toEqualTypeOf<(request: 'payload') => 'result'>()
+})
+
+it('handles schema types and gives errors', () => {
+    rawHandler({
+        raw: {
+            schema: { payload: literalSchema<'payload'>(), result: literalSchema<'result'>() },
+            // @ts-expect-error handler is not a valid return type
+            handler: () => {
+                return 'not-result' as const
+            },
+        },
+    })
+})
 
 it('does handle raw events', async () => {
     const raw = vi.fn()

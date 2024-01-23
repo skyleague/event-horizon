@@ -1,6 +1,7 @@
 import { kinesisHandler } from './kinesis.js'
+import type { KinesisEvent } from './types.js'
 
-import { warmerEvent } from '../../../test/schema.js'
+import { literalSchema, warmerEvent } from '../../../test/schema.js'
 
 import { asyncForAll, oneOf, random, tuple, unknown } from '@skyleague/axioms'
 import {
@@ -16,7 +17,7 @@ import {
 } from '@skyleague/event-horizon-dev'
 import { context } from '@skyleague/event-horizon-dev/test'
 import { arbitrary } from '@skyleague/therefore'
-import { expect, it, vi } from 'vitest'
+import { expect, it, vi, expectTypeOf } from 'vitest'
 
 it('handles kinesis events', async () => {
     const kinesis = vi.fn()
@@ -34,6 +35,18 @@ it('handles kinesis events', async () => {
         expect(response).toBe(ret)
         expect(kinesis).toHaveBeenCalledWith(expect.anything(), event.Records, ctx)
     })
+})
+
+it('handles schema types', () => {
+    const handler = kinesisHandler({
+        kinesis: {
+            schema: { payload: literalSchema<'payload'>() },
+            handler: (request) => {
+                expectTypeOf(request).toEqualTypeOf<KinesisEvent<'payload'>>()
+            },
+        },
+    })
+    expectTypeOf(handler.kinesis.handler).toEqualTypeOf<(request: KinesisEvent<'payload'>) => void>()
 })
 
 it('does not handle non kinesis events', async () => {

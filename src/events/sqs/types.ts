@@ -43,10 +43,12 @@ export interface SQSEventHandler<
     schema: {
         payload?: Schema<Payload>
     }
-    handler: (
-        payload: SQSPayload<MessageGrouping, Payload>,
-        context: LambdaContext<Configuration, Service, Profile>
-    ) => Promisable<Try<SQSResult<MessageGrouping>>>
+    handler: NoInfer<
+        (
+            payload: SQSPayload<MessageGrouping, Payload>,
+            context: LambdaContext<Configuration, Service, Profile>
+        ) => Promisable<Try<SQSResult<MessageGrouping>>>
+    >
     payloadType?: 'json' | 'plaintext'
     messageGrouping?: MessageGrouping
 }

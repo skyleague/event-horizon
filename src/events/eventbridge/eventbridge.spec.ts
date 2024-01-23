@@ -1,11 +1,12 @@
 import { eventBridgeHandler } from './eventbridge.js'
+import type { EventBridgeEvent } from './types.js'
 
-import { warmerEvent } from '../../../test/schema.js'
+import { literalSchema, warmerEvent } from '../../../test/schema.js'
 
 import { asyncForAll, oneOf, random, tuple, unknown } from '@skyleague/axioms'
 import {
     APIGatewayProxyEvent,
-    EventBridgeEvent,
+    EventBridgeEvent as EventBridgeEventSchema,
     FirehoseTransformationEvent,
     KinesisStreamEvent,
     S3BatchEvent,
@@ -16,7 +17,7 @@ import {
 } from '@skyleague/event-horizon-dev'
 import { context } from '@skyleague/event-horizon-dev/test'
 import { arbitrary } from '@skyleague/therefore'
-import { expect, it, vi } from 'vitest'
+import { expect, it, expectTypeOf, vi } from 'vitest'
 
 it('handles eventbridge events', async () => {
     const eventBridge = vi.fn()
@@ -26,13 +27,39 @@ it('handles eventbridge events', async () => {
         },
         { kernel: eventBridge }
     )
-    await asyncForAll(tuple(arbitrary(EventBridgeEvent), unknown(), await context(handler)), async ([event, ret, ctx]) => {
+    await asyncForAll(tuple(arbitrary(EventBridgeEventSchema), unknown(), await context(handler)), async ([event, ret, ctx]) => {
         eventBridge.mockClear()
         eventBridge.mockReturnValue(ret)
 
         const response = await handler._options.handler(event, ctx)
         expect(response).toBe(ret)
         expect(eventBridge).toHaveBeenCalledWith(expect.anything(), event, ctx)
+    })
+})
+
+it('handles schema types', () => {
+    const handler = eventBridgeHandler({
+        eventBridge: {
+            schema: { payload: literalSchema<'payload'>(), result: literalSchema<'result'>() },
+            handler: (request) => {
+                expectTypeOf(request).toEqualTypeOf<EventBridgeEvent<'payload'>>()
+
+                return 'result'
+            },
+        },
+    })
+    expectTypeOf(handler.eventBridge.handler).toEqualTypeOf<(request: EventBridgeEvent<'payload'>) => 'result'>()
+})
+
+it('handles schema types and gives errors', () => {
+    eventBridgeHandler({
+        eventBridge: {
+            schema: { payload: literalSchema<'payload'>(), result: literalSchema<'result'>() },
+            // @ts-expect-error handler is not a valid return type
+            handler: () => {
+                return 'not-result'
+            },
+        },
     })
 })
 

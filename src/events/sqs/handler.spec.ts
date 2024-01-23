@@ -10,7 +10,7 @@ import { context } from '@skyleague/event-horizon-dev/test'
 import type { Schema } from '@skyleague/therefore'
 import { arbitrary } from '@skyleague/therefore'
 import type { SQSBatchItemFailure, SQSBatchResponse, SQSRecord } from 'aws-lambda/trigger/sqs.js'
-import { expect, it, vi } from 'vitest'
+import { expect, it, vi, describe } from 'vitest'
 
 function handleMessageGroup({ records }: SQSMessageGroup, { logger }: { logger: Logger }): SQSBatchItemFailure[] | void {
     for (const record of records) {
