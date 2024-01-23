@@ -8,7 +8,7 @@ export interface RawEventHandler<Configuration = unknown, Service = unknown, Pro
         payload?: Schema<Payload>
         result?: Schema<Result>
     }
-    handler: (request: Payload, context: LambdaContext<Configuration, Service, Profile>) => Promisable<Try<Result>>
+    handler: NoInfer<(request: Payload, context: LambdaContext<Configuration, Service, Profile>) => Promisable<Try<Result>>>
 }
 
 export interface RawHandler<Configuration = unknown, Service = unknown, Profile = unknown, Payload = unknown, Result = any>

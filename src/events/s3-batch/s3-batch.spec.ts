@@ -1,6 +1,7 @@
 import { s3BatchHandler } from './s3-batch.js'
+import type { S3BatchTask } from './types.js'
 
-import { warmerEvent } from '../../../test/schema.js'
+import { literalSchema, warmerEvent } from '../../../test/schema.js'
 
 import { asyncForAll, oneOf, random, tuple, unknown } from '@skyleague/axioms'
 import {
@@ -16,7 +17,7 @@ import {
 } from '@skyleague/event-horizon-dev'
 import { context } from '@skyleague/event-horizon-dev/test'
 import { arbitrary } from '@skyleague/therefore'
-import { expect, it, vi } from 'vitest'
+import { expect, it, vi, expectTypeOf } from 'vitest'
 
 it('handles s3Batch events', async () => {
     const s3Batch = vi.fn()
@@ -33,6 +34,36 @@ it('handles s3Batch events', async () => {
         const response = await handler._options.handler(event as any, ctx)
         expect(response).toBe(ret)
         expect(s3Batch).toHaveBeenCalledWith(expect.anything(), event, ctx)
+    })
+})
+
+it('handles schema types', () => {
+    const handler = s3BatchHandler({
+        s3Batch: {
+            schema: { result: literalSchema<'result'>() },
+            handler: (request) => {
+                expectTypeOf(request).toEqualTypeOf<S3BatchTask>()
+                return { status: 'Succeeded', payload: 'result' }
+            },
+        },
+    })
+    expectTypeOf(handler.s3Batch.handler).toEqualTypeOf<
+        (request: S3BatchTask) => {
+            status: 'Succeeded'
+            payload: 'result'
+        }
+    >()
+})
+
+it('handles schema types and gives errors', () => {
+    s3BatchHandler({
+        s3Batch: {
+            schema: { result: literalSchema<'result'>() },
+            // @ts-expect-error handler is not a valid return type
+            handler: () => {
+                return { status: 'Succeeded', payload: 'not-result' as const }
+            },
+        },
     })
 })
 
