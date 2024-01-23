@@ -8,7 +8,7 @@ export interface S3Event {
 }
 
 export interface S3EventHandler<Configuration = unknown, Service = unknown, Profile = unknown> {
-    handler: (request: S3Event, context: LambdaContext<Configuration, Service, Profile>) => Promisable<Try<void>>
+    handler: NoInfer<(request: S3Event, context: LambdaContext<Configuration, Service, Profile>) => Promisable<Try<void>>>
 }
 
 export interface S3Handler<Configuration = unknown, Service = unknown, Profile = unknown>

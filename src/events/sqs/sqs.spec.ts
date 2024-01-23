@@ -1,6 +1,7 @@
 import { sqsHandler } from './sqs.js'
+import type { SQSEvent, SQSMessageGroup } from './types.js'
 
-import { warmerEvent } from '../../../test/schema.js'
+import { literalSchema, warmerEvent } from '../../../test/schema.js'
 
 import { asyncForAll, oneOf, random, tuple, unknown } from '@skyleague/axioms'
 import {
@@ -11,12 +12,13 @@ import {
     S3BatchEvent,
     S3Event,
     SNSEvent,
-    SQSEvent,
+    SQSEvent as SQSEventSchema,
     SecretRotationEvent,
 } from '@skyleague/event-horizon-dev'
 import { context } from '@skyleague/event-horizon-dev/test'
 import { arbitrary } from '@skyleague/therefore'
-import { expect, it, vi } from 'vitest'
+import type { SQSBatchItemFailure } from 'aws-lambda'
+import { expect, it, vi, expectTypeOf } from 'vitest'
 
 it('handles sqs events', async () => {
     const sqs = vi.fn()
@@ -26,7 +28,7 @@ it('handles sqs events', async () => {
         },
         { kernel: sqs }
     )
-    await asyncForAll(tuple(arbitrary(SQSEvent), unknown(), await context(handler)), async ([event, ret, ctx]) => {
+    await asyncForAll(tuple(arbitrary(SQSEventSchema), unknown(), await context(handler)), async ([event, ret, ctx]) => {
         sqs.mockClear()
         sqs.mockReturnValue(ret)
 
@@ -34,6 +36,18 @@ it('handles sqs events', async () => {
         expect(response).toBe(ret)
         expect(sqs).toHaveBeenCalledWith(expect.anything(), event.Records, ctx)
     })
+})
+
+it('handles schema types', () => {
+    const handler = sqsHandler({
+        sqs: {
+            schema: { payload: literalSchema<'payload'>() },
+            handler: (request) => {
+                expectTypeOf(request).toEqualTypeOf<SQSEvent<'payload'>>()
+            },
+        },
+    })
+    expectTypeOf(handler.sqs.handler).toEqualTypeOf<(request: SQSEvent<'payload'>) => void>()
 })
 
 it('handles sqs events - message grouping', async () => {
@@ -44,7 +58,7 @@ it('handles sqs events - message grouping', async () => {
         },
         { kernel: sqs }
     )
-    await asyncForAll(tuple(arbitrary(SQSEvent), unknown(), await context(handler)), async ([event, ret, ctx]) => {
+    await asyncForAll(tuple(arbitrary(SQSEventSchema), unknown(), await context(handler)), async ([event, ret, ctx]) => {
         sqs.mockClear()
         sqs.mockReturnValue(ret)
 
@@ -52,6 +66,20 @@ it('handles sqs events - message grouping', async () => {
         expect(response).toBe(ret)
         expect(sqs).toHaveBeenCalledWith(expect.anything(), event.Records, ctx)
     })
+})
+
+it('handles schema types - message grouping', () => {
+    const handler = sqsHandler({
+        sqs: {
+            messageGrouping: { by: 'message-group-id' },
+            schema: { payload: literalSchema<'payload'>() },
+            handler: (request) => {
+                expectTypeOf(request).toEqualTypeOf<SQSMessageGroup<'payload'>>()
+                return [{ itemIdentifier: 'sdf' }]
+            },
+        },
+    })
+    expectTypeOf(handler.sqs.handler).toEqualTypeOf<(request: SQSMessageGroup<'payload'>) => SQSBatchItemFailure[]>()
 })
 
 it('does not handle non sqs events', async () => {

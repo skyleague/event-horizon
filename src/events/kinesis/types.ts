@@ -13,10 +13,9 @@ export interface KinesisEventHandler<Configuration = unknown, Service = unknown,
     schema: {
         payload?: Schema<Payload>
     }
-    handler: (
-        request: KinesisEvent<Payload>,
-        context: LambdaContext<Configuration, Service, Profile>
-    ) => Promisable<Try<{} | void>>
+    handler: NoInfer<
+        (request: KinesisEvent<Payload>, context: LambdaContext<Configuration, Service, Profile>) => Promisable<Try<{} | void>>
+    >
     payloadType?: 'binary' | 'json' | 'plaintext'
 }
 

@@ -20,10 +20,9 @@ export interface EventBridgeEventHandler<
         payload?: Schema<Payload>
         result?: Schema<Result>
     }
-    handler: (
-        request: EventBridgeEvent<Payload>,
-        context: LambdaContext<Configuration, Service, Profile>
-    ) => Promisable<Try<Result>>
+    handler: NoInfer<
+        (request: EventBridgeEvent<Payload>, context: LambdaContext<Configuration, Service, Profile>) => Promisable<Try<Result>>
+    >
 }
 
 export interface EventBridgeHandler<

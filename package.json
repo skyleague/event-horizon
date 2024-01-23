@@ -54,14 +54,14 @@
   "devDependencies": {
     "@skyleague/event-horizon": "./",
     "@skyleague/event-horizon-dev": "^5.1.0",
-    "@skyleague/node-standards": "^4.1.2",
+    "@skyleague/node-standards": "^5.0.0",
     "@skyleague/therefore": "^4.1.1",
     "@types/node": "^20.11.5",
     "aws-sdk-client-mock": "^3.0.1",
     "aws-sdk-client-mock-jest": "^3.0.1",
     "got": "^14.0.0",
     "nock": "^13.5.0",
-    "typescript": "^5.3.3"
+    "typescript": "5.4.0-dev.20240123"
   },
   "engines": {
     "node": ">=20"
