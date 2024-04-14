@@ -1,1 +1,3 @@
-module.exports = require('@skyleague/node-standards/lint-staged.config.cjs')
+module.exports = {
+    '*': ['biome check --no-errors-on-unmatched --files-ignore-unknown=true --apply-unsafe'],
+}

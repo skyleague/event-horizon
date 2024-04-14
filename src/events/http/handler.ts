@@ -25,7 +25,7 @@ export async function handleHTTPEvent<
 >(
     handler: HTTPHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, GV>,
     event: APIGatewayProxyEvent | APIGatewayProxyEventV2,
-    context: LambdaContext<Configuration, Service, Profile>
+    context: LambdaContext<Configuration, Service, Profile>,
 ): Promise<Try<APIGatewayProxyResult | APIGatewayProxyResultV2>> {
     const { http } = handler
     const parseEventFn = httpParseEvent(http)

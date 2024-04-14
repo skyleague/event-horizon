@@ -45,14 +45,10 @@ export function httpEvent<
             }
 
             // force coercion
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-            http.schema.body?.is?.(event.body)
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-            http.schema.headers?.is?.(event.headers)
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-            http.schema.query?.is?.(event.query)
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-            http.schema.path?.is?.(event.path)
+            http.schema.body?.is?.(event.body) ?? true
+            http.schema.headers?.is?.(event.headers) ?? true
+            http.schema.query?.is?.(event.query) ?? true
+            http.schema.path?.is?.(event.path) ?? true
 
             event.raw.headers ??= (event.headers as typeof event.raw.headers) ?? {}
             event.raw.queryStringParameters ??= (event.query as typeof event.raw.queryStringParameters) ?? {}

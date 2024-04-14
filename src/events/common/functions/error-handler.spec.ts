@@ -20,7 +20,7 @@ it('server event error becomes error', async () => {
     forAll(
         tuple(
             await context(),
-            string().map((c) => [c, new EventError(c)])
+            string().map((c) => [c, new EventError(c)]),
         ),
         ([ctx, [message, error]]) => {
             ctx.mockClear()
@@ -28,7 +28,7 @@ it('server event error becomes error', async () => {
             handler.onError(error)
 
             expect(ctx.logger.error).toHaveBeenCalledWith(message, expect.any(EventError))
-        }
+        },
     )
 })
 
@@ -36,7 +36,7 @@ it('client event error becomes warning', async () => {
     forAll(
         tuple(
             await context(),
-            string().map((c) => [c, new EventError(c, { statusCode: 400 })])
+            string().map((c) => [c, new EventError(c, { statusCode: 400 })]),
         ),
         ([ctx, [message, error]]) => {
             ctx.mockClear()
@@ -44,6 +44,6 @@ it('client event error becomes warning', async () => {
             handler.onError(error)
 
             expect(ctx.logger.warn).toHaveBeenCalledWith(message, expect.any(EventError))
-        }
+        },
     )
 })

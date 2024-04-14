@@ -7,7 +7,7 @@ import { it, vi } from 'vitest'
 
 it('httpEvent === httpEvent', () => {
     forAll(httpEvent({ http: { method: 'get', path: '/', handler: vi.fn(), schema: { responses: {} } } }), (e) =>
-        APIGatewayProxyEvent.assert(e.raw)
+        APIGatewayProxyEvent.is(e.raw),
     )
 })
 
@@ -21,6 +21,6 @@ it('httpEvent body === body', () => {
                 schema: { body: { schema: { type: 'string' } } as any, responses: {} },
             },
         }),
-        (e) => isString(e.body)
+        (e) => isString(e.body),
     )
 })

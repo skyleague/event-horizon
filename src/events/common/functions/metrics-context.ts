@@ -11,7 +11,7 @@ export function metricsContext(
         dimensions?: Dimensions
         captureColdStartMetric?: boolean
         functionName?: string
-    } = {}
+    } = {},
 ): { before: () => void; after: () => void; onError: () => undefined } {
     function publishMetrics(): undefined {
         // prevent logging an error inside the cloudwatch logs

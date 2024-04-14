@@ -3,15 +3,18 @@
  * Do not manually touch this
  */
 /* eslint-disable */
-import AjvValidator from 'ajv'
-import type { ValidateFunction } from 'ajv'
+
+import type { DefinedError, ValidateFunction } from 'ajv'
+
+import { validate as SNSEventRecordValidator } from './schemas/sns-event-record.schema.js'
+import { validate as SNSEventValidator } from './schemas/sns-event.schema.js'
 
 export interface SNSEvent {
     Records: SNSEventRecord[]
 }
 
 export const SNSEvent = {
-    validate: (await import('./schemas/sns-event.schema.js')).validate10 as unknown as ValidateFunction<SNSEvent>,
+    validate: SNSEventValidator as ValidateFunction<SNSEvent>,
     get schema() {
         return SNSEvent.validate.schema
     },
@@ -19,10 +22,11 @@ export const SNSEvent = {
         return SNSEvent.validate.errors ?? undefined
     },
     is: (o: unknown): o is SNSEvent => SNSEvent.validate(o) === true,
-    assert: (o: unknown) => {
-        if (!SNSEvent.validate(o)) {
-            throw new AjvValidator.ValidationError(SNSEvent.errors ?? [])
+    parse: (o: unknown): { right: SNSEvent } | { left: DefinedError[] } => {
+        if (SNSEvent.is(o)) {
+            return { right: o }
         }
+        return { left: (SNSEvent.errors ?? []) as DefinedError[] }
     },
 } as const
 
@@ -34,7 +38,7 @@ export interface SNSEventRecord {
 }
 
 export const SNSEventRecord = {
-    validate: (await import('./schemas/sns-event-record.schema.js')).validate10 as unknown as ValidateFunction<SNSEventRecord>,
+    validate: SNSEventRecordValidator as ValidateFunction<SNSEventRecord>,
     get schema() {
         return SNSEventRecord.validate.schema
     },
@@ -42,10 +46,11 @@ export const SNSEventRecord = {
         return SNSEventRecord.validate.errors ?? undefined
     },
     is: (o: unknown): o is SNSEventRecord => SNSEventRecord.validate(o) === true,
-    assert: (o: unknown) => {
-        if (!SNSEventRecord.validate(o)) {
-            throw new AjvValidator.ValidationError(SNSEventRecord.errors ?? [])
+    parse: (o: unknown): { right: SNSEventRecord } | { left: DefinedError[] } => {
+        if (SNSEventRecord.is(o)) {
+            return { right: o }
         }
+        return { left: (SNSEventRecord.errors ?? []) as DefinedError[] }
     },
 } as const
 
@@ -60,8 +65,8 @@ export interface SNSMessage {
     Type: string
     UnsubscribeUrl: string
     TopicArn: string
-    Subject?: string
-    Token?: string
+    Subject?: string | undefined
+    Token?: string | undefined
 }
 
 export interface SNSMessageAttribute {

@@ -1,18 +1,18 @@
 import {
-    toReceiveCommandTimes,
-    toHaveReceivedCommandTimes,
-    toReceiveCommandOnce,
-    toHaveReceivedCommandOnce,
-    toReceiveCommand,
     toHaveReceivedCommand,
-    toReceiveCommandWith,
+    toHaveReceivedCommandOnce,
+    toHaveReceivedCommandTimes,
     toHaveReceivedCommandWith,
-    toReceiveNthCommandWith,
-    toHaveReceivedNthCommandWith,
-    toReceiveLastCommandWith,
     toHaveReceivedLastCommandWith,
+    toHaveReceivedNthCommandWith,
+    toReceiveCommand,
+    toReceiveCommandOnce,
+    toReceiveCommandTimes,
+    toReceiveCommandWith,
+    toReceiveLastCommandWith,
+    toReceiveNthCommandWith,
 } from 'aws-sdk-client-mock-vitest'
-import { vi, afterAll } from 'vitest'
+import { afterAll, vi } from 'vitest'
 import { expect } from 'vitest'
 
 import 'vitest'

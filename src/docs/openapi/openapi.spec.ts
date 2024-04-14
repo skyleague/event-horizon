@@ -1,21 +1,21 @@
 import { addComponent, ensureTarget, jsonptrToName, normalizeSchema, openapiFromHandlers } from './openapi.js'
 
 import { HttpError } from '../../events/http/functions/http-error.type.js'
-import { httpHandler } from '../../events/http/http.js'
 
 import { alpha, array, dict, entriesOf, forAll, json, omit, omitUndefined, random, string, tuple } from '@skyleague/axioms'
-import { expect, describe, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+import { httpApiHandler } from '../../events/http/http.js'
 
 describe('jsonptrToName', () => {
     it('refs schemas', () => {
         forAll(
             tuple(
                 array(alpha({ minLength: 1 })).map((xs) => xs.join('/')),
-                alpha({ minLength: 1 })
+                alpha({ minLength: 1 }),
             ),
             ([ptr, name]) => {
                 expect(jsonptrToName(`#${ptr}/${name}`)).toEqual(name)
-            }
+            },
         )
     })
 })
@@ -46,7 +46,7 @@ describe('ensureTarget', () => {
         forAll(
             tuple(
                 array(alpha({ minLength: 1 }), { minLength: 1 }).map((xs) => xs.join('/')),
-                alpha({ minLength: 1 })
+                alpha({ minLength: 1 }),
             ),
             ([ptr, name]) => {
                 openapi = {}
@@ -61,7 +61,7 @@ describe('ensureTarget', () => {
                         },
                     },
                 })
-            }
+            },
         )
     })
 
@@ -69,7 +69,7 @@ describe('ensureTarget', () => {
         forAll(
             tuple(
                 array(alpha({ minLength: 1 }), { minLength: 1 }).map((xs) => xs.join('/')),
-                alpha({ minLength: 1 })
+                alpha({ minLength: 1 }),
             ),
             ([ptr, name]) => {
                 openapi = {}
@@ -77,7 +77,7 @@ describe('ensureTarget', () => {
                 expect(openapi.components.parameters[name]).toEqual({
                     $ref: `#/components/schemas/${name}`,
                 })
-            }
+            },
         )
     })
 
@@ -85,13 +85,13 @@ describe('ensureTarget', () => {
         forAll(
             tuple(
                 array(alpha({ minLength: 1 }), { minLength: 1 }).map((xs) => xs.join('/')),
-                alpha({ minLength: 1 })
+                alpha({ minLength: 1 }),
             ),
             ([ptr, name]: [string, string]) => {
                 openapi = {}
                 ensureTarget({ openapi } as any, `#/${ptr}/${name}`, 'schemas')
                 expect(openapi.components.schemas).toEqual({})
-            }
+            },
         )
     })
 })
@@ -103,7 +103,7 @@ describe('normalizeSchema', () => {
             tuple(
                 dict(json()),
                 array(alpha({ minLength: 1 }), { minLength: 1 }).map((xs) => xs.join('/')),
-                alpha({ minLength: 1 })
+                alpha({ minLength: 1 }),
             ).map(([jsonschema, ptr, name]) => [{ ...jsonschema, $ref: `#/${ptr}/${name}` }, ptr, name] as const),
             ([jsonschema, ptr, name]) => {
                 openapi = {}
@@ -112,7 +112,7 @@ describe('normalizeSchema', () => {
                     $ref: `#/${ptr}/${name}`,
                 })
                 expect(openapi.components.schemas).toEqual({})
-            }
+            },
         )
     })
 
@@ -121,7 +121,7 @@ describe('normalizeSchema', () => {
             tuple(
                 dict(json()),
                 array(alpha({ minLength: 1 }), { minLength: 1 }).map((xs) => xs.join('/')),
-                alpha({ minLength: 1 })
+                alpha({ minLength: 1 }),
             ).map(([jsonschema, ptr, name]) => [{ ...jsonschema, $ref: `#/${ptr}/${name}` }, ptr, name] as const),
             ([jsonschema, ptr, name]) => {
                 openapi = {}
@@ -132,7 +132,7 @@ describe('normalizeSchema', () => {
                 expect(openapi.components.parameters[name]).toEqual({
                     $ref: `#/components/schemas/${name}`,
                 })
-            }
+            },
         )
     })
 
@@ -141,7 +141,7 @@ describe('normalizeSchema', () => {
             tuple(
                 dict(json()),
                 array(alpha({ minLength: 1 }), { minLength: 1 }).map((xs) => xs.join('/')),
-                alpha({ minLength: 1 })
+                alpha({ minLength: 1 }),
             ).map(([jsonschema, ptr, name]) => [{ ...jsonschema, $ref: `#/${ptr}/${name}` }, ptr, name] as const),
             ([jsonschema, ptr, name]) => {
                 openapi = {}
@@ -159,7 +159,7 @@ describe('normalizeSchema', () => {
                         },
                     },
                 })
-            }
+            },
         )
     })
 
@@ -171,7 +171,7 @@ describe('normalizeSchema', () => {
                         { ...jsonschema, anyOf: [{ $ref: `#/$defs/${name}` }], $defs: { [name]: definition } },
                         definition,
                         name,
-                    ] as const
+                    ] as const,
             ),
             ([jsonschema, definition, name]) => {
                 openapi = {}
@@ -184,7 +184,7 @@ describe('normalizeSchema', () => {
                     ],
                 })
                 expect(openapi.components.schemas).toEqual({ [name]: definition })
-            }
+            },
         )
     })
 
@@ -196,7 +196,7 @@ describe('normalizeSchema', () => {
                         { ...jsonschema, oneOf: [{ $ref: `#/$defs/${name}` }], $defs: { [name]: definition } },
                         definition,
                         name,
-                    ] as const
+                    ] as const,
             ),
             ([jsonschema, definition, name]) => {
                 openapi = {}
@@ -209,7 +209,7 @@ describe('normalizeSchema', () => {
                     ],
                 })
                 expect(openapi.components.schemas).toEqual({ [name]: definition })
-            }
+            },
         )
     })
 
@@ -221,7 +221,7 @@ describe('normalizeSchema', () => {
                         { ...jsonschema, type: 'array', items: { $ref: `#/$defs/${name}` }, $defs: { [name]: definition } },
                         definition,
                         name,
-                    ] as const
+                    ] as const,
             ),
             ([jsonschema, definition, name]) => {
                 openapi = {}
@@ -232,7 +232,7 @@ describe('normalizeSchema', () => {
                     },
                 })
                 expect(openapi.components.schemas).toEqual({ [name]: definition })
-            }
+            },
         )
     })
 
@@ -244,7 +244,7 @@ describe('normalizeSchema', () => {
                         { ...jsonschema, type: 'array', items: [{ $ref: `#/$defs/${name}` }], $defs: { [name]: definition } },
                         definition,
                         name,
-                    ] as const
+                    ] as const,
             ),
             ([jsonschema, definition, name]) => {
                 openapi = {}
@@ -257,7 +257,7 @@ describe('normalizeSchema', () => {
                     ],
                 })
                 expect(openapi.components.schemas).toEqual({ [name]: definition })
-            }
+            },
         )
     })
 
@@ -274,7 +274,7 @@ describe('normalizeSchema', () => {
                         },
                         definition,
                         name,
-                    ] as const
+                    ] as const,
             ),
             ([jsonschema, definition, name]) => {
                 openapi = {}
@@ -283,7 +283,7 @@ describe('normalizeSchema', () => {
                     properties: { [name]: { $ref: `#/components/schemas/${name}` } },
                 })
                 expect(openapi.components.schemas).toEqual({ [name]: definition })
-            }
+            },
         )
     })
 
@@ -300,7 +300,7 @@ describe('normalizeSchema', () => {
                         },
                         definition,
                         name,
-                    ] as const
+                    ] as const,
             ),
             ([jsonschema, definition, name]) => {
                 openapi = {}
@@ -309,7 +309,7 @@ describe('normalizeSchema', () => {
                     patternProperties: { [name]: { $ref: `#/components/schemas/${name}` } },
                 })
                 expect(openapi.components.schemas).toEqual({ [name]: definition })
-            }
+            },
         )
     })
 
@@ -326,7 +326,7 @@ describe('normalizeSchema', () => {
                         },
                         definition,
                         name,
-                    ] as const
+                    ] as const,
             ),
             ([jsonschema, definition, name]) => {
                 openapi = {}
@@ -335,7 +335,7 @@ describe('normalizeSchema', () => {
                     additionalProperties: { $ref: `#/components/schemas/${name}` },
                 })
                 expect(openapi.components.schemas).toEqual({ [name]: definition })
-            }
+            },
         )
     })
 
@@ -354,7 +354,7 @@ describe('normalizeSchema', () => {
                         definition,
                         name,
                         title,
-                    ] as const
+                    ] as const,
             ),
             ([jsonschema, definition, name, title]) => {
                 openapi = {}
@@ -368,7 +368,7 @@ describe('normalizeSchema', () => {
                         properties: { [name]: { $ref: `#/components/schemas/${name}` } },
                     },
                 })
-            }
+            },
         )
     })
 
@@ -385,13 +385,13 @@ describe('normalizeSchema', () => {
                         },
                         definition,
                         name,
-                    ] as const
+                    ] as const,
             ),
             ([jsonschema, definition, name]) => {
                 openapi = {}
                 expect(normalizeSchema({ ctx: { openapi } as any, schema: jsonschema as any, defsOnly: true })).toEqual({})
                 expect(openapi.components.schemas).toEqual({ [name]: definition })
-            }
+            },
         )
     })
 })
@@ -403,7 +403,7 @@ describe('openapiFromHandlers', () => {
     it('simple', () => {
         const h = vi.fn()
         forAll(tuple(string(), string()), ([method, path]) => {
-            const helloWorld = httpHandler({
+            const helloWorld = httpApiHandler({
                 http: {
                     method,
                     path,
@@ -436,7 +436,7 @@ describe('openapiFromHandlers', () => {
     it('request body', () => {
         const h = vi.fn()
         forAll(tuple(string(), string(), dict(json())), ([method, path, schema]) => {
-            const helloWorld = httpHandler({
+            const helloWorld = httpApiHandler({
                 http: {
                     method,
                     path,
@@ -469,7 +469,7 @@ describe('openapiFromHandlers', () => {
     it('response', () => {
         const h = vi.fn()
         forAll(tuple(string(), string(), dict(json())), ([method, path, schema]) => {
-            const helloWorld = httpHandler({
+            const helloWorld = httpApiHandler({
                 http: {
                     method,
                     path,
@@ -509,7 +509,7 @@ describe('openapiFromHandlers', () => {
     it('response default overrides', () => {
         const h = vi.fn()
         forAll(tuple(string(), string(), dict(json())), ([method, path, schema]) => {
-            const helloWorld = httpHandler({
+            const helloWorld = httpApiHandler({
                 http: {
                     method,
                     path,
@@ -552,10 +552,10 @@ describe('openapiFromHandlers', () => {
             tuple(
                 string(),
                 string(),
-                dict(dict(json())).map((j) => ({ properties: j, type: 'object', required: [] as string[] }))
+                dict(dict(json())).map((j) => ({ properties: j, type: 'object', required: [] as string[] })),
             ),
             ([method, path, schema]) => {
-                const helloWorld = httpHandler({
+                const helloWorld = httpApiHandler({
                     http: {
                         method,
                         path,
@@ -591,14 +591,14 @@ describe('openapiFromHandlers', () => {
                                         description: value.description,
                                         deprecated: value.deprecated,
                                         schema: value,
-                                    })
+                                    }),
                                 ),
                                 responses: {},
                             },
                         },
                     },
                 })
-            }
+            },
         )
     })
 
@@ -608,10 +608,10 @@ describe('openapiFromHandlers', () => {
             tuple(
                 string(),
                 string(),
-                dict(dict(json())).map((j) => ({ properties: j, type: 'object', required: [] as string[] }))
+                dict(dict(json())).map((j) => ({ properties: j, type: 'object', required: [] as string[] })),
             ),
             ([method, path, schema]) => {
-                const helloWorld = httpHandler({
+                const helloWorld = httpApiHandler({
                     http: {
                         method,
                         path,
@@ -647,14 +647,14 @@ describe('openapiFromHandlers', () => {
                                         description: value.description,
                                         deprecated: value.deprecated,
                                         schema: value,
-                                    })
+                                    }),
                                 ),
                                 responses: {},
                             },
                         },
                     },
                 })
-            }
+            },
         )
     })
 
@@ -664,10 +664,10 @@ describe('openapiFromHandlers', () => {
             tuple(
                 string(),
                 string(),
-                dict(dict(json())).map((j) => ({ properties: j, type: 'query', required: [] as string[] }))
+                dict(dict(json())).map((j) => ({ properties: j, type: 'query', required: [] as string[] })),
             ),
             ([method, path, schema]) => {
-                const helloWorld = httpHandler({
+                const helloWorld = httpApiHandler({
                     http: {
                         method,
                         path,
@@ -703,14 +703,14 @@ describe('openapiFromHandlers', () => {
                                         description: value.description,
                                         deprecated: value.deprecated,
                                         schema: value,
-                                    })
+                                    }),
                                 ),
                                 responses: {},
                             },
                         },
                     },
                 })
-            }
+            },
         )
     })
 })

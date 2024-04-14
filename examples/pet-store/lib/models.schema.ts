@@ -1,17 +1,17 @@
-import { $integer, $object, $ref, $string, $validator, $optional, $array, $enum } from '@skyleague/therefore'
+import { $array, $enum, $integer, $object, $optional, $ref, $string, $validator } from '@skyleague/therefore'
 
 export const category = $validator(
     $object({
         id: $integer,
         name: $string,
-    })
+    }),
 )
 
 export const tag = $validator(
     $object({
         id: $optional($integer),
         name: $optional($string),
-    })
+    }),
 )
 
 export const status = $validator($enum(['available', 'pending', 'sold']))
@@ -28,8 +28,8 @@ export const pet = $validator(
         },
         {
             description: 'Pet object from the store',
-        }
-    )
+        },
+    ),
 )
 
 export const petArray = $validator($array($ref(pet), { description: 'A list of Pet objects' }))

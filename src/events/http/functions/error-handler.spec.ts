@@ -25,7 +25,7 @@ it('server event error becomes error', async () => {
     forAll(
         tuple(
             await context(),
-            string().map((c) => new EventError(c))
+            string().map((c) => new EventError(c)),
         ),
         ([ctx, error]) => {
             ctx.mockClear()
@@ -37,7 +37,7 @@ it('server event error becomes error', async () => {
             })
 
             expect(ctx.logger.error).toHaveBeenCalledWith('Error found', expect.any(EventError))
-        }
+        },
     )
 })
 
@@ -45,7 +45,7 @@ it('client event error becomes info', async () => {
     forAll(
         tuple(
             await context(),
-            string().map((c) => new EventError(c, { statusCode: 400 }))
+            string().map((c) => new EventError(c, { statusCode: 400 })),
         ),
         ([ctx, error]) => {
             ctx.mockClear()
@@ -57,6 +57,6 @@ it('client event error becomes info', async () => {
             })
 
             expect(ctx.logger.info).toHaveBeenCalledWith('Client error found', expect.any(EventError))
-        }
+        },
     )
 })

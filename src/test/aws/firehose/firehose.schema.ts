@@ -14,16 +14,16 @@ export const firehoseTransformationEventRecord = $validator(
         approximateArrivalTimestamp: $integer,
         // Base64 encoded
         data: $string,
-        kinesisRecordMetadata: $optional($ref(firehoseRecordMetadata), 'explicit'),
-    })
+        kinesisRecordMetadata: $optional($ref(firehoseRecordMetadata)),
+    }),
 )
 
 export const firehoseTransformationEvent = $validator(
     $object({
         invocationId: $string,
         deliveryStreamArn: $string,
-        sourceKinesisStreamArn: $optional($string, 'explicit'),
+        sourceKinesisStreamArn: $optional($string),
         region: $string,
         records: $array($ref(firehoseTransformationEventRecord)),
-    })
+    }),
 )

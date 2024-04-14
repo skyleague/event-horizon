@@ -3,7 +3,7 @@ import { ExtendedLogFormatter } from './formatter.js'
 import { constants } from '../../constants.js'
 
 import { Logger as AwsLogger } from '@aws-lambda-powertools/logger'
-import { mergeDeep } from '@skyleague/axioms'
+import { mergeDeep } from '@skyleague/axioms/src/object/_internal/merge-deep/merge-deep.js'
 
 export interface LogItemObject {
     [key: string]: unknown
@@ -27,7 +27,7 @@ export function createLogger(
     options: ConstructorParameters<typeof AwsLogger>[0] | { instance: AwsLogger } = {
         serviceName: constants.serviceName,
         logFormatter: new ExtendedLogFormatter(),
-    }
+    },
 ): Logger {
     const instance: AwsLogger = 'instance' in options ? options.instance : new AwsLogger(options)
 

@@ -1,4 +1,4 @@
-import { $array, $dict, $ref, $string, $validator, $optional, $object } from '@skyleague/therefore'
+import { $array, $dict, $object, $optional, $ref, $string, $validator } from '@skyleague/therefore'
 
 export const SNSMessageAttribute = $object({
     Type: $string,
@@ -28,11 +28,11 @@ export const SNSEventRecord = $validator(
         EventSubscriptionArn: $string,
         EventSource: $string,
         Sns: $ref(SNSMessage),
-    })
+    }),
 )
 
 export const SNSEvent = $validator(
     $object({
         Records: $array($ref(SNSEventRecord)),
-    })
+    }),
 )

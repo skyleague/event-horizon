@@ -37,7 +37,7 @@ export const context = $validator(
         awsRequestId: $string,
         logGroupName: $string,
         logStreamName: $string,
-        identity: $optional($ref(cognitoIdentity), 'explicit'),
-        clientContext: $optional($ref(clientContext), 'explicit'),
-    })
+        identity: $optional($ref(cognitoIdentity)),
+        clientContext: $optional($ref(clientContext)),
+    }),
 )

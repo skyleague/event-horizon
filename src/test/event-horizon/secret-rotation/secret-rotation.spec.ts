@@ -6,7 +6,7 @@ import { forAll } from '@skyleague/axioms'
 import { it } from 'vitest'
 
 it('SecretRotationEvent === SecretRotationRequest.raw', () => {
-    forAll(secretRotationEvent(), (r) => SecretRotationEvent.assert(r.raw))
+    forAll(secretRotationEvent(), (r) => SecretRotationEvent.is(r.raw))
 })
 
 it('SecretRotationEvent handles correct types', () => {
@@ -16,6 +16,6 @@ it('SecretRotationEvent handles correct types', () => {
                 foo: 'bar',
             },
         }),
-        (r) => SecretRotationEvent.assert(r.raw)
+        (r) => SecretRotationEvent.is(r.raw),
     )
 })

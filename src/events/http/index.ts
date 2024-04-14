@@ -9,4 +9,4 @@ export type {
     HTTPEventHandler,
     HTTPHandler,
 } from './types.js'
-export { httpHandler, httpApiHandler, restApiHandler } from './http.js'
+export { httpApiHandler, restApiHandler } from './http.js'

@@ -11,12 +11,12 @@ export function ioValidate<I = unknown, O = unknown>(): {
     before: <SI, Key extends keyof I | undefined = undefined, U = Key extends string ? Try<MappedSchema<I, Key, SI>> : Try<SI>>(
         schema: Schema<SI> | undefined,
         event: I,
-        path?: Key
+        path?: Key,
     ) => U
     after: <SO, Key extends keyof O | undefined = undefined, U = Key extends string ? Try<MappedSchema<O, Key, SO>> : Try<SO>>(
         schema: Schema<SO> | undefined,
         event: O,
-        path?: Key
+        path?: Key,
     ) => U
 } {
     return {
@@ -27,7 +27,7 @@ export function ioValidate<I = unknown, O = unknown>(): {
         >(
             schema: Schema<SI> | undefined,
             event: I,
-            key?: Key
+            key?: Key,
         ): U => {
             const unknownValue = key !== undefined ? event[key] : event
             if (schema?.is(unknownValue) === false) {
@@ -42,7 +42,7 @@ export function ioValidate<I = unknown, O = unknown>(): {
         >(
             schema: Schema<SO> | undefined,
             event: O,
-            key?: Key
+            key?: Key,
         ): U => {
             const unknownValue = key !== undefined ? event[key] : event
             if (schema?.is(unknownValue) === false) {

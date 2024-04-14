@@ -3,8 +3,11 @@
  * Do not manually touch this
  */
 /* eslint-disable */
-import AjvValidator from 'ajv'
-import type { ValidateFunction } from 'ajv'
+
+import type { DefinedError, ValidateFunction } from 'ajv'
+
+import { validate as S3BatchEventTaskValidator } from './schemas/s3-batch-event-task.schema.js'
+import { validate as S3BatchEventValidator } from './schemas/s3-batch-event.schema.js'
 
 export interface S3BatchEvent {
     invocationSchemaVersion: string
@@ -14,7 +17,7 @@ export interface S3BatchEvent {
 }
 
 export const S3BatchEvent = {
-    validate: (await import('./schemas/s3-batch-event.schema.js')).validate10 as unknown as ValidateFunction<S3BatchEvent>,
+    validate: S3BatchEventValidator as ValidateFunction<S3BatchEvent>,
     get schema() {
         return S3BatchEvent.validate.schema
     },
@@ -22,10 +25,11 @@ export const S3BatchEvent = {
         return S3BatchEvent.validate.errors ?? undefined
     },
     is: (o: unknown): o is S3BatchEvent => S3BatchEvent.validate(o) === true,
-    assert: (o: unknown) => {
-        if (!S3BatchEvent.validate(o)) {
-            throw new AjvValidator.ValidationError(S3BatchEvent.errors ?? [])
+    parse: (o: unknown): { right: S3BatchEvent } | { left: DefinedError[] } => {
+        if (S3BatchEvent.is(o)) {
+            return { right: o }
         }
+        return { left: (S3BatchEvent.errors ?? []) as DefinedError[] }
     },
 } as const
 
@@ -41,8 +45,7 @@ export interface S3BatchEventTask {
 }
 
 export const S3BatchEventTask = {
-    validate: (await import('./schemas/s3-batch-event-task.schema.js'))
-        .validate10 as unknown as ValidateFunction<S3BatchEventTask>,
+    validate: S3BatchEventTaskValidator as ValidateFunction<S3BatchEventTask>,
     get schema() {
         return S3BatchEventTask.validate.schema
     },
@@ -50,9 +53,10 @@ export const S3BatchEventTask = {
         return S3BatchEventTask.validate.errors ?? undefined
     },
     is: (o: unknown): o is S3BatchEventTask => S3BatchEventTask.validate(o) === true,
-    assert: (o: unknown) => {
-        if (!S3BatchEventTask.validate(o)) {
-            throw new AjvValidator.ValidationError(S3BatchEventTask.errors ?? [])
+    parse: (o: unknown): { right: S3BatchEventTask } | { left: DefinedError[] } => {
+        if (S3BatchEventTask.is(o)) {
+            return { right: o }
         }
+        return { left: (S3BatchEventTask.errors ?? []) as DefinedError[] }
     },
 } as const

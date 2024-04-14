@@ -1,5 +1,6 @@
 import type { Client } from '@aws-sdk/types'
 
+// biome-ignore lint/suspicious/noExplicitAny: we dont care about these parameters
 export function isAWSv3Client(x: Client<any, any, any> | unknown): x is Client<any, any, any> {
     return (
         typeof x === 'object' &&

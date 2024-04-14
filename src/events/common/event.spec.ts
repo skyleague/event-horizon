@@ -1,22 +1,19 @@
-import { createLambdaContext, eventHandler } from './event.js'
-import type { LambdaHandler } from './raw-aws.js'
-
-import { alwaysTrueSchema, neverTrueSchema } from '../../../test/schema.js'
-import { EventError } from '../../errors/index.js'
-import { logger } from '../../observability/logger/logger.js'
-import 'aws-sdk-client-mock-jest'
-import { context } from '../../test/test/context/context.js'
-import { mockLogger, mockMetrics, mockTracer } from '../../test/test/mock/mock.js'
-
 import {
     AppConfigData,
     AppConfigDataClient,
     GetLatestConfigurationCommand,
     StartConfigurationSessionCommand,
 } from '@aws-sdk/client-appconfigdata'
-import { asyncForAll, dict, failure, forAll, json, sleep, string, tuple, unknown } from '@skyleague/axioms'
+import { asyncForAll, failure, forAll, json, record, sleep, string, tuple, unknown } from '@skyleague/axioms'
 import { mockClient } from 'aws-sdk-client-mock'
-import { expect, describe, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+import { alwaysTrueSchema, neverTrueSchema } from '../../../test/schema.js'
+import { EventError } from '../../errors/index.js'
+import { logger } from '../../observability/logger/logger.js'
+import { context } from '../../test/test/context/context.js'
+import { mockLogger, mockMetrics, mockTracer } from '../../test/test/mock/mock.js'
+import { createLambdaContext, eventHandler } from './event.js'
+import type { LambdaHandler } from './raw-aws.js'
 
 describe('createLambdaContext', () => {
     it('set manual observability', async () => {
@@ -104,7 +101,7 @@ describe('createLambdaContext', () => {
                 expect(lCtx.requestId).toContain('-')
                 expect(lCtx.services).toBe(undefined)
                 expect(lCtx.config).toBe(undefined)
-            }
+            },
         )
     })
 })
@@ -124,12 +121,12 @@ describe('eventHandler', () => {
     const appConfigDataMock = mockClient(AppConfigDataClient)
 
     it('handler is definition', () => {
-        forAll(dict(unknown()), (meta) => {
+        forAll(record(unknown()), (meta) => {
             const handler = eventHandler(
                 {
                     ...meta,
                 },
-                { handler: vi.fn() }
+                { handler: vi.fn() },
             )
             expect(handler).toEqual(expect.objectContaining(meta))
         })
@@ -144,7 +141,7 @@ describe('eventHandler', () => {
                     config,
                     services,
                 },
-                { eagerHandlerInitialization: true, handler: vi.fn() }
+                { eagerHandlerInitialization: true, handler: vi.fn() },
             )
             // force event loop switching
             await sleep(10)
@@ -164,7 +161,7 @@ describe('eventHandler', () => {
                     config,
                     services,
                 },
-                { eagerHandlerInitialization: true, handler: vi.fn() }
+                { eagerHandlerInitialization: true, handler: vi.fn() },
             )
             // force event loop switching
             await sleep(10)
@@ -184,7 +181,7 @@ describe('eventHandler', () => {
                     config,
                     services,
                 },
-                { eagerHandlerInitialization: false, handler: vi.fn() }
+                { eagerHandlerInitialization: false, handler: vi.fn() },
             )
             // force event loop switching
             await sleep(10)
@@ -202,7 +199,7 @@ describe('eventHandler', () => {
                     config,
                     services,
                 },
-                { handler: vi.fn() }
+                { handler: vi.fn() },
             )
             // force event loop switching
             await sleep(10)
@@ -218,7 +215,7 @@ describe('eventHandler', () => {
                     config: c as never,
                     services: s as never,
                 },
-                { handler: vi.fn() }
+                { handler: vi.fn() },
             )
         })
     })
@@ -234,7 +231,7 @@ describe('eventHandler', () => {
                     config,
                     services,
                 },
-                { handler: handlerImpl }
+                { handler: handlerImpl },
             ) as LambdaHandler
 
             expect(await handler(warmer, ctx.raw)).toBe(undefined)
@@ -252,7 +249,7 @@ describe('eventHandler', () => {
         const appConfigData = new AppConfigData({})
         const s = { appConfigData }
         await asyncForAll(
-            tuple(unknown(), unknown(), unknown(), await context(), tokenArbitrary, dict(json())),
+            tuple(unknown(), unknown(), unknown(), await context(), tokenArbitrary, record(json())),
             async ([request, c, ret, ctx, token, profile]) => {
                 vi.clearAllMocks()
                 appConfigDataMock.reset()
@@ -293,7 +290,7 @@ describe('eventHandler', () => {
                     },
                     {
                         handler: handlerImpl,
-                    }
+                    },
                 ) as LambdaHandler
 
                 expect(await handler(request, ctx.raw)).toBe(ret)
@@ -315,7 +312,7 @@ describe('eventHandler', () => {
                 expect(getSegmentVal.addNewSubsegment).toHaveBeenLastCalledWith('## ')
                 expect(getSegmentVal.close).toHaveBeenCalled()
                 expect(getSegmentVal.flush).toHaveBeenCalled()
-            }
+            },
         )
     })
 
@@ -323,7 +320,7 @@ describe('eventHandler', () => {
         const appConfigData = new AppConfigData({})
         const s = { appConfigData }
         await asyncForAll(
-            tuple(unknown(), unknown(), unknown(), await context(), tokenArbitrary, dict(json())),
+            tuple(unknown(), unknown(), unknown(), await context(), tokenArbitrary, record(json())),
             async ([request, c, ret, ctx, token, profile]) => {
                 vi.clearAllMocks()
 
@@ -363,7 +360,7 @@ describe('eventHandler', () => {
                     },
                     {
                         handler: handlerImpl,
-                    }
+                    },
                 ) as LambdaHandler
 
                 await expect(() => handler(request, ctx.raw)).rejects.toThrowError(expect.any(EventError))
@@ -379,7 +376,7 @@ describe('eventHandler', () => {
                 expect(getSegmentVal.addNewSubsegment).toHaveBeenLastCalledWith('## ')
                 expect(getSegmentVal.close).toHaveBeenCalled()
                 expect(getSegmentVal.flush).toHaveBeenCalled()
-            }
+            },
         )
     })
 
@@ -418,7 +415,7 @@ describe('eventHandler', () => {
                     },
                     {
                         handler: handlerImpl,
-                    }
+                    },
                 ) as LambdaHandler
 
                 expect(await handler(request, ctx.raw)).toBe(ret)
@@ -439,7 +436,7 @@ describe('eventHandler', () => {
                 expect(getSegmentVal.addNewSubsegment).toHaveBeenLastCalledWith('## ')
                 expect(getSegmentVal.close).toHaveBeenCalled()
                 expect(getSegmentVal.flush).toHaveBeenCalled()
-            }
+            },
         )
     })
 
@@ -462,8 +459,8 @@ describe('eventHandler', () => {
                     close: vi.fn(),
                     flush: vi.fn(),
                 }
-                ctx.tracer.instance.isTracingEnabled.mockReturnValue(true)
-                ctx.tracer.instance.getSegment.mockReturnValue(getSegmentVal)
+                tracerInstance.isTracingEnabled.mockReturnValue(true)
+                tracerInstance.getSegment.mockReturnValue(getSegmentVal)
 
                 const handlerImpl = vi.fn().mockResolvedValue(ret)
                 const config = vi.fn().mockResolvedValue(c)
@@ -479,7 +476,7 @@ describe('eventHandler', () => {
                     },
                     {
                         handler: handlerImpl,
-                    }
+                    },
                 ) as LambdaHandler
 
                 await expect(() => handler(request, ctx.raw)).rejects.toEqual(ret)
@@ -500,7 +497,7 @@ describe('eventHandler', () => {
                 expect(getSegmentVal.addNewSubsegment).toHaveBeenLastCalledWith('## ')
                 expect(getSegmentVal.close).toHaveBeenCalled()
                 expect(getSegmentVal.flush).toHaveBeenCalled()
-            }
+            },
         )
     })
 
@@ -511,7 +508,7 @@ describe('eventHandler', () => {
                 unknown(),
                 unknown(),
                 string().map((f) => new EventError(f, { errorHandling: 'graceful' })),
-                await context()
+                await context(),
             ),
             async ([request, c, s, ret, ctx]) => {
                 const setbinding = vi.spyOn(ctx.logger, 'setBindings')
@@ -544,7 +541,7 @@ describe('eventHandler', () => {
                     },
                     {
                         handler: handlerImpl,
-                    }
+                    },
                 ) as LambdaHandler
 
                 expect(await handler(request, ctx.raw)).toEqual({})
@@ -565,7 +562,7 @@ describe('eventHandler', () => {
                 expect(getSegmentVal.addNewSubsegment).toHaveBeenLastCalledWith('## ')
                 expect(getSegmentVal.close).toHaveBeenCalled()
                 expect(getSegmentVal.flush).toHaveBeenCalled()
-            }
+            },
         )
     })
 })

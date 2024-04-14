@@ -3,8 +3,10 @@
  * Do not manually touch this
  */
 /* eslint-disable */
-import AjvValidator from 'ajv'
-import type { ValidateFunction } from 'ajv'
+
+import type { DefinedError, ValidateFunction } from 'ajv'
+
+import { validate as EventBridgeEventValidator } from './schemas/event-bridge-event.schema.js'
 
 export interface EventBridgeEvent {
     id: string
@@ -16,12 +18,11 @@ export interface EventBridgeEvent {
     source: string
     'detail-type': string
     detail: unknown
-    'replay-name'?: string
+    'replay-name'?: string | undefined
 }
 
 export const EventBridgeEvent = {
-    validate: (await import('./schemas/event-bridge-event.schema.js'))
-        .validate10 as unknown as ValidateFunction<EventBridgeEvent>,
+    validate: EventBridgeEventValidator as ValidateFunction<EventBridgeEvent>,
     get schema() {
         return EventBridgeEvent.validate.schema
     },
@@ -29,9 +30,10 @@ export const EventBridgeEvent = {
         return EventBridgeEvent.validate.errors ?? undefined
     },
     is: (o: unknown): o is EventBridgeEvent => EventBridgeEvent.validate(o) === true,
-    assert: (o: unknown) => {
-        if (!EventBridgeEvent.validate(o)) {
-            throw new AjvValidator.ValidationError(EventBridgeEvent.errors ?? [])
+    parse: (o: unknown): { right: EventBridgeEvent } | { left: DefinedError[] } => {
+        if (EventBridgeEvent.is(o)) {
+            return { right: o }
         }
+        return { left: (EventBridgeEvent.errors ?? []) as DefinedError[] }
     },
 } as const

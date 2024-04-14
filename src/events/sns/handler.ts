@@ -13,7 +13,7 @@ import type { SNSEventRecord } from 'aws-lambda'
 export async function handleSNSEvent<Configuration, Service, Profile, Payload>(
     handler: SNSHandler<Configuration, Service, Profile, Payload>,
     events: SNSEventRecord[],
-    context: LambdaContext<Configuration, Service, Profile>
+    context: LambdaContext<Configuration, Service, Profile>,
 ): Promise<Try<void>> {
     const { sns } = handler
     const parseEventFn = snsParseEvent(sns)

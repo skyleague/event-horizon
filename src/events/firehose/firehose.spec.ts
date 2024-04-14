@@ -6,16 +6,16 @@ import { APIGatewayProxyEvent } from '../../test/aws/apigateway/apigateway.type.
 import { EventBridgeEvent } from '../../test/aws/eventbridge/eventbridge.type.js'
 import { FirehoseTransformationEvent as FirehoseTransformationEventSchema } from '../../test/aws/firehose/firehose.type.js'
 import { KinesisStreamEvent } from '../../test/aws/kinesis/kinesis.type.js'
-import { S3Event } from '../../test/aws/s3/s3.type.js'
 import { S3BatchEvent } from '../../test/aws/s3-batch/s3.type.js'
+import { S3Event } from '../../test/aws/s3/s3.type.js'
 import { SecretRotationEvent } from '../../test/aws/secret-rotation/secret-rotation.type.js'
 import { SNSEvent } from '../../test/aws/sns/sns.type.js'
 import { SQSEvent } from '../../test/aws/sqs/sqs.type.js'
 import { context } from '../../test/test/context/context.js'
 
-import { asyncForAll, oneOf, random, tuple, unknown } from '@skyleague/axioms'
+import { array, asyncForAll, json, object, oneOf, random, record, tuple, unknown } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
-import { expect, it, vi, expectTypeOf } from 'vitest'
+import { expect, expectTypeOf, it, vi } from 'vitest'
 
 it('handles firehose events', async () => {
     const firehose = vi.fn()
@@ -23,7 +23,7 @@ it('handles firehose events', async () => {
         {
             firehose: { handler: vi.fn(), schema: {} },
         },
-        { kernel: firehose }
+        { kernel: firehose },
     )
     await asyncForAll(
         tuple(arbitrary(FirehoseTransformationEventSchema), unknown(), await context(handler)),
@@ -34,7 +34,7 @@ it('handles firehose events', async () => {
             const response = await handler._options.handler(event, ctx)
             expect(response).toBe(ret)
             expect(firehose).toHaveBeenCalledWith(expect.anything(), event.records, ctx)
-        }
+        },
     )
 })
 
@@ -75,7 +75,7 @@ it('does not handle non firehose events', async () => {
         {
             firehose: { handler: vi.fn(), schema: {} },
         },
-        { kernel: firehose }
+        { kernel: firehose },
     )
     await asyncForAll(
         tuple(
@@ -88,18 +88,19 @@ it('does not handle non firehose events', async () => {
                 arbitrary(S3BatchEvent),
                 arbitrary(SecretRotationEvent),
                 arbitrary(SNSEvent),
-                arbitrary(SQSEvent)
+                arbitrary(SQSEvent),
+                object({ records: array(record(json()), { minLength: 1 }) }),
             ),
             unknown(),
-            await context(handler)
+            await context(handler),
         ),
         async ([event, ret, ctx]) => {
             firehose.mockClear()
             firehose.mockReturnValue(ret)
             await expect(async () => handler._options.handler(event as any, ctx)).rejects.toThrowError(
-                /Lambda was invoked with an unexpected event type/
+                /Lambda was invoked with an unexpected event type/,
             )
-        }
+        },
     )
 })
 
@@ -109,7 +110,7 @@ it('warmup should early exit', async () => {
         {
             firehose: { handler: firehose, schema: {} },
         },
-        { kernel: firehose }
+        { kernel: firehose },
     )
 
     await expect(handler(warmerEvent, random(await context()).raw)).resolves.toBe(undefined)

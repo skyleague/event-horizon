@@ -11,7 +11,7 @@ import type { DefaultServices } from '../types.js'
 function findHeader(name: string) {
     return (request: RawRequest) =>
         Object.entries(typeof request === 'object' && request !== null && 'headers' in request ? request.headers : {}).find(
-            ([n]) => n.toLowerCase() === name.toLowerCase()
+            ([n]) => n.toLowerCase() === name.toLowerCase(),
         )?.[1]
 }
 
@@ -27,7 +27,7 @@ export function restApiHandler<
     D,
 >(
     definition: D & HTTPHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, 'rest'>,
-    { kernel = handleHTTPEvent }: { kernel?: typeof handleHTTPEvent } = {}
+    { kernel = handleHTTPEvent }: { kernel?: typeof handleHTTPEvent } = {},
 ): D & EventHandlerFn<Configuration, Service, Profile> {
     return eventHandler(definition, {
         handler: (request, context) => {
@@ -53,7 +53,7 @@ export function httpApiHandler<
     D,
 >(
     definition: D & HTTPHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result>,
-    { kernel = handleHTTPEvent }: { kernel?: typeof handleHTTPEvent } = {}
+    { kernel = handleHTTPEvent }: { kernel?: typeof handleHTTPEvent } = {},
 ): D & EventHandlerFn<Configuration, Service, Profile> {
     return eventHandler(definition, {
         handler: (request, context) => {
@@ -66,5 +66,3 @@ export function httpApiHandler<
         traceId: findHeader(constants.traceIdHeader),
     }) as D & EventHandlerFn<Configuration, Service, Profile, Result>
 }
-
-export const httpHandler = httpApiHandler

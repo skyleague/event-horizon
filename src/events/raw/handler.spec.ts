@@ -71,7 +71,6 @@ it.each([new Error(), EventError.badRequest(), 'foobar'])('promise throws with E
         ctx.mockClear()
 
         const handler = vi.fn().mockImplementation(() => {
-            // eslint-disable-next-line @typescript-eslint/only-throw-error
             throw error
         })
         const response = await handleRawEvent({ raw: { schema: {}, handler } }, value, ctx)

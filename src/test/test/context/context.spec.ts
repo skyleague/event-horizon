@@ -6,5 +6,5 @@ import { forAll } from '@skyleague/axioms'
 import { it } from 'vitest'
 
 it('context === context', async () => {
-    forAll(await context(), (c) => Context.assert(c.raw))
+    forAll(await context(), (c) => Context.is(c.raw))
 })

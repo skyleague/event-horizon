@@ -11,7 +11,7 @@ import type { AsTry } from '@skyleague/axioms/src/data/try/try.js'
 export async function handleRawEvent<Configuration, Service, Profile, Payload, Result>(
     handler: RawHandler<Configuration, Service, Profile, Payload, Result>,
     event: unknown,
-    context: LambdaContext<Configuration, Service, Profile>
+    context: LambdaContext<Configuration, Service, Profile>,
 ): Promise<Try<Result>> {
     const { raw } = handler
     const ioValidateFn = ioValidate<{ raw: unknown }>()

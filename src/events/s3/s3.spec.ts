@@ -5,8 +5,8 @@ import { APIGatewayProxyEvent } from '../../test/aws/apigateway/apigateway.type.
 import { EventBridgeEvent } from '../../test/aws/eventbridge/eventbridge.type.js'
 import { FirehoseTransformationEvent } from '../../test/aws/firehose/firehose.type.js'
 import { KinesisStreamEvent } from '../../test/aws/kinesis/kinesis.type.js'
-import { S3Event } from '../../test/aws/s3/s3.type.js'
 import { S3BatchEvent } from '../../test/aws/s3-batch/s3.type.js'
+import { S3Event } from '../../test/aws/s3/s3.type.js'
 import { SecretRotationEvent } from '../../test/aws/secret-rotation/secret-rotation.type.js'
 import { SNSEvent } from '../../test/aws/sns/sns.type.js'
 import { SQSEvent } from '../../test/aws/sqs/sqs.type.js'
@@ -22,7 +22,7 @@ it('handles s3 events', async () => {
         {
             s3: { handler: vi.fn() },
         },
-        { kernel: s3 }
+        { kernel: s3 },
     )
     await asyncForAll(tuple(arbitrary(S3Event), unknown(), await context(handler)), async ([event, ret, ctx]) => {
         s3.mockClear()
@@ -40,7 +40,7 @@ it('does not handle non kinesis events', async () => {
         {
             s3: { handler: vi.fn() },
         },
-        { kernel: s3 }
+        { kernel: s3 },
     )
     await asyncForAll(
         tuple(
@@ -53,18 +53,18 @@ it('does not handle non kinesis events', async () => {
                 arbitrary(S3BatchEvent),
                 arbitrary(SecretRotationEvent),
                 arbitrary(SNSEvent),
-                arbitrary(SQSEvent)
+                arbitrary(SQSEvent),
             ).filter((e) => !('Records' in e) || e.Records.length > 0),
             unknown(),
-            await context(handler)
+            await context(handler),
         ),
         async ([event, ret, ctx]) => {
             s3.mockClear()
             s3.mockReturnValue(ret)
             await expect(async () => handler._options.handler(event as any, ctx)).rejects.toThrowError(
-                /Lambda was invoked with an unexpected event type/
+                /Lambda was invoked with an unexpected event type/,
             )
-        }
+        },
     )
 })
 
@@ -74,7 +74,7 @@ it('warmup should early exit', async () => {
         {
             s3: { handler: s3 },
         },
-        { kernel: s3 }
+        { kernel: s3 },
     )
 
     await expect(handler(warmerEvent, random(await context()).raw)).resolves.toBe(undefined)

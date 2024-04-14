@@ -31,6 +31,7 @@ export type SQSPayload<MessageGrouping, Payload> = MessageGrouping extends { by:
     ? SQSMessageGroup<Payload>
     : SQSEvent<Payload>
 
+// biome-ignore lint/suspicious/noConfusingVoidType: this is the real type we want here
 export type SQSResult<MessageGrouping> = MessageGrouping extends { by: 'message-group-id' } ? SQSBatchItemFailure[] | void : void
 
 export interface SQSEventHandler<
@@ -38,6 +39,7 @@ export interface SQSEventHandler<
     Service = unknown,
     Profile = unknown,
     Payload = unknown,
+    // biome-ignore lint/complexity/noBannedTypes: this is the real type we want here
     MessageGrouping extends SQSMessageGrouping = {},
 > {
     schema: {
@@ -46,7 +48,7 @@ export interface SQSEventHandler<
     handler: NoInfer<
         (
             payload: SQSPayload<MessageGrouping, Payload>,
-            context: LambdaContext<Configuration, Service, Profile>
+            context: LambdaContext<Configuration, Service, Profile>,
         ) => Promisable<Try<SQSResult<MessageGrouping>>>
     >
     payloadType?: 'json' | 'plaintext'
@@ -58,6 +60,7 @@ export interface SQSHandler<
     Service = unknown,
     Profile = unknown,
     Payload = unknown,
+    // biome-ignore lint/complexity/noBannedTypes: this is the real type we want here
     MessageGrouping extends SQSMessageGrouping = {},
 > extends EventHandlerDefinition<Configuration, Service, Profile> {
     sqs: SQSEventHandler<Configuration, Service, Profile, Payload, MessageGrouping>

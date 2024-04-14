@@ -6,7 +6,7 @@ export const s3BatchEventTask = $validator(
         s3Key: $string,
         s3VersionId: $union([$string, $const(null)]),
         s3BucketArn: $string,
-    })
+    }),
 )
 
 export const s3BatchEventJob = $object({
@@ -19,5 +19,5 @@ export const s3BatchEvent = $validator(
         invocationId: $string,
         job: $ref(s3BatchEventJob),
         tasks: $array($ref(s3BatchEventTask)),
-    })
+    }),
 )

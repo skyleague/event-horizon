@@ -1,4 +1,4 @@
-import { $array, $ref, $string, $validator, $number, $object } from '@skyleague/therefore'
+import { $array, $number, $object, $ref, $string, $validator } from '@skyleague/therefore'
 
 export const kinesisStreamRecordPayload = $object({
     approximateArrivalTimestamp: $number,
@@ -18,11 +18,11 @@ export const kinesisStreamRecord = $validator(
         eventVersion: $string,
         invokeIdentityArn: $string,
         kinesis: $ref(kinesisStreamRecordPayload),
-    })
+    }),
 )
 
 export const kinesisStreamEvent = $validator(
     $object({
         Records: $array($ref(kinesisStreamRecord)),
-    })
+    }),
 )

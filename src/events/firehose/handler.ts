@@ -2,17 +2,17 @@ import { firehoseErrorHandler } from './functions/error-handler.js'
 import { firehoseParseEvent } from './functions/parse-event.js'
 import { firehoseSerializeTransformation } from './functions/serialize-transformation.js'
 import type { FirehoseTransformationEvent, FirehoseTransformationResult } from './types.js'
-import { type FirehoseTransformationHandler } from './types.js'
+import type { FirehoseTransformationHandler } from './types.js'
 
 import { ioLogger } from '../functions/io-logger.js'
 import { ioValidate } from '../functions/io-validate.js'
 import type { DefaultServices, LambdaContext } from '../types.js'
 
 import type { Try } from '@skyleague/axioms'
-import { enumerate, mapTry, transformTry, isSuccess } from '@skyleague/axioms'
+import { enumerate, isSuccess, mapTry, transformTry } from '@skyleague/axioms'
 import type {
-    FirehoseTransformationEventRecord,
     FirehoseTransformationResult as AWSFirehoseTransformationResult,
+    FirehoseTransformationEventRecord,
     FirehoseTransformationResultRecord,
 } from 'aws-lambda'
 
@@ -25,7 +25,7 @@ export async function handleFirehoseTransformation<
 >(
     handler: FirehoseTransformationHandler<Configuration, Service, Profile, Payload, Result>,
     events: FirehoseTransformationEventRecord[],
-    context: LambdaContext<Configuration, Service, Profile>
+    context: LambdaContext<Configuration, Service, Profile>,
 ): Promise<Try<AWSFirehoseTransformationResult>> {
     const { firehose } = handler
 
@@ -52,7 +52,7 @@ export async function handleFirehoseTransformation<
         const response = transformTry(
             transformed,
             (x) => serializeTransformationFn.onAfter(event, x),
-            (e) => errorHandlerFn.onError(event, e)
+            (e) => errorHandlerFn.onError(event, e),
         )
 
         ioLoggerFn.after(undefined, item)

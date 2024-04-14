@@ -17,7 +17,7 @@ export function httpIOValidate<
     return {
         before: (
             http: HTTPEventHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, GV>,
-            event: HTTPRequest
+            event: HTTPRequest,
         ): Try<HTTPRequest<Body, Path, Query, Headers, GV>> => {
             if (http.schema.body?.is(event.body) === false) {
                 return EventError.validation({ errors: http.schema.body.errors, location: 'body' })

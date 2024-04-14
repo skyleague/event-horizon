@@ -1,19 +1,21 @@
+import type { UndefinedOnPartialDeep } from '@skyleague/axioms/types'
 import type {
     APIGatewayProxyHandler,
     APIGatewayProxyHandlerV2,
     CloudFrontRequestHandler,
+    Context,
     DynamoDBStreamHandler,
     EventBridgeHandler,
     FirehoseTransformationHandler,
     KinesisStreamHandler,
     S3BatchHandler,
     S3Handler,
-    ScheduledHandler,
-    SecretsManagerRotationHandler,
     SNSHandler,
     SQSHandler,
-    Context,
+    ScheduledHandler,
+    SecretsManagerRotationHandler,
 } from 'aws-lambda'
+import type { EventBridgeEvent as AWSEventBridgeEvent } from 'aws-lambda'
 
 export type AWSLambdaHandler =
     | APIGatewayProxyHandler
@@ -33,5 +35,5 @@ export type AWSLambdaHandler =
 
 export type LambdaHandler = (payload: unknown, context: Context, cb?: unknown) => unknown
 
-export type RawRequest = Parameters<AWSLambdaHandler>[0] | string
+export type RawRequest = Parameters<AWSLambdaHandler>[0] | UndefinedOnPartialDeep<AWSEventBridgeEvent<string, unknown>> | string
 export type RawResponse = ReturnType<AWSLambdaHandler> | unknown

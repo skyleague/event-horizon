@@ -1,0 +1,3 @@
+{
+  "extends": ["@skyleague/node-standards/biome"]
+}

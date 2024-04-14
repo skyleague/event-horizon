@@ -16,7 +16,7 @@ export async function handleSecretRotationEvent<
 >(
     handler: SecretRotationHandler<Configuration, Service, Profile>,
     event: SecretsManagerRotationEvent,
-    context: LambdaContext<Configuration, Service, Profile>
+    context: LambdaContext<Configuration, Service, Profile>,
 ): Promise<Try<void>> {
     const { secretRotation } = handler
     const parseEventFn = secretParseEvent()

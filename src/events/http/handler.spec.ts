@@ -1,13 +1,13 @@
 import { handleHTTPEvent } from './handler.js'
-import { httpHandler } from './http.js'
 
 import { EventError } from '../../errors/event-error/event-error.js'
 import { httpEvent } from '../../test/event-horizon/http/http.js'
 import { context } from '../../test/test/context/context.js'
 
-import { alpha, asyncForAll, constant, integer, isString, json, object, oneOf, random, tuple } from '@skyleague/axioms'
-import { type Schema } from '@skyleague/therefore'
+import { constants, alpha, asyncForAll, integer, isString, json, object, random, tuple } from '@skyleague/axioms'
+import type { Schema } from '@skyleague/therefore'
 import { expect, it, vi } from 'vitest'
+import { httpApiHandler, restApiHandler } from './http.js'
 
 const neverTrue = {
     is: () => false,
@@ -15,12 +15,12 @@ const neverTrue = {
     errors: [],
 } as unknown as Schema<string>
 
-const method = random(oneOf(constant('get'), constant('put')))
+const method = random(constants('get', 'put'))
 const path = `/${random(alpha())}` as const
 
-it('plaintext success does not give failures', async () => {
+it.each([httpApiHandler, restApiHandler])('plaintext success does not give failures', async (fn) => {
     const h = vi.fn()
-    const handler = httpHandler({
+    const handler = fn({
         http: {
             method,
             path,
@@ -55,9 +55,9 @@ it('plaintext success does not give failures', async () => {
     })
 })
 
-it('json success does not give failures', async () => {
+it.each([httpApiHandler, restApiHandler])('json success does not give failures', async (fn) => {
     const h = vi.fn()
-    const handler = httpHandler({
+    const handler = fn({
         http: {
             method,
             path,
@@ -92,9 +92,9 @@ it('json success does not give failures', async () => {
     })
 })
 
-it('binary success does not give failures', async () => {
+it.each([httpApiHandler, restApiHandler])('binary success does not give failures', async (fn) => {
     const h = vi.fn()
-    const handler = httpHandler({
+    const handler = fn({
         http: {
             method,
             path,
@@ -129,9 +129,9 @@ it('binary success does not give failures', async () => {
     })
 })
 
-it('body schema validation, gives failure', async () => {
+it.each([httpApiHandler, restApiHandler])('body schema validation, gives failure', async (fn) => {
     const h = vi.fn()
-    const handler = httpHandler({
+    const handler = fn({
         http: {
             method,
             path,
@@ -156,7 +156,7 @@ it('body schema validation, gives failure', async () => {
         expect(ctx.logger.info).toHaveBeenNthCalledWith(1, `[http] ${handler.http.path} start`, {
             error: expect.any(EventError),
         })
-        expect(ctx.logger.info).toHaveBeenNthCalledWith(2, `Client error found`, expect.any(EventError))
+        expect(ctx.logger.info).toHaveBeenNthCalledWith(2, 'Client error found', expect.any(EventError))
         expect(ctx.logger.info).toHaveBeenNthCalledWith(3, `[http] ${handler.http.path} sent 400`, {
             response: { statusCode: 400 },
         })
@@ -164,9 +164,9 @@ it('body schema validation, gives failure', async () => {
     })
 })
 
-it('query schema validation, gives failure', async () => {
+it.each([httpApiHandler, restApiHandler])('query schema validation, gives failure', async (fn) => {
     const h = vi.fn()
-    const handler = httpHandler({
+    const handler = fn({
         http: {
             method,
             path,
@@ -191,7 +191,7 @@ it('query schema validation, gives failure', async () => {
         expect(ctx.logger.info).toHaveBeenNthCalledWith(1, `[http] ${handler.http.path} start`, {
             error: expect.any(EventError),
         })
-        expect(ctx.logger.info).toHaveBeenNthCalledWith(2, `Client error found`, expect.any(EventError))
+        expect(ctx.logger.info).toHaveBeenNthCalledWith(2, 'Client error found', expect.any(EventError))
         expect(ctx.logger.info).toHaveBeenNthCalledWith(3, `[http] ${handler.http.path} sent 400`, {
             response: { statusCode: 400 },
         })
@@ -199,9 +199,9 @@ it('query schema validation, gives failure', async () => {
     })
 })
 
-it('path schema validation, gives failure', async () => {
+it.each([httpApiHandler, restApiHandler])('path schema validation, gives failure', async (fn) => {
     const h = vi.fn()
-    const handler = httpHandler({
+    const handler = fn({
         http: {
             method,
             path,
@@ -226,7 +226,7 @@ it('path schema validation, gives failure', async () => {
         expect(ctx.logger.info).toHaveBeenNthCalledWith(1, `[http] ${handler.http.path} start`, {
             error: expect.any(EventError),
         })
-        expect(ctx.logger.info).toHaveBeenNthCalledWith(2, `Client error found`, expect.any(EventError))
+        expect(ctx.logger.info).toHaveBeenNthCalledWith(2, 'Client error found', expect.any(EventError))
         expect(ctx.logger.info).toHaveBeenNthCalledWith(3, `[http] ${handler.http.path} sent 400`, {
             response: { statusCode: 400 },
         })
@@ -234,9 +234,9 @@ it('path schema validation, gives failure', async () => {
     })
 })
 
-it('headers schema validation, gives failure', async () => {
+it.each([httpApiHandler, restApiHandler])('headers schema validation, gives failure', async (fn) => {
     const h = vi.fn()
-    const handler = httpHandler({
+    const handler = fn({
         http: {
             method,
             path,
@@ -261,7 +261,7 @@ it('headers schema validation, gives failure', async () => {
         expect(ctx.logger.info).toHaveBeenNthCalledWith(1, `[http] ${handler.http.path} start`, {
             error: expect.any(EventError),
         })
-        expect(ctx.logger.info).toHaveBeenNthCalledWith(2, `Client error found`, expect.any(EventError))
+        expect(ctx.logger.info).toHaveBeenNthCalledWith(2, 'Client error found', expect.any(EventError))
         expect(ctx.logger.info).toHaveBeenNthCalledWith(3, `[http] ${handler.http.path} sent 400`, {
             response: { statusCode: 400 },
         })
@@ -271,7 +271,7 @@ it('headers schema validation, gives failure', async () => {
 
 it.each([new Error(), EventError.internalServerError(), 'foobar'])('promise reject with Error, gives failure', async (error) => {
     const h = vi.fn()
-    const handler = httpHandler({
+    const handler = httpApiHandler({
         http: {
             method,
             path,
@@ -299,13 +299,13 @@ it.each([new Error(), EventError.internalServerError(), 'foobar'])('promise reje
                 statusCode: 500,
             },
         })
-        expect(ctx.logger.error).toHaveBeenCalledWith(`Error found`, expect.any(EventError))
+        expect(ctx.logger.error).toHaveBeenCalledWith('Error found', expect.any(EventError))
     })
 })
 
 it.each([new Error(), EventError.internalServerError(), 'foobar'])('promise throws with Error, gives failure', async (error) => {
     const h = vi.fn()
-    const handler = httpHandler({
+    const handler = httpApiHandler({
         http: {
             method,
             path,
@@ -317,7 +317,6 @@ it.each([new Error(), EventError.internalServerError(), 'foobar'])('promise thro
         ctx.mockClear()
 
         h.mockImplementation(() => {
-            // eslint-disable-next-line @typescript-eslint/only-throw-error
             throw error
         })
 
@@ -337,7 +336,7 @@ it.each([new Error(), EventError.internalServerError(), 'foobar'])('promise thro
                 statusCode: 500,
             },
         })
-        expect(ctx.logger.error).toHaveBeenCalledWith(`Error found`, expect.any(EventError))
+        expect(ctx.logger.error).toHaveBeenCalledWith('Error found', expect.any(EventError))
     })
 })
 
@@ -346,7 +345,7 @@ it.each([new Error(), EventError.internalServerError(), 'foobar'])(
     async (error) => {
         const h = vi.fn()
         const seralizer = vi.fn()
-        const handler = httpHandler({
+        const handler = httpApiHandler({
             http: {
                 method,
                 path,
@@ -366,7 +365,6 @@ it.each([new Error(), EventError.internalServerError(), 'foobar'])(
                 seralizer.mockReturnValue(ret)
 
                 h.mockImplementation(() => {
-                    // eslint-disable-next-line @typescript-eslint/only-throw-error
                     throw error
                 })
 
@@ -387,10 +385,10 @@ it.each([new Error(), EventError.internalServerError(), 'foobar'])(
                         response: {
                             statusCode: ret.statusCode,
                         },
-                    }
+                    },
                 )
-                expect(ctx.logger.error).toHaveBeenCalledWith(`Error found`, expect.any(EventError))
-            }
+                expect(ctx.logger.error).toHaveBeenCalledWith('Error found', expect.any(EventError))
+            },
         )
-    }
+    },
 )

@@ -1,4 +1,4 @@
-import { $unknown, $object, $string, $array, $optional, $validator } from '@skyleague/therefore'
+import { $array, $object, $string, $unknown, $validator } from '@skyleague/therefore'
 import type { ThereforeSchema } from '@skyleague/therefore/src/lib/primitives/types.js'
 
 export function $eventBridge({
@@ -19,7 +19,7 @@ export function $eventBridge({
             source: $string,
             'detail-type': detailType,
             detail: detail,
-            'replay-name': $optional($string),
-        })
+            'replay-name': $string().optional(),
+        }),
     )
 }

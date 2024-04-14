@@ -19,7 +19,7 @@ export function httpIOLogger<
     GV extends GatewayVersion = 'http',
 >(
     { path }: HTTPEventHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, GV>,
-    { logger, isSensitive }: Pick<LambdaContext, 'logger' | 'isSensitive'>
+    { logger, isSensitive }: Pick<LambdaContext, 'logger' | 'isSensitive'>,
 ) {
     return {
         before: (request: Try<HTTPRequest<Body, Path, Query, Headers, GV>>) => {
@@ -30,7 +30,7 @@ export function httpIOLogger<
                         ? constants.logEventPayload
                             ? { request: pick(request, ['path', 'query']) }
                             : {}
-                        : { error: request }
+                        : { error: request },
                 )
             }
         },
@@ -39,7 +39,7 @@ export function httpIOLogger<
                 if (isSuccess(response)) {
                     logger.info(
                         `[http] ${path} sent ${response.statusCode.toString()}`,
-                        constants.logResultPayload ? { response: pick(response, ['statusCode']) } : {}
+                        constants.logResultPayload ? { response: pick(response, ['statusCode']) } : {},
                     )
                 } else {
                     logger.info(`[http] ${path} sent`, { error: response })

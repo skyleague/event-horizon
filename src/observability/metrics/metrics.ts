@@ -15,7 +15,7 @@ export function createMetrics(
     instance: AWSMetrics = new AWSMetrics({
         namespace: constants.namespace,
         serviceName: constants.serviceName,
-    })
+    }),
 ): Metrics {
     function add(name: string, unit: Metric, value: number) {
         instance.addMetric(name, unit, value)

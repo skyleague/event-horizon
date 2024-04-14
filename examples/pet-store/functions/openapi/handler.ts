@@ -1,10 +1,12 @@
-import { version, name } from '../../../../package.json' assert { type: 'json' }
-import { openapiFromHandlers } from '../../../../src/docs/openapi/openapi'
-import { httpHandler } from '../../../../src/events/http/http'
-import type { HTTPHandler } from '../../../../src/events/http/types'
+import packageJSON from '../../../../package.json' assert { type: 'json' }
+import { openapiFromHandlers } from '../../../../src/docs/openapi/openapi.js'
+import { httpApiHandler } from '../../../../src/events/http/http.js'
+
 import * as handlers from '../index.js'
 
-export const handlerJson: HTTPHandler = httpHandler({
+const { name, version } = packageJSON
+
+export const handlerJson = httpApiHandler({
     http: {
         method: 'get',
         path: '/openapi.json',
@@ -20,7 +22,7 @@ export const handlerJson: HTTPHandler = httpHandler({
     },
 })
 
-export const handlerHtml: HTTPHandler = httpHandler({
+export const handlerHtml = httpApiHandler({
     http: {
         method: 'get',
         path: '/openapi/index.html',

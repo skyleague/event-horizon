@@ -2,7 +2,7 @@ import type { EventHandlerDefinition, LambdaContext } from '../types.js'
 
 import type { Promisable, Try } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
-import type { S3BatchEvent, S3BatchResultResultCode, S3BatchEventTask } from 'aws-lambda'
+import type { S3BatchEvent, S3BatchEventTask, S3BatchResultResultCode } from 'aws-lambda'
 
 export interface S3BatchTaskResult<Result = unknown> {
     status: S3BatchResultResultCode
@@ -24,7 +24,7 @@ export interface S3BatchEventHandler<Configuration = unknown, Service = unknown,
     handler: NoInfer<
         (
             request: S3BatchTask,
-            context: LambdaContext<Configuration, Service, Profile>
+            context: LambdaContext<Configuration, Service, Profile>,
         ) => Promisable<Try<S3BatchTaskResult<Result>>>
     >
     treatMissingKeysAs?: S3BatchResultResultCode

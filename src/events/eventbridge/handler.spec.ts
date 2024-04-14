@@ -15,7 +15,7 @@ it('success does not give failures', async () => {
         ctx.mockClear()
         h.mockClear()
 
-        h.mockReturnValue(ret)
+        h.mockResolvedValueOnce(ret)
 
         const response = await handleEventBridgeEvent(handler, value.raw, ctx)
 
@@ -102,7 +102,6 @@ it.each([new Error(), EventError.badRequest(), 'foobar'])('promise throws with E
         h.mockClear()
 
         h.mockImplementation(() => {
-            // eslint-disable-next-line @typescript-eslint/only-throw-error
             throw error
         })
 

@@ -7,7 +7,7 @@ import { context } from '../../test/test/context/context.js'
 import { DescribeSecretCommand, SecretsManager, SecretsManagerClient } from '@aws-sdk/client-secrets-manager'
 import { asyncForAll, failure, tuple } from '@skyleague/axioms'
 import { mockClient } from 'aws-sdk-client-mock'
-import { expect, beforeEach, it, vi } from 'vitest'
+import { beforeEach, expect, it, vi } from 'vitest'
 
 const mockSecrets = mockClient(SecretsManagerClient)
 const services = {
@@ -115,7 +115,6 @@ it.each([new Error(), EventError.badRequest(), 'foobar'])('promise throws with E
         })
 
         const handler = vi.fn().mockImplementation(() => {
-            // eslint-disable-next-line @typescript-eslint/only-throw-error
             throw error
         })
         const response = await handleSecretRotationEvent({ services, secretRotation: { handler } }, rotation.raw, ctx)

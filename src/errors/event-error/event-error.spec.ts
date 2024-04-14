@@ -1,7 +1,8 @@
 import { EventError, httpStatusCodes } from './event-error.js'
 
-import { asTry, constant, forAll, integer, oneOf, string, tuple } from '@skyleague/axioms'
+import { constants, asTry, forAll, integer, string, tuple } from '@skyleague/axioms'
 import { expect, it } from 'vitest'
+
 it('EventError === EventError', () => {
     expect(EventError.is(EventError.badGateway())).toBe(true)
 })
@@ -83,7 +84,7 @@ it('methodNotAllowed', () => {
 })
 
 it('level - server error is error', () => {
-    forAll(integer({ min: 500, max: 600 }), (statusCode) => {
+    forAll(integer({ min: 500, max: 599 }), (statusCode) => {
         expect(new EventError(undefined, { statusCode }).level).toBe('error')
     })
 })
@@ -94,27 +95,24 @@ it('level - thrown try errors default to error', () => {
             asTry((): EventError => {
                 throw EventError.expectationFailed(undefined)
             }) as EventError
-        ).level
+        ).level,
     ).toMatchInlineSnapshot('"error"')
 })
 
 it('level - client error is warning', () => {
-    forAll(integer({ min: 400, max: 500 }), (statusCode) => {
+    forAll(integer({ min: 400, max: 499 }), (statusCode) => {
         expect(new EventError(undefined, { statusCode }).level).toBe('warning')
     })
 })
 
 it('level - other error is info', () => {
-    forAll(integer({ min: 0, max: 400 }), (statusCode) => {
+    forAll(integer({ min: 0, max: 399 }), (statusCode) => {
         expect(new EventError(undefined, { statusCode }).level).toBe('info')
     })
 })
 
 it('level - level overrides default', () => {
-    forAll(
-        tuple(integer({ min: 0, max: 600 }), oneOf(constant('warning'), constant('info'), constant('error'))),
-        ([statusCode, level]) => {
-            expect(new EventError(undefined, { statusCode, level }).level).toBe(level)
-        }
-    )
+    forAll(tuple(integer({ min: 0, max: 600 }), constants('warning', 'info', 'error')), ([statusCode, level]) => {
+        expect(new EventError(undefined, { statusCode, level }).level).toBe(level)
+    })
 })

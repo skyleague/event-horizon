@@ -1,21 +1,4 @@
 {
   "extends": "@skyleague/node-standards/tsconfig.base.json",
-  "include": [
-    "src/**/*.ts",
-    "src/**/.*.ts",
-    "examples/**/*.ts",
-    "examples/**/.*.ts",
-    "static/**/*.ts",
-    "static/**/.*.ts",
-    "test/**/*.ts",
-    "test/**/.*.ts",
-    "*.config.ts",
-    "*.js",
-    ".*.js",
-    "*.cjs",
-    ".*.cjs",
-    "*.json",
-    ".*.json",
-    "index.ts"
-  ]
+  "include": ["src/**/*", "examples/**/*", "test/**/*", "index.ts"]
 }

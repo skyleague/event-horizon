@@ -7,6 +7,7 @@ import type { DefaultServices, LambdaContext } from '../types.js'
 
 import type { Try } from '@skyleague/axioms'
 import { mapTry } from '@skyleague/axioms'
+import type { UndefinedOnPartialDeep } from '@skyleague/axioms/types'
 import type { EventBridgeEvent as AWSEventBridgeEvent } from 'aws-lambda'
 
 export async function handleEventBridgeEvent<
@@ -17,8 +18,8 @@ export async function handleEventBridgeEvent<
     Result,
 >(
     handler: EventBridgeHandler<Configuration, Service, Profile, Payload, Result>,
-    event: AWSEventBridgeEvent<string, unknown>,
-    context: LambdaContext<Configuration, Service, Profile>
+    event: UndefinedOnPartialDeep<AWSEventBridgeEvent<string, unknown>>,
+    context: LambdaContext<Configuration, Service, Profile>,
 ): Promise<Try<unknown>> {
     const { eventBridge } = handler
 
@@ -31,7 +32,7 @@ export async function handleEventBridgeEvent<
         return ioValidateFn.before<Payload, 'payload', EventBridgeEvent<Payload>>(
             eventBridge.schema.payload,
             unvalidatedEbEvent,
-            'payload'
+            'payload',
         )
     })
 

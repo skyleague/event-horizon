@@ -6,7 +6,7 @@ import type { S3BatchEventTask, S3BatchResultResult } from 'aws-lambda'
 
 export function s3BatchErrorHandler<Configuration, Service, Profile, Result>(
     handler: S3BatchHandler<Configuration, Service, Profile, Result>,
-    { logger, isSensitive }: Pick<LambdaContext, 'logger' | 'isSensitive'>
+    { logger, isSensitive }: Pick<LambdaContext, 'logger' | 'isSensitive'>,
 ) {
     return {
         onError: (original: S3BatchEventTask, error: Error | unknown): S3BatchResultResult => {
