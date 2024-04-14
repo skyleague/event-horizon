@@ -2,7 +2,7 @@ import { handleHTTPEvent } from './handler.js'
 import type { HTTPHandler } from './types.js'
 
 import { constants } from '../../constants.js'
-import { EventError } from '../../errors/index.js'
+import { EventError } from '../../errors/event-error/event-error.js'
 import type { EventHandlerFn } from '../common/event.js'
 import { eventHandler } from '../common/event.js'
 import type { RawRequest } from '../common/raw-aws.js'

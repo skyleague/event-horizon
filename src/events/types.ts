@@ -27,6 +27,8 @@ export interface LambdaContext<Configuration = unknown, Service = unknown, Profi
     config: Configuration
     profile: Profile
 
+    getRemainingTimeInMillis(): number
+
     raw: Context
 }
 

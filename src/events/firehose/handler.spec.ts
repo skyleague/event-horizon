@@ -1,12 +1,12 @@
 import { handleFirehoseTransformation } from './handler.js'
 
 import { alwaysTrueSchema, neverTrueSchema } from '../../../test/schema.js'
-import { EventError } from '../../errors/event-error/index.js'
+import { EventError } from '../../errors/event-error/event-error.js'
+import { FirehoseTransformationEvent } from '../../test/aws/firehose/firehose.type.js'
+import { context } from '../../test/test/context/context.js'
 
 import type { Json } from '@skyleague/axioms'
 import { asyncForAll, enumerate, isString, json, random, tuple } from '@skyleague/axioms'
-import { FirehoseTransformationEvent } from '@skyleague/event-horizon-dev'
-import { context } from '@skyleague/event-horizon-dev/test'
 import { arbitrary } from '@skyleague/therefore'
 import type { FirehoseTransformationEventRecord } from 'aws-lambda/trigger/kinesis-firehose-transformation.js'
 import { expect, it, vi } from 'vitest'
@@ -408,6 +408,7 @@ it.each([new Error(), 'foobar'])('promise throws with Error, gives failure', asy
         ctx.mockClear()
 
         const handler = vi.fn().mockImplementation(() => {
+            // eslint-disable-next-line @typescript-eslint/only-throw-error
             throw error
         })
         const response = await handleFirehoseTransformation(

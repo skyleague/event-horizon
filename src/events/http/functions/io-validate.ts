@@ -1,4 +1,4 @@
-import { EventError } from '../../../errors/index.js'
+import { EventError } from '../../../errors/event-error/event-error.js'
 import type { GatewayVersion, HTTPEventHandler, HTTPRequest } from '../types.js'
 
 import type { Try } from '@skyleague/axioms'

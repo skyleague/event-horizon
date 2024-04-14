@@ -1,7 +1,7 @@
 import { handleFirehoseTransformation } from './handler.js'
 import { type FirehoseTransformationHandler } from './types.js'
 
-import { EventError } from '../../errors/index.js'
+import { EventError } from '../../errors/event-error/event-error.js'
 import type { EventHandlerFn } from '../common/event.js'
 import { eventHandler } from '../common/event.js'
 import type { DefaultServices } from '../types.js'

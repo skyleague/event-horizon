@@ -1,7 +1,7 @@
 import { handleKinesisEvent } from './handler.js'
 import type { KinesisHandler } from './types.js'
 
-import { EventError } from '../../errors/index.js'
+import { EventError } from '../../errors/event-error/event-error.js'
 import { eventHandler, type EventHandlerFn } from '../common/event.js'
 import type { DefaultServices } from '../types.js'
 

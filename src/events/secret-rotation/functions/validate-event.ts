@@ -1,4 +1,4 @@
-import { EventError } from '../../../errors/event-error/index.js'
+import { EventError } from '../../../errors/event-error/event-error.js'
 import type { DefaultServices, LambdaContext } from '../../types.js'
 import type { SecretRotationRequest } from '../types.js'
 

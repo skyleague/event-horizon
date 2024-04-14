@@ -1,6 +1,6 @@
 import { Query } from './request.type.js'
 
-import { httpHandler } from '../../../../src/index.js'
+import { httpHandler } from '../../../../src/events/http/http.js'
 import { Pet, PetArray } from '../../lib/models.type.js'
 
 import { array, random } from '@skyleague/axioms'

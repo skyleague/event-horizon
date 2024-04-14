@@ -3,9 +3,10 @@
   "include": ["src/**/*.ts", "index.ts"],
   "exclude": ["src/**/*.spec.ts", "src/**/*.schema.ts"],
   "compilerOptions": {
+    /* If transpiling with TypeScript: */
+    "moduleResolution": "NodeNext",
+    "module": "NodeNext",
     "outDir": ".dist",
-    "typeRoots": ["./typings", "./node_modules/@types"],
-    "incremental": false,
     "noEmit": false
   }
 }

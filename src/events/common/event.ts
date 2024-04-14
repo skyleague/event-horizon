@@ -59,6 +59,8 @@ export async function createLambdaContext<Configuration, Service, Profile>({
         services: (await services) as never,
         config: (await config) as never,
         profile: {} as never,
+
+        getRemainingTimeInMillis: context.getRemainingTimeInMillis.bind(context),
     }
 }
 

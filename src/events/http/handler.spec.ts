@@ -1,11 +1,11 @@
 import { handleHTTPEvent } from './handler.js'
 import { httpHandler } from './http.js'
 
-import { EventError } from '../../errors/index.js'
+import { EventError } from '../../errors/event-error/event-error.js'
+import { httpEvent } from '../../test/event-horizon/http/http.js'
+import { context } from '../../test/test/context/context.js'
 
 import { alpha, asyncForAll, constant, integer, isString, json, object, oneOf, random, tuple } from '@skyleague/axioms'
-import { httpEvent } from '@skyleague/event-horizon-dev'
-import { context } from '@skyleague/event-horizon-dev/test'
 import { type Schema } from '@skyleague/therefore'
 import { expect, it, vi } from 'vitest'
 
@@ -317,6 +317,7 @@ it.each([new Error(), EventError.internalServerError(), 'foobar'])('promise thro
         ctx.mockClear()
 
         h.mockImplementation(() => {
+            // eslint-disable-next-line @typescript-eslint/only-throw-error
             throw error
         })
 
@@ -365,6 +366,7 @@ it.each([new Error(), EventError.internalServerError(), 'foobar'])(
                 seralizer.mockReturnValue(ret)
 
                 h.mockImplementation(() => {
+                    // eslint-disable-next-line @typescript-eslint/only-throw-error
                     throw error
                 })
 
@@ -378,11 +380,15 @@ it.each([new Error(), EventError.internalServerError(), 'foobar'])(
                 expect(ctx.logger.info).toHaveBeenNthCalledWith(1, `[http] ${handler.http.path} start`, {
                     request: expect.any(Object),
                 })
-                expect(ctx.logger.info).toHaveBeenNthCalledWith(2, `[http] ${handler.http.path} sent ${ret.statusCode}`, {
-                    response: {
-                        statusCode: ret.statusCode,
-                    },
-                })
+                expect(ctx.logger.info).toHaveBeenNthCalledWith(
+                    2,
+                    `[http] ${handler.http.path} sent ${ret.statusCode.toString()}`,
+                    {
+                        response: {
+                            statusCode: ret.statusCode,
+                        },
+                    }
+                )
                 expect(ctx.logger.error).toHaveBeenCalledWith(`Error found`, expect.any(EventError))
             }
         )

@@ -1,4 +1,4 @@
-import { httpHandler } from '../../../../src/index.js'
+import { httpHandler } from '../../../../src/events/http/http.js'
 import { Pet } from '../../lib/models.type.js'
 
 export const handler = httpHandler({

@@ -118,7 +118,7 @@ interface {
 
 ```ts
 import { forAll, tuple } from '@skyleague/axioms'
-import { context, httpEvent } from '@skyleague/event-horizon-dev'
+import { context, httpEvent } from '@skyleague/event-horizon/test'
 
 test('handler', async () => {
     forAll(tuple(httpEvent(handler), await context(handler)), ([x, ctx]) => {

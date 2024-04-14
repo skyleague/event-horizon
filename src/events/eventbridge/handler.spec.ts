@@ -1,11 +1,11 @@
 import { handleEventBridgeEvent } from './handler.js'
 
 import { alwaysTrueSchema, neverTrueSchema } from '../../../test/schema.js'
-import { EventError } from '../../errors/index.js'
+import { EventError } from '../../errors/event-error/event-error.js'
+import { eventBridgeEvent } from '../../test/event-horizon/eventbridge/eventbridge.js'
+import { context } from '../../test/test/context/context.js'
 
 import { asyncForAll, failure, json, tuple } from '@skyleague/axioms'
-import { eventBridgeEvent } from '@skyleague/event-horizon-dev'
-import { context } from '@skyleague/event-horizon-dev/test'
 import { expect, it, vi } from 'vitest'
 
 it('success does not give failures', async () => {
@@ -102,6 +102,7 @@ it.each([new Error(), EventError.badRequest(), 'foobar'])('promise throws with E
         h.mockClear()
 
         h.mockImplementation(() => {
+            // eslint-disable-next-line @typescript-eslint/only-throw-error
             throw error
         })
 

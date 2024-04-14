@@ -1,4 +1,4 @@
-import { parseJSON } from '../../../parsers/index.js'
+import { parseJSON } from '../../../parsers/json/json.js'
 import type { FirehoseTransformationEvent, FirehoseTransformationEventHandler } from '../types.js'
 
 import type { FirehoseTransformationEventRecord } from 'aws-lambda'

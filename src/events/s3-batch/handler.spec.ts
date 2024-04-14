@@ -1,10 +1,10 @@
 import { handleS3Batch } from './handler.js'
 
-import { EventError } from '../../errors/index.js'
+import { EventError } from '../../errors/event-error/event-error.js'
+import { S3BatchEvent } from '../../test/aws/s3-batch/s3.type.js'
+import { context } from '../../test/test/context/context.js'
 
 import { array, asyncForAll, enumerate, isString, json, omit, random, tuple } from '@skyleague/axioms'
-import { S3BatchEvent } from '@skyleague/event-horizon-dev'
-import { context } from '@skyleague/event-horizon-dev/test'
 import { arbitrary } from '@skyleague/therefore'
 import { expect, describe, it, vi } from 'vitest'
 
@@ -190,6 +190,7 @@ describe('handler', () => {
             ctx.mockClear()
 
             const handler = vi.fn().mockImplementation(() => {
+                // eslint-disable-next-line @typescript-eslint/only-throw-error
                 throw error
             })
 
