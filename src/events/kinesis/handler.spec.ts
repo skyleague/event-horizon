@@ -1,10 +1,10 @@
 import { handleKinesisEvent } from './handler.js'
 
-import { EventError } from '../../errors/event-error/index.js'
+import { EventError } from '../../errors/event-error/event-error.js'
+import { KinesisStreamEvent } from '../../test/aws/kinesis/kinesis.type.js'
+import { context } from '../../test/test/context/context.js'
 
 import { asyncForAll, enumerate, json, random, tuple } from '@skyleague/axioms'
-import { KinesisStreamEvent } from '@skyleague/event-horizon-dev'
-import { context } from '@skyleague/event-horizon-dev/test'
 import type { Schema } from '@skyleague/therefore'
 import { arbitrary } from '@skyleague/therefore'
 import { expect, describe, it, vi } from 'vitest'
@@ -235,6 +235,7 @@ describe('handler', () => {
             ctx.mockClear()
 
             const handler = vi.fn().mockImplementation(() => {
+                // eslint-disable-next-line @typescript-eslint/only-throw-error
                 throw error
             })
             const response = await handleKinesisEvent({ kinesis: { schema: {}, handler, payloadType: 'binary' } }, Records, ctx)

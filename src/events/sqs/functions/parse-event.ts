@@ -1,4 +1,4 @@
-import { parseJSON } from '../../../parsers/index.js'
+import { parseJSON } from '../../../parsers/json/json.js'
 import type { SQSEvent, SQSEventHandler } from '../types.js'
 
 import type { SQSRecord } from 'aws-lambda'

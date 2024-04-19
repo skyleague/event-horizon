@@ -1,4 +1,4 @@
-import type { Logger } from '../../observability/logger/index.js'
+import type { Logger } from '../../observability/logger/logger.js'
 import type { LambdaContext } from '../types.js'
 
 export interface IOLoggerOptions {

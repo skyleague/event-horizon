@@ -4,8 +4,9 @@ import type { LambdaHandler } from './raw-aws.js'
 import { alwaysTrueSchema, neverTrueSchema } from '../../../test/schema.js'
 import { EventError } from '../../errors/index.js'
 import { logger } from '../../observability/logger/logger.js'
-
 import 'aws-sdk-client-mock-jest'
+import { context } from '../../test/test/context/context.js'
+import { mockLogger, mockMetrics, mockTracer } from '../../test/test/mock/mock.js'
 
 import {
     AppConfigData,
@@ -14,7 +15,6 @@ import {
     StartConfigurationSessionCommand,
 } from '@aws-sdk/client-appconfigdata'
 import { asyncForAll, dict, failure, forAll, json, sleep, string, tuple, unknown } from '@skyleague/axioms'
-import { context, mockLogger, mockMetrics, mockTracer } from '@skyleague/event-horizon-dev/test'
 import { mockClient } from 'aws-sdk-client-mock'
 import { expect, describe, it, vi } from 'vitest'
 

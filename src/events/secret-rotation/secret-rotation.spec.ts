@@ -1,21 +1,19 @@
 import { secretRotationHandler } from './secret-rotation.js'
 
 import { warmerEvent } from '../../../test/schema.js'
+import { APIGatewayProxyEvent } from '../../test/aws/apigateway/apigateway.type.js'
+import { EventBridgeEvent } from '../../test/aws/eventbridge/eventbridge.type.js'
+import { FirehoseTransformationEvent } from '../../test/aws/firehose/firehose.type.js'
+import { KinesisStreamEvent } from '../../test/aws/kinesis/kinesis.type.js'
+import { S3Event } from '../../test/aws/s3/s3.type.js'
+import { S3BatchEvent } from '../../test/aws/s3-batch/s3.type.js'
+import { SecretRotationEvent } from '../../test/aws/secret-rotation/secret-rotation.type.js'
+import { SNSEvent } from '../../test/aws/sns/sns.type.js'
+import { SQSEvent } from '../../test/aws/sqs/sqs.type.js'
+import { context } from '../../test/test/context/context.js'
 
 import type { SecretsManager } from '@aws-sdk/client-secrets-manager'
 import { asyncForAll, oneOf, random, tuple, unknown } from '@skyleague/axioms'
-import {
-    APIGatewayProxyEvent,
-    EventBridgeEvent,
-    FirehoseTransformationEvent,
-    KinesisStreamEvent,
-    S3BatchEvent,
-    S3Event,
-    SNSEvent,
-    SQSEvent,
-    SecretRotationEvent,
-} from '@skyleague/event-horizon-dev'
-import { context } from '@skyleague/event-horizon-dev/test'
 import { arbitrary } from '@skyleague/therefore'
 import { expect, it, vi } from 'vitest'
 

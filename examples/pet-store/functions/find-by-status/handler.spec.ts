@@ -1,10 +1,10 @@
 import { handler } from './handler.js'
 
+import { httpEvent } from '../../../../src/test/event-horizon/http/http.js'
+import { context } from '../../../../src/test/test/context/context.js'
 import { PetArray } from '../../lib/models.type.js'
 
 import { forAll, tuple } from '@skyleague/axioms'
-import { httpEvent } from '@skyleague/event-horizon-dev'
-import { context } from '@skyleague/event-horizon-dev/test'
 import { it } from 'vitest'
 
 it('handler', async () => {

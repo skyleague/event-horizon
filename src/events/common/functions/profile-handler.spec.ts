@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/require-await */
 import { profileHandler } from './profile-handler.js'
 
-import 'aws-sdk-client-mock-jest'
-import { EventError } from '../../../errors/index.js'
+import { EventError } from '../../../errors/event-error/event-error.js'
 
 import {
     AppConfigData,
@@ -127,11 +126,11 @@ it('retrieve initial configuration and updates, and validates', async () => {
             expect(await handler.before()).toEqual(config)
 
             expect(appConfigDataMock).toReceiveCommandTimes(StartConfigurationSessionCommand, 1)
-            expect(appConfigDataMock).toReceiveNthCommandWith(1, StartConfigurationSessionCommand, {})
-            expect(appConfigDataMock).toReceiveNthCommandWith(2, GetLatestConfigurationCommand, {
+            expect(appConfigDataMock).toReceiveNthCommandWith(StartConfigurationSessionCommand, 1, {})
+            expect(appConfigDataMock).toReceiveNthCommandWith(GetLatestConfigurationCommand, 1, {
                 ConfigurationToken: token1,
             })
-            expect(appConfigDataMock).toReceiveNthCommandWith(3, GetLatestConfigurationCommand, {
+            expect(appConfigDataMock).toReceiveNthCommandWith(GetLatestConfigurationCommand, 2, {
                 ConfigurationToken: token2,
             })
         }
@@ -162,11 +161,11 @@ it('retrieve initial configuration and ignores empty configurations, and validat
 
             expect(appConfigDataMock).toReceiveCommandTimes(StartConfigurationSessionCommand, 1)
             expect(appConfigDataMock).toReceiveCommandTimes(GetLatestConfigurationCommand, 2)
-            expect(appConfigDataMock).toReceiveNthCommandWith(1, StartConfigurationSessionCommand, {})
-            expect(appConfigDataMock).toReceiveNthCommandWith(2, GetLatestConfigurationCommand, {
+            expect(appConfigDataMock).toReceiveNthCommandWith(StartConfigurationSessionCommand, 1, {})
+            expect(appConfigDataMock).toReceiveNthCommandWith(GetLatestConfigurationCommand, 1, {
                 ConfigurationToken: token1,
             })
-            expect(appConfigDataMock).toReceiveNthCommandWith(3, GetLatestConfigurationCommand, {
+            expect(appConfigDataMock).toReceiveNthCommandWith(GetLatestConfigurationCommand, 2, {
                 ConfigurationToken: token2,
             })
         }
@@ -188,7 +187,7 @@ it('retrieve initial configuration, and not validates', async () => {
 
         expect(appConfigDataMock).toReceiveCommandTimes(StartConfigurationSessionCommand, 1)
         expect(appConfigDataMock).toReceiveCommandTimes(GetLatestConfigurationCommand, 1)
-        expect(appConfigDataMock).toReceiveNthCommandWith(1, StartConfigurationSessionCommand, {})
-        expect(appConfigDataMock).toReceiveNthCommandWith(2, GetLatestConfigurationCommand, { ConfigurationToken: token })
+        expect(appConfigDataMock).toReceiveNthCommandWith(StartConfigurationSessionCommand, 1, {})
+        expect(appConfigDataMock).toReceiveNthCommandWith(GetLatestConfigurationCommand, 1, { ConfigurationToken: token })
     })
 })

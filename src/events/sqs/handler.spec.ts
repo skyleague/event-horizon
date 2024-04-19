@@ -1,12 +1,12 @@
 import { handleSQSEvent, handleSQSMessageGroup } from './handler.js'
 import type { SQSMessageGroup } from './types.js'
 
-import { EventError } from '../../errors/event-error/index.js'
-import type { Logger } from '../../observability/index.js'
+import { EventError } from '../../errors/event-error/event-error.js'
+import type { Logger } from '../../observability/logger/logger.js'
+import { SQSEvent } from '../../test/aws/sqs/sqs.type.js'
+import { context } from '../../test/test/context/context.js'
 
 import { asyncForAll, enumerate, groupBy, isFailure, json, map, random, tuple } from '@skyleague/axioms'
-import { SQSEvent } from '@skyleague/event-horizon-dev'
-import { context } from '@skyleague/event-horizon-dev/test'
 import type { Schema } from '@skyleague/therefore'
 import { arbitrary } from '@skyleague/therefore'
 import type { SQSBatchItemFailure, SQSBatchResponse, SQSRecord } from 'aws-lambda/trigger/sqs.js'
@@ -592,6 +592,7 @@ describe.each([new Error(), 'foobar'])('promise throws with Error, gives failure
             ctx.mockClear()
 
             const handler = vi.fn().mockImplementation(() => {
+                // eslint-disable-next-line @typescript-eslint/only-throw-error
                 throw error
             })
             const response = await handleSQSEvent(
@@ -627,6 +628,7 @@ describe.each([new Error(), 'foobar'])('promise throws with Error, gives failure
             ctx.mockClear()
 
             const handler = vi.fn().mockImplementation(() => {
+                // eslint-disable-next-line @typescript-eslint/only-throw-error
                 throw error
             })
             const response = await handleSQSMessageGroup(

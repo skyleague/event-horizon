@@ -1,4 +1,4 @@
-import { EventError } from '../../../errors/event-error/index.js'
+import { EventError } from '../../../errors/event-error/event-error.js'
 import type { LambdaContext } from '../../types.js'
 
 import type { FirehoseTransformationEventRecord, FirehoseTransformationResultRecord } from 'aws-lambda'

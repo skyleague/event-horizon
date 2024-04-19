@@ -1,9 +1,9 @@
 import { httpErrorHandler } from './error-handler.js'
 
-import { EventError } from '../../../errors/event-error/index.js'
+import { EventError } from '../../../errors/event-error/event-error.js'
+import { context } from '../../../test/test/context/context.js'
 
 import { forAll, random, string, tuple, unknown } from '@skyleague/axioms'
-import { context } from '@skyleague/event-horizon-dev/test'
 import { expect, it } from 'vitest'
 
 it('unrelated error becomes internal server event error', async () => {

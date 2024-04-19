@@ -39,5 +39,6 @@
   "typescript.implementationsCodeLens.enabled": true,
   "typescript.preferences.autoImportFileExcludePatterns": ["**/index.ts"],
   "typescript.referencesCodeLens.enabled": true,
-  "typescript.tsdk": "./node_modules/typescript/lib"
+  "typescript.tsdk": "./node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true
 }

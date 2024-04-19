@@ -38,7 +38,7 @@ export function httpIOLogger<
             if (!isSensitive) {
                 if (isSuccess(response)) {
                     logger.info(
-                        `[http] ${path} sent ${response.statusCode}`,
+                        `[http] ${path} sent ${response.statusCode.toString()}`,
                         constants.logResultPayload ? { response: pick(response, ['statusCode']) } : {}
                     )
                 } else {

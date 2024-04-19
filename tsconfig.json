@@ -9,8 +9,6 @@
     "static/**/.*.ts",
     "test/**/*.ts",
     "test/**/.*.ts",
-    "typings/**/*.ts",
-    "typings/**/.*.ts",
     "*.config.ts",
     "*.js",
     ".*.js",

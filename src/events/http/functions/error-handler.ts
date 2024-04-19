@@ -1,7 +1,7 @@
 import type { HttpError } from './http-error.type.js'
 
 import { constants } from '../../../constants.js'
-import { EventError } from '../../../errors/event-error/index.js'
+import { EventError } from '../../../errors/event-error/event-error.js'
 import type { LambdaContext } from '../../types.js'
 import type { HTTPResponse } from '../types.js'
 

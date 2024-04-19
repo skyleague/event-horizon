@@ -1,13 +1,14 @@
 import { constants } from '../../constants.js'
 
+import type { MetricUnit } from '@aws-lambda-powertools/metrics'
 import { Metrics as AWSMetrics } from '@aws-lambda-powertools/metrics'
-import type { MetricUnit } from '@aws-lambda-powertools/metrics/lib/types'
 
 export type Dimensions = Record<string, string>
+export type Metric = (typeof MetricUnit)[keyof typeof MetricUnit]
 
 export interface Metrics {
     instance: AWSMetrics
-    add: (name: string, unit: `${MetricUnit}`, value: number) => void
+    add: (name: string, unit: Metric, value: number) => void
 }
 
 export function createMetrics(
@@ -16,8 +17,8 @@ export function createMetrics(
         serviceName: constants.serviceName,
     })
 ): Metrics {
-    function add(name: string, unit: `${MetricUnit}`, value: number) {
-        instance.addMetric(name, unit as MetricUnit, value)
+    function add(name: string, unit: Metric, value: number) {
+        instance.addMetric(name, unit, value)
     }
 
     return { instance, add }

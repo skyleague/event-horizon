@@ -1,4 +1,4 @@
-import { parseJSON } from '../../../parsers/index.js'
+import { parseJSON } from '../../../parsers/json/json.js'
 import type { GatewayVersion, HTTPEventHandler, HTTPRequest } from '../types.js'
 
 import { isString } from '@skyleague/axioms'

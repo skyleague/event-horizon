@@ -1,7 +1,7 @@
 import { constants } from '../../../constants.js'
-import { EventError } from '../../../errors/index.js'
-import { parseJSON } from '../../../parsers/json/index.js'
-import { createAppConfigData } from '../../../services/appconfig/index.js'
+import { EventError } from '../../../errors/event-error/event-error.js'
+import { parseJSON } from '../../../parsers/json/json.js'
+import { createAppConfigData } from '../../../services/appconfig/appconfig.js'
 import type { DefaultServices } from '../../types.js'
 
 import { AppConfigProvider } from '@aws-lambda-powertools/parameters/appconfig'

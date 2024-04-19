@@ -1,7 +1,7 @@
 import { addComponent, ensureTarget, jsonptrToName, normalizeSchema, openapiFromHandlers } from './openapi.js'
 
 import { HttpError } from '../../events/http/functions/http-error.type.js'
-import { httpHandler } from '../../events/http/index.js'
+import { httpHandler } from '../../events/http/http.js'
 
 import { alpha, array, dict, entriesOf, forAll, json, omit, omitUndefined, random, string, tuple } from '@skyleague/axioms'
 import { expect, describe, it, vi } from 'vitest'

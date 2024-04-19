@@ -1,11 +1,11 @@
 import { secretValidateEvent } from './validate-event.js'
 
-import { EventError } from '../../../errors/event-error/index.js'
+import { EventError } from '../../../errors/event-error/event-error.js'
+import { secretRotationEvent } from '../../../test/event-horizon/secret-rotation/secret-rotation.js'
+import { context } from '../../../test/test/context/context.js'
 
 import { DescribeSecretCommand, SecretsManager, SecretsManagerClient } from '@aws-sdk/client-secrets-manager'
 import { asyncForAll, Nothing, tuple } from '@skyleague/axioms'
-import { secretRotationEvent } from '@skyleague/event-horizon-dev'
-import { context } from '@skyleague/event-horizon-dev/test'
 import { mockClient } from 'aws-sdk-client-mock'
 import { expect, describe, beforeEach, it } from 'vitest'
 

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 
 import type { HTTPHeaders, HTTPMethod } from '../../events/http/types.js'
-import type { Logger } from '../../observability/logger/index.js'
+import type { Logger } from '../../observability/logger/logger.js'
 
 import type { UndefinedFields } from '@skyleague/axioms'
 import { asArray, isError, isThrown } from '@skyleague/axioms'
