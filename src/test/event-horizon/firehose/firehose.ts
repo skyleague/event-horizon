@@ -5,6 +5,9 @@ import type { Dependent } from '@skyleague/axioms'
 import { tuple, unknown } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
 
+/**
+ * @experimental
+ */
 export function firehoseTransformationEvent<Configuration, Service, Profile, Payload, Result>({
     firehose,
 }: FirehoseTransformationHandler<Configuration, Service, Profile, Payload, Result>): Dependent<

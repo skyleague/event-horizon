@@ -6,13 +6,13 @@ import type { FirehoseTransformationEventRecord, FirehoseTransformationResultRec
 export function firehoseSerializeTransformation(): {
     onAfter: (
         original: FirehoseTransformationEventRecord,
-        response: FirehoseTransformationResult
+        response: FirehoseTransformationResult,
     ) => FirehoseTransformationResultRecord
 } {
     return {
         onAfter: (
             original: FirehoseTransformationEventRecord,
-            response: FirehoseTransformationResult
+            response: FirehoseTransformationResult,
         ): FirehoseTransformationResultRecord => {
             const payload = isString(response.payload) ? response.payload : JSON.stringify(response.payload)
             return {

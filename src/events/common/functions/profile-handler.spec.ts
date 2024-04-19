@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/require-await */
 import { profileHandler } from './profile-handler.js'
 
 import { EventError } from '../../../errors/event-error/event-error.js'
@@ -33,7 +32,7 @@ it('retrieve initial configuration, and validates', async () => {
 
         const handler = profileHandler(
             { profile: { schema: { schema: { type: 'object' }, is: () => true } } } as any,
-            async () => services
+            async () => services,
         )
 
         expect(await handler.before()).toEqual(config)
@@ -53,7 +52,7 @@ it('retrieve initial configuration - buffer, and validates', async () => {
 
         const handler = profileHandler(
             { profile: { schema: { schema: { type: 'object' }, is: () => true } } } as any,
-            async () => services
+            async () => services,
         )
 
         expect(await handler.before()).toEqual(config)
@@ -73,7 +72,7 @@ it('retrieve initial configuration - Uint8Array, and validates', async () => {
 
         const handler = profileHandler(
             { profile: { schema: { schema: { type: 'object' }, is: () => true } } } as any,
-            async () => services
+            async () => services,
         )
 
         expect(await handler.before()).toEqual(config)
@@ -91,7 +90,7 @@ it('retrieve initial configuration, and validates - caches results', async () =>
 
         const handler = profileHandler(
             { profile: { schema: { schema: { type: 'object' }, is: () => true } } } as any,
-            async () => services
+            async () => services,
         )
 
         expect(await handler.before()).toEqual(config)
@@ -116,7 +115,7 @@ it('retrieve initial configuration and updates, and validates', async () => {
 
             const handler = profileHandler(
                 { profile: { maxAge: 0, schema: { schema: { type: 'object' }, is: () => true } } } as any,
-                async () => services
+                async () => services,
             )
 
             expect(await handler.before()).toEqual(config)
@@ -133,7 +132,7 @@ it('retrieve initial configuration and updates, and validates', async () => {
             expect(appConfigDataMock).toReceiveNthCommandWith(GetLatestConfigurationCommand, 2, {
                 ConfigurationToken: token2,
             })
-        }
+        },
     )
 })
 
@@ -150,7 +149,7 @@ it('retrieve initial configuration and ignores empty configurations, and validat
 
             const handler = profileHandler(
                 { profile: { maxAge: 0, schema: { schema: { type: 'object' }, is: () => true } } } as any,
-                async () => services
+                async () => services,
             )
 
             expect(await handler.before()).toEqual(config)
@@ -168,7 +167,7 @@ it('retrieve initial configuration and ignores empty configurations, and validat
             expect(appConfigDataMock).toReceiveNthCommandWith(GetLatestConfigurationCommand, 2, {
                 ConfigurationToken: token2,
             })
-        }
+        },
     )
 })
 
@@ -180,7 +179,7 @@ it('retrieve initial configuration, and not validates', async () => {
 
         const handler = profileHandler(
             { profile: { schema: { schema: { type: 'object' }, is: () => false } } } as any,
-            async () => services
+            async () => services,
         )
 
         await expect(handler.before()).rejects.toEqual(expect.any(EventError))

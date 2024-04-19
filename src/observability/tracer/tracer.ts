@@ -9,7 +9,7 @@ export interface Tracer {
 }
 
 export function createTracer(instance: AWSTracer = new AWSTracer({ serviceName: constants.serviceName })): Tracer {
-    async function trace<R>(segmentName: string, fn: () => Promise<R>): Promise<R> {
+    function trace<R>(segmentName: string, fn: () => Promise<R>): Promise<R> {
         if (!instance.isTracingEnabled()) {
             return fn()
         }

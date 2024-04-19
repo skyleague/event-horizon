@@ -3,8 +3,10 @@
  * Do not manually touch this
  */
 /* eslint-disable */
-import AjvValidator from 'ajv'
-import type { ValidateFunction } from 'ajv'
+
+import type { DefinedError, ValidateFunction } from 'ajv'
+
+import { validate as SecretRotationEventValidator } from './schemas/secret-rotation-event.schema.js'
 
 export interface SecretRotationEvent {
     Step: 'createSecret' | 'finishSecret' | 'setSecret' | 'testSecret'
@@ -13,8 +15,7 @@ export interface SecretRotationEvent {
 }
 
 export const SecretRotationEvent = {
-    validate: (await import('./schemas/secret-rotation-event.schema.js'))
-        .validate10 as unknown as ValidateFunction<SecretRotationEvent>,
+    validate: SecretRotationEventValidator as ValidateFunction<SecretRotationEvent>,
     get schema() {
         return SecretRotationEvent.validate.schema
     },
@@ -22,9 +23,10 @@ export const SecretRotationEvent = {
         return SecretRotationEvent.validate.errors ?? undefined
     },
     is: (o: unknown): o is SecretRotationEvent => SecretRotationEvent.validate(o) === true,
-    assert: (o: unknown) => {
-        if (!SecretRotationEvent.validate(o)) {
-            throw new AjvValidator.ValidationError(SecretRotationEvent.errors ?? [])
+    parse: (o: unknown): { right: SecretRotationEvent } | { left: DefinedError[] } => {
+        if (SecretRotationEvent.is(o)) {
+            return { right: o }
         }
+        return { left: (SecretRotationEvent.errors ?? []) as DefinedError[] }
     },
 } as const

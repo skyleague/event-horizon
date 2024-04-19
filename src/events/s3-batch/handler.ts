@@ -9,13 +9,13 @@ import { ioValidate } from '../functions/io-validate.js'
 import type { LambdaContext } from '../types.js'
 
 import type { Try } from '@skyleague/axioms'
-import { enumerate, mapTry, transformTry, isSuccess } from '@skyleague/axioms'
+import { enumerate, isSuccess, mapTry, transformTry } from '@skyleague/axioms'
 import type { S3BatchEvent, S3BatchResult, S3BatchResultResult } from 'aws-lambda'
 
 export async function handleS3Batch<Configuration, Service, Profile, Result>(
     handler: S3BatchHandler<Configuration, Service, Profile, Result>,
     event: S3BatchEvent,
-    context: LambdaContext<Configuration, Service, Profile>
+    context: LambdaContext<Configuration, Service, Profile>,
 ): Promise<Try<S3BatchResult>> {
     const { s3Batch } = handler
 
@@ -46,7 +46,7 @@ export async function handleS3Batch<Configuration, Service, Profile, Result>(
         const result = transformTry(
             response,
             (x) => serializeResult.onAfter(task, x),
-            (e) => errorHandlerFn.onError(task, e)
+            (e) => errorHandlerFn.onError(task, e),
         )
 
         ioLoggerFn.after(result, item)

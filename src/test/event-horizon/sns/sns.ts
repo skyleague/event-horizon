@@ -6,7 +6,7 @@ import { object, unknown } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
 
 export function snsEvent<Configuration, Service, Profile, Payload>(
-    definition: SNSHandler<Configuration, Service, Profile, Payload>
+    definition: SNSHandler<Configuration, Service, Profile, Payload>,
 ): Dependent<SNSEvent<Payload>> {
     const { sns } = definition
     return object({

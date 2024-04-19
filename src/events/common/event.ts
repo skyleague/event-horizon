@@ -84,7 +84,7 @@ export type EventHandlerFn<Configuration, Service extends DefaultServices | unde
 
 export function eventHandler<R, Configuration, Service extends DefaultServices | undefined, Profile>(
     definition: EventHandlerDefinition<Configuration, Service, Profile>,
-    options: EventHandlerOptions<R, Configuration, Service, Profile>
+    options: EventHandlerOptions<R, Configuration, Service, Profile>,
 ): EventHandlerFn<Configuration, Service, Profile, R> {
     const { handler: kernel, eagerHandlerInitialization = constants.eagerHandlerInitialization } = options
     const { logger = globalLogger, metrics = globalMetrics, tracer = globalTracer, services: servicesFn } = definition
@@ -92,14 +92,12 @@ export function eventHandler<R, Configuration, Service extends DefaultServices |
     const traceServicesFn = traceServices({ tracer })
 
     const config = memoize((): Configuration | Promise<Configuration> =>
-        // Config is allowed to be undefined
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion,
-        isFunction(definition.config) ? definition.config() : definition.config!
+        // biome-ignore lint/style/noNonNullAssertion: Config is allowed to be undefined
+        isFunction(definition.config) ? definition.config() : definition.config!,
     )
     const services = memoize((): Promise<Service> | Service =>
-        // Services is allowed to be undefined
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        traceServicesFn.before(isFunction(servicesFn) ? Promise.resolve(config()).then((c) => servicesFn(c)) : servicesFn!)
+        // biome-ignore lint/style/noNonNullAssertion:  Services is allowed to be undefined
+        traceServicesFn.before(isFunction(servicesFn) ? Promise.resolve(config()).then((c) => servicesFn(c)) : servicesFn!),
     )
     if (eagerHandlerInitialization) {
         void services()
@@ -150,11 +148,12 @@ export function eventHandler<R, Configuration, Service extends DefaultServices |
                 return s
             },
             (f) => {
+                let fn = f
                 for (const eh of [errorHandlerFn.onError, tracerFn.onError, metricsFn.onError]) {
-                    f = eh(f) ?? f
+                    fn = eh(fn) ?? fn
                 }
-                return errorHandlerFn.onExit(f)
-            }
+                return errorHandlerFn.onExit(fn)
+            },
         )
 
         return tryToError(response)

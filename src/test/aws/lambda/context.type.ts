@@ -3,8 +3,10 @@
  * Do not manually touch this
  */
 /* eslint-disable */
-import AjvValidator from 'ajv'
-import type { ValidateFunction } from 'ajv'
+
+import type { DefinedError, ValidateFunction } from 'ajv'
+
+import { validate as ContextValidator } from './schemas/context.schema.js'
 
 export interface ClientContext {
     client: ClientContextClient
@@ -47,7 +49,7 @@ export interface Context {
 }
 
 export const Context = {
-    validate: (await import('./schemas/context.schema.js')).validate10 as unknown as ValidateFunction<Context>,
+    validate: ContextValidator as ValidateFunction<Context>,
     get schema() {
         return Context.validate.schema
     },
@@ -55,9 +57,10 @@ export const Context = {
         return Context.validate.errors ?? undefined
     },
     is: (o: unknown): o is Context => Context.validate(o) === true,
-    assert: (o: unknown) => {
-        if (!Context.validate(o)) {
-            throw new AjvValidator.ValidationError(Context.errors ?? [])
+    parse: (o: unknown): { right: Context } | { left: DefinedError[] } => {
+        if (Context.is(o)) {
+            return { right: o }
         }
+        return { left: (Context.errors ?? []) as DefinedError[] }
     },
 } as const

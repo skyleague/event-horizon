@@ -5,8 +5,8 @@ import { APIGatewayProxyEvent } from '../../test/aws/apigateway/apigateway.type.
 import { EventBridgeEvent } from '../../test/aws/eventbridge/eventbridge.type.js'
 import { FirehoseTransformationEvent } from '../../test/aws/firehose/firehose.type.js'
 import { KinesisStreamEvent } from '../../test/aws/kinesis/kinesis.type.js'
-import { S3Event } from '../../test/aws/s3/s3.type.js'
 import { S3BatchEvent } from '../../test/aws/s3-batch/s3.type.js'
+import { S3Event } from '../../test/aws/s3/s3.type.js'
 import { SecretRotationEvent } from '../../test/aws/secret-rotation/secret-rotation.type.js'
 import { SNSEvent } from '../../test/aws/sns/sns.type.js'
 import { SQSEvent } from '../../test/aws/sqs/sqs.type.js'
@@ -14,7 +14,7 @@ import { context } from '../../test/test/context/context.js'
 
 import { asyncForAll, json, oneOf, random, tuple, unknown } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
-import { expect, it, vi, expectTypeOf } from 'vitest'
+import { expect, expectTypeOf, it, vi } from 'vitest'
 
 it('handles schema types', () => {
     const handler = rawHandler({
@@ -48,7 +48,7 @@ it('does handle raw events', async () => {
         {
             raw: { handler: vi.fn(), schema: {} },
         },
-        { kernel: raw }
+        { kernel: raw },
     )
     await asyncForAll(
         tuple(
@@ -63,10 +63,10 @@ it('does handle raw events', async () => {
                 arbitrary(SNSEvent),
                 arbitrary(SQSEvent),
                 json(),
-                unknown()
+                unknown(),
             ),
             unknown(),
-            await context(handler)
+            await context(handler),
         ),
         async ([event, ret, ctx]) => {
             raw.mockClear()
@@ -74,7 +74,7 @@ it('does handle raw events', async () => {
             const response = await handler._options.handler(event as any, ctx)
             expect(response).toBe(ret)
             expect(raw).toHaveBeenCalledWith(expect.anything(), event, ctx)
-        }
+        },
     )
 })
 
@@ -84,7 +84,7 @@ it('warmup should early exit', async () => {
         {
             raw: { handler: raw, schema: {} },
         },
-        { kernel: raw }
+        { kernel: raw },
     )
 
     await expect(handler(warmerEvent, random(await context()).raw)).resolves.toBe(undefined)

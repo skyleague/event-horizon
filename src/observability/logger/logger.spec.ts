@@ -1,7 +1,7 @@
 import { createLogger } from './logger.js'
 
 import { forAll, string } from '@skyleague/axioms'
-import { expect, describe, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 describe('Logger', () => {
     const logger = createLogger()

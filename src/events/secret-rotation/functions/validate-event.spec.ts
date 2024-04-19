@@ -5,9 +5,9 @@ import { secretRotationEvent } from '../../../test/event-horizon/secret-rotation
 import { context } from '../../../test/test/context/context.js'
 
 import { DescribeSecretCommand, SecretsManager, SecretsManagerClient } from '@aws-sdk/client-secrets-manager'
-import { asyncForAll, Nothing, tuple } from '@skyleague/axioms'
+import { Nothing, asyncForAll, tuple } from '@skyleague/axioms'
 import { mockClient } from 'aws-sdk-client-mock'
-import { expect, describe, beforeEach, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 
 describe('validate', () => {
     const mockSecrets = mockClient(SecretsManagerClient)

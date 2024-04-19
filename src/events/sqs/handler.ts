@@ -8,24 +8,25 @@ import { ioValidate } from '../functions/io-validate.js'
 import type { LambdaContext } from '../types.js'
 
 import {
+    type Try,
     eitherAsValue,
     enumerate,
     groupBy,
     isLeft,
     map,
     mapLeft,
+    mapRight,
     mapTry,
     parallelLimit,
     tryToEither,
-    type Try,
-    mapRight,
 } from '@skyleague/axioms'
 import type { SQSBatchItemFailure, SQSBatchResponse, SQSRecord } from 'aws-lambda'
 
 export async function handleSQSEvent<Configuration, Service, Profile, Payload>(
     handler: SQSHandler<Configuration, Service, Profile, Payload>,
     events: SQSRecord[],
-    context: LambdaContext<Configuration, Service, Profile>
+    context: LambdaContext<Configuration, Service, Profile>,
+    // biome-ignore lint/suspicious/noConfusingVoidType: this is the real type we want here
 ): Promise<SQSBatchResponse | void> {
     const { sqs } = handler
 
@@ -72,7 +73,8 @@ export async function handleSQSEvent<Configuration, Service, Profile, Payload>(
 export async function handleSQSMessageGroup<Configuration, Service, Profile, Payload, MessageGrouping extends SQSMessageGrouping>(
     handler: SQSHandler<Configuration, Service, Profile, Payload, MessageGrouping>,
     events: SQSRecord[],
-    context: LambdaContext<Configuration, Service, Profile>
+    context: LambdaContext<Configuration, Service, Profile>,
+    // biome-ignore lint/suspicious/noConfusingVoidType: this is the real type we want here
 ): Promise<SQSBatchResponse | void> {
     const { sqs } = handler
 
@@ -95,7 +97,7 @@ export async function handleSQSMessageGroup<Configuration, Service, Profile, Pay
                 item: i,
             }
         }),
-        ({ messageGroupId }) => messageGroupId
+        ({ messageGroupId }) => messageGroupId,
     )
 
     const pLimit = parallelLimit(sqs.messageGrouping?.parallelism ?? 1)
@@ -116,8 +118,10 @@ export async function handleSQSMessageGroup<Configuration, Service, Profile, Pay
 
                 ioLoggerFn.before(messageGroup, { messageGroupId })
 
-                const transformed = (await mapTry(messageGroup, (success) =>
-                    sqs.handler(success as SQSPayload<MessageGrouping, Payload>, ctx)
+                const transformed = (await mapTry(
+                    messageGroup,
+                    (success) => sqs.handler(success as SQSPayload<MessageGrouping, Payload>, ctx),
+                    // biome-ignore lint/suspicious/noConfusingVoidType: this is the real type we want here
                 )) as Try<SQSBatchItemFailure[] | void>
 
                 const eitherTransformed = tryToEither(transformed)
@@ -132,8 +136,8 @@ export async function handleSQSMessageGroup<Configuration, Service, Profile, Pay
                     failures ??= []
                     failures.push(...messageGroupFailures)
                 }
-            })
-        )
+            }),
+        ),
     )
 
     if (failures !== undefined) {

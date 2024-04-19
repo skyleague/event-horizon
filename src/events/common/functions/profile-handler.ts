@@ -23,7 +23,7 @@ export interface ProfileOptions<T> {
 
 export function profileHandler<T, Services extends DefaultServices | undefined>(
     options: ProfileOptions<T>,
-    services: () => Promise<Services> | Services
+    services: () => Promise<Services> | Services,
 ): { before: () => Promise<Try<T>> } {
     const {
         application = constants.namespace,

@@ -1,20 +1,16 @@
 {
-  "[json]": {
-    "editor.tabSize": 2
-  },
   "debug.javascript.terminalOptions": {
     "remoteRoot": null,
     "skipFiles": ["<node_internals>/**"],
     "sourceMaps": true
   },
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "always"
+    "source.organizeImports.biome": "explicit",
+    "quickfix.biome": "explicit"
   },
+  "editor.defaultFormatter": "biomejs.biome",
   "editor.formatOnSave": true,
   "editor.wordSeparators": "`~!@#%^&*()-=+[{]}\\|;:'\",.<>/?",
-  "eslint.format.enable": true,
-  "eslint.lintTask.enable": true,
-  "eslint.validate": ["javascript", "typescript"],
   "files.eol": "\n",
   "files.exclude": {
     "**/.coverage": true,
@@ -35,7 +31,6 @@
     "**/node_modules/*/**": true,
     "src/**/*.d.ts": true
   },
-  "typescript.format.semicolons": "remove",
   "typescript.implementationsCodeLens.enabled": true,
   "typescript.preferences.autoImportFileExcludePatterns": ["**/index.ts"],
   "typescript.referencesCodeLens.enabled": true,

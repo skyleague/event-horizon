@@ -1,20 +1,19 @@
 import { handleFirehoseTransformation } from './handler.js'
 
+import { asyncForAll, enumerate, isString, json, random, tuple } from '@skyleague/axioms'
+import type { JsonValue } from '@skyleague/axioms/types'
+import { arbitrary } from '@skyleague/therefore'
+import type { FirehoseTransformationEventRecord } from 'aws-lambda/trigger/kinesis-firehose-transformation.js'
+import { expect, it, vi } from 'vitest'
 import { alwaysTrueSchema, neverTrueSchema } from '../../../test/schema.js'
 import { EventError } from '../../errors/event-error/event-error.js'
 import { FirehoseTransformationEvent } from '../../test/aws/firehose/firehose.type.js'
 import { context } from '../../test/test/context/context.js'
 
-import type { Json } from '@skyleague/axioms'
-import { asyncForAll, enumerate, isString, json, random, tuple } from '@skyleague/axioms'
-import { arbitrary } from '@skyleague/therefore'
-import type { FirehoseTransformationEventRecord } from 'aws-lambda/trigger/kinesis-firehose-transformation.js'
-import { expect, it, vi } from 'vitest'
-
 it('binary events does not give failures', async () => {
     await asyncForAll(
         tuple(arbitrary(FirehoseTransformationEvent), await context()).map(([e, ctx]) => {
-            const results: Json[] = []
+            const results: JsonValue[] = []
             for (const record of e.records) {
                 record.data = Buffer.from(record.data).toString('base64')
                 results.push(random(json()))
@@ -35,7 +34,7 @@ it('binary events does not give failures', async () => {
             const response = await handleFirehoseTransformation(
                 { firehose: { schema: {}, handler, payloadType: 'binary' } },
                 records as FirehoseTransformationEventRecord[],
-                ctx
+                ctx,
             )
 
             expect(response).toEqual({
@@ -62,14 +61,14 @@ it('binary events does not give failures', async () => {
             }
 
             expect(ctx.logger.error).not.toHaveBeenCalled()
-        }
+        },
     )
 })
 
 it('plaintext events does not give failures', async () => {
     await asyncForAll(
         tuple(arbitrary(FirehoseTransformationEvent), await context()).map(([e, ctx]) => {
-            const results: Json[] = []
+            const results: JsonValue[] = []
             for (const record of e.records) {
                 record.data = Buffer.from(record.data).toString('base64')
                 results.push(random(json()))
@@ -89,7 +88,7 @@ it('plaintext events does not give failures', async () => {
             const response = await handleFirehoseTransformation(
                 { firehose: { schema: {}, handler, payloadType: 'plaintext' } },
                 records as FirehoseTransformationEventRecord[],
-                ctx
+                ctx,
             )
 
             expect(response).toEqual({
@@ -116,14 +115,14 @@ it('plaintext events does not give failures', async () => {
             }
 
             expect(ctx.logger.error).not.toHaveBeenCalled()
-        }
+        },
     )
 })
 
 it('json events does not give failures', async () => {
     await asyncForAll(
         tuple(arbitrary(FirehoseTransformationEvent), await context()).map(([e, ctx]) => {
-            const results: Json[] = []
+            const results: JsonValue[] = []
             for (const record of e.records) {
                 record.data = Buffer.from(JSON.stringify(random(json()))).toString('base64')
                 results.push(random(json()))
@@ -143,7 +142,7 @@ it('json events does not give failures', async () => {
             const response = await handleFirehoseTransformation(
                 { firehose: { schema: {}, handler } },
                 records as FirehoseTransformationEventRecord[],
-                ctx
+                ctx,
             )
 
             expect(response).toEqual({
@@ -170,14 +169,14 @@ it('json events does not give failures', async () => {
             }
 
             expect(ctx.logger.error).not.toHaveBeenCalled()
-        }
+        },
     )
 })
 
 it('json parse failure, gives failure', async () => {
     await asyncForAll(
         tuple(arbitrary(FirehoseTransformationEvent), await context()).map(([e, ctx]) => {
-            const results: Json[] = []
+            const results: JsonValue[] = []
             for (const record of e.records) {
                 record.data = Buffer.from(`${JSON.stringify(random(json()))}{`).toString('base64')
                 results.push(random(json()))
@@ -197,11 +196,11 @@ it('json parse failure, gives failure', async () => {
             const response = await handleFirehoseTransformation(
                 { firehose: { schema: {}, handler } },
                 records as FirehoseTransformationEventRecord[],
-                ctx
+                ctx,
             )
 
             expect(response).toEqual({
-                records: results.map((r, i) => ({
+                records: results.map((_, i) => ({
                     data: records[i]!.data,
                     recordId: records[i]!.recordId,
                     result: 'ProcessingFailed',
@@ -221,14 +220,14 @@ it('json parse failure, gives failure', async () => {
                 })
                 expect(ctx.logger.error).toHaveBeenNthCalledWith(i + 1, expect.any(String), expect.any(EventError))
             }
-        }
+        },
     )
 })
 
 it('payload schema validation, gives failure', async () => {
     await asyncForAll(
         tuple(arbitrary(FirehoseTransformationEvent), await context({})).map(([e, ctx]) => {
-            const results: Json[] = []
+            const results: JsonValue[] = []
             for (const record of e.records) {
                 record.data = Buffer.from(JSON.stringify(random(json()))).toString('base64')
                 results.push(random(json()))
@@ -248,11 +247,11 @@ it('payload schema validation, gives failure', async () => {
             const response = await handleFirehoseTransformation(
                 { firehose: { schema: { payload: neverTrueSchema }, handler } },
                 records as FirehoseTransformationEventRecord[],
-                ctx
+                ctx,
             )
 
             expect(response).toEqual({
-                records: results.map((r, i) => ({
+                records: results.map((_r, i) => ({
                     data: records[i]!.data,
                     recordId: records[i]!.recordId,
                     result: 'ProcessingFailed',
@@ -273,14 +272,14 @@ it('payload schema validation, gives failure', async () => {
 
                 expect(ctx.logger.error).toHaveBeenNthCalledWith(i + 1, expect.any(String), EventError.validation())
             }
-        }
+        },
     )
 })
 
 it('result schema validation, gives failure', async () => {
     await asyncForAll(
         tuple(arbitrary(FirehoseTransformationEvent), await context({})).map(([e, ctx]) => {
-            const results: Json[] = []
+            const results: JsonValue[] = []
             for (const record of e.records) {
                 record.data = Buffer.from(JSON.stringify(random(json()))).toString('base64')
                 results.push(random(json()))
@@ -300,11 +299,11 @@ it('result schema validation, gives failure', async () => {
             const response = await handleFirehoseTransformation(
                 { firehose: { schema: { payload: alwaysTrueSchema, result: neverTrueSchema }, handler } },
                 records as FirehoseTransformationEventRecord[],
-                ctx
+                ctx,
             )
 
             expect(response).toEqual({
-                records: results.map((r, i) => ({
+                records: results.map((_r, i) => ({
                     data: records[i]!.data,
                     recordId: records[i]!.recordId,
                     result: 'ProcessingFailed',
@@ -325,7 +324,7 @@ it('result schema validation, gives failure', async () => {
 
                 expect(ctx.logger.error).toHaveBeenNthCalledWith(i + 1, expect.any(String), EventError.validation())
             }
-        }
+        },
     )
 })
 
@@ -337,7 +336,7 @@ it.each([new Error(), 'foobar'])('promise reject with Error, gives failure', asy
         const response = await handleFirehoseTransformation(
             { firehose: { schema: {}, handler, payloadType: 'binary' } },
             records as FirehoseTransformationEventRecord[],
-            ctx
+            ctx,
         )
 
         expect(response).toEqual({
@@ -374,7 +373,7 @@ it.each([EventError.badRequest()])('promise reject with client error, gives erro
         const response = await handleFirehoseTransformation(
             { firehose: { schema: {}, handler, payloadType: 'binary' } },
             records as FirehoseTransformationEventRecord[],
-            ctx
+            ctx,
         )
 
         expect(response).toEqual({
@@ -408,13 +407,12 @@ it.each([new Error(), 'foobar'])('promise throws with Error, gives failure', asy
         ctx.mockClear()
 
         const handler = vi.fn().mockImplementation(() => {
-            // eslint-disable-next-line @typescript-eslint/only-throw-error
             throw error
         })
         const response = await handleFirehoseTransformation(
             { firehose: { schema: {}, handler, payloadType: 'binary' } },
             records as FirehoseTransformationEventRecord[],
-            ctx
+            ctx,
         )
 
         expect(response).toEqual({
@@ -453,7 +451,7 @@ it.each([EventError.badRequest()])('promise throws with client error, gives erro
         const response = await handleFirehoseTransformation(
             { firehose: { schema: {}, handler, payloadType: 'binary' } },
             records as FirehoseTransformationEventRecord[],
-            ctx
+            ctx,
         )
 
         expect(response).toEqual({

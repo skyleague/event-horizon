@@ -11,7 +11,7 @@ export function loggerContext(
     }: {
         logEvent?: boolean
         clearState?: boolean
-    } = {}
+    } = {},
 ) {
     return {
         before: (request: unknown, context: Context) => {

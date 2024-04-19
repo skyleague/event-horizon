@@ -1,8 +1,10 @@
+import path from 'node:path'
 import type * as Preset from '@docusaurus/preset-classic'
 import type { Config } from '@docusaurus/types'
-import path from 'node:path'
 import { themes } from 'prism-react-renderer'
-import { description, homepage, name, repository } from '../package.json'
+import packageJSON from '../package.json' with { type: 'json' }
+
+const { description, homepage, name, repository } = packageJSON
 
 const [organizationName, projectName] = name.replace('@', '').split('/')
 const url = new URL(homepage)

@@ -3,8 +3,11 @@
  * Do not manually touch this
  */
 /* eslint-disable */
-import AjvValidator from 'ajv'
-import type { ValidateFunction } from 'ajv'
+
+import type { DefinedError, ValidateFunction } from 'ajv'
+
+import { validate as FirehoseTransformationEventRecordValidator } from './schemas/firehose-transformation-event-record.schema.js'
+import { validate as FirehoseTransformationEventValidator } from './schemas/firehose-transformation-event.schema.js'
 
 export interface FirehoseRecordMetadata {
     shardId: string
@@ -23,8 +26,7 @@ export interface FirehoseTransformationEvent {
 }
 
 export const FirehoseTransformationEvent = {
-    validate: (await import('./schemas/firehose-transformation-event.schema.js'))
-        .validate10 as unknown as ValidateFunction<FirehoseTransformationEvent>,
+    validate: FirehoseTransformationEventValidator as ValidateFunction<FirehoseTransformationEvent>,
     get schema() {
         return FirehoseTransformationEvent.validate.schema
     },
@@ -32,10 +34,11 @@ export const FirehoseTransformationEvent = {
         return FirehoseTransformationEvent.validate.errors ?? undefined
     },
     is: (o: unknown): o is FirehoseTransformationEvent => FirehoseTransformationEvent.validate(o) === true,
-    assert: (o: unknown) => {
-        if (!FirehoseTransformationEvent.validate(o)) {
-            throw new AjvValidator.ValidationError(FirehoseTransformationEvent.errors ?? [])
+    parse: (o: unknown): { right: FirehoseTransformationEvent } | { left: DefinedError[] } => {
+        if (FirehoseTransformationEvent.is(o)) {
+            return { right: o }
         }
+        return { left: (FirehoseTransformationEvent.errors ?? []) as DefinedError[] }
     },
 } as const
 
@@ -47,8 +50,7 @@ export interface FirehoseTransformationEventRecord {
 }
 
 export const FirehoseTransformationEventRecord = {
-    validate: (await import('./schemas/firehose-transformation-event-record.schema.js'))
-        .validate10 as unknown as ValidateFunction<FirehoseTransformationEventRecord>,
+    validate: FirehoseTransformationEventRecordValidator as ValidateFunction<FirehoseTransformationEventRecord>,
     get schema() {
         return FirehoseTransformationEventRecord.validate.schema
     },
@@ -56,9 +58,10 @@ export const FirehoseTransformationEventRecord = {
         return FirehoseTransformationEventRecord.validate.errors ?? undefined
     },
     is: (o: unknown): o is FirehoseTransformationEventRecord => FirehoseTransformationEventRecord.validate(o) === true,
-    assert: (o: unknown) => {
-        if (!FirehoseTransformationEventRecord.validate(o)) {
-            throw new AjvValidator.ValidationError(FirehoseTransformationEventRecord.errors ?? [])
+    parse: (o: unknown): { right: FirehoseTransformationEventRecord } | { left: DefinedError[] } => {
+        if (FirehoseTransformationEventRecord.is(o)) {
+            return { right: o }
         }
+        return { left: (FirehoseTransformationEventRecord.errors ?? []) as DefinedError[] }
     },
 } as const

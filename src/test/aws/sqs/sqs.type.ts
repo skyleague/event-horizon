@@ -3,15 +3,18 @@
  * Do not manually touch this
  */
 /* eslint-disable */
-import AjvValidator from 'ajv'
-import type { ValidateFunction } from 'ajv'
+
+import type { DefinedError, ValidateFunction } from 'ajv'
+
+import { validate as SQSEventValidator } from './schemas/sqs-event.schema.js'
+import { validate as SQSRecordValidator } from './schemas/sqs-record.schema.js'
 
 export interface SQSEvent {
     Records: SQSRecord[]
 }
 
 export const SQSEvent = {
-    validate: (await import('./schemas/sqs-event.schema.js')).validate10 as unknown as ValidateFunction<SQSEvent>,
+    validate: SQSEventValidator as ValidateFunction<SQSEvent>,
     get schema() {
         return SQSEvent.validate.schema
     },
@@ -19,10 +22,11 @@ export const SQSEvent = {
         return SQSEvent.validate.errors ?? undefined
     },
     is: (o: unknown): o is SQSEvent => SQSEvent.validate(o) === true,
-    assert: (o: unknown) => {
-        if (!SQSEvent.validate(o)) {
-            throw new AjvValidator.ValidationError(SQSEvent.errors ?? [])
+    parse: (o: unknown): { right: SQSEvent } | { left: DefinedError[] } => {
+        if (SQSEvent.is(o)) {
+            return { right: o }
         }
+        return { left: (SQSEvent.errors ?? []) as DefinedError[] }
     },
 } as const
 
@@ -51,7 +55,7 @@ export interface SQSRecord {
 }
 
 export const SQSRecord = {
-    validate: (await import('./schemas/sqs-record.schema.js')).validate10 as unknown as ValidateFunction<SQSRecord>,
+    validate: SQSRecordValidator as ValidateFunction<SQSRecord>,
     get schema() {
         return SQSRecord.validate.schema
     },
@@ -59,10 +63,11 @@ export const SQSRecord = {
         return SQSRecord.validate.errors ?? undefined
     },
     is: (o: unknown): o is SQSRecord => SQSRecord.validate(o) === true,
-    assert: (o: unknown) => {
-        if (!SQSRecord.validate(o)) {
-            throw new AjvValidator.ValidationError(SQSRecord.errors ?? [])
+    parse: (o: unknown): { right: SQSRecord } | { left: DefinedError[] } => {
+        if (SQSRecord.is(o)) {
+            return { right: o }
         }
+        return { left: (SQSRecord.errors ?? []) as DefinedError[] }
     },
 } as const
 

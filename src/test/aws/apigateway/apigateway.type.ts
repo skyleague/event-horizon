@@ -3,8 +3,10 @@
  * Do not manually touch this
  */
 /* eslint-disable */
-import AjvValidator from 'ajv'
-import type { ValidateFunction } from 'ajv'
+
+import type { DefinedError, ValidateFunction } from 'ajv'
+
+import { validate as APIGatewayProxyEventValidator } from './schemas/api-gateway-proxy-event.schema.js'
 
 export interface APIGatewayEventClientCertificate {
     clientCertPem: string
@@ -17,9 +19,12 @@ export interface APIGatewayEventClientCertificate {
     }
 }
 
-export type APIGatewayEventDefaultAuthorizerContext = null | null | {
-    [k: string]: unknown | undefined
-}
+export type APIGatewayEventDefaultAuthorizerContext =
+    | null
+    | {
+          [k: string]: unknown
+      }
+    | undefined
 
 export interface APIGatewayEventIdentity {
     accessKey: string | null
@@ -53,9 +58,12 @@ export interface APIGatewayProxyEvent {
     requestContext: {
         accountId: string
         apiId: string
-        authorizer: null | null | {
-            [k: string]: unknown | undefined
-        }
+        authorizer:
+            | null
+            | {
+                  [k: string]: unknown
+              }
+            | undefined
         connectedAt?: number | undefined
         connectionId?: string | undefined
         domainName?: string | undefined
@@ -66,7 +74,7 @@ export interface APIGatewayProxyEvent {
         httpMethod: string
         identity: APIGatewayEventIdentity
         messageDirection?: string | undefined
-        messageId: string | null | null
+        messageId?: (string | null) | undefined
         path: string
         stage: string
         requestId: string
@@ -80,8 +88,7 @@ export interface APIGatewayProxyEvent {
 }
 
 export const APIGatewayProxyEvent = {
-    validate: (await import('./schemas/api-gateway-proxy-event.schema.js'))
-        .validate10 as unknown as ValidateFunction<APIGatewayProxyEvent>,
+    validate: APIGatewayProxyEventValidator as ValidateFunction<APIGatewayProxyEvent>,
     get schema() {
         return APIGatewayProxyEvent.validate.schema
     },
@@ -89,10 +96,11 @@ export const APIGatewayProxyEvent = {
         return APIGatewayProxyEvent.validate.errors ?? undefined
     },
     is: (o: unknown): o is APIGatewayProxyEvent => APIGatewayProxyEvent.validate(o) === true,
-    assert: (o: unknown) => {
-        if (!APIGatewayProxyEvent.validate(o)) {
-            throw new AjvValidator.ValidationError(APIGatewayProxyEvent.errors ?? [])
+    parse: (o: unknown): { right: APIGatewayProxyEvent } | { left: DefinedError[] } => {
+        if (APIGatewayProxyEvent.is(o)) {
+            return { right: o }
         }
+        return { left: (APIGatewayProxyEvent.errors ?? []) as DefinedError[] }
     },
 } as const
 

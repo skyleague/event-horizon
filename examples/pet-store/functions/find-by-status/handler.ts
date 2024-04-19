@@ -1,12 +1,11 @@
-import { Query } from './request.type.js'
-
-import { httpHandler } from '../../../../src/events/http/http.js'
 import { Pet, PetArray } from '../../lib/models.type.js'
+import { Query } from './request.type.js'
 
 import { array, random } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
+import { httpApiHandler } from '../../../../src/events/http/http.js'
 
-export const handler = httpHandler({
+export const handler = httpApiHandler({
     summary: 'Finds Pets by status',
     description: 'Multiple status values can be provided with comma separated strings',
     http: {

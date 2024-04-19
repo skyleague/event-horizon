@@ -3,15 +3,18 @@
  * Do not manually touch this
  */
 /* eslint-disable */
-import AjvValidator from 'ajv'
-import type { ValidateFunction } from 'ajv'
+
+import type { DefinedError, ValidateFunction } from 'ajv'
+
+import { validate as S3EventRecordValidator } from './schemas/s3-event-record.schema.js'
+import { validate as S3EventValidator } from './schemas/s3-event.schema.js'
 
 export interface S3Event {
     Records: S3EventRecord[]
 }
 
 export const S3Event = {
-    validate: (await import('./schemas/s3-event.schema.js')).validate10 as unknown as ValidateFunction<S3Event>,
+    validate: S3EventValidator as ValidateFunction<S3Event>,
     get schema() {
         return S3Event.validate.schema
     },
@@ -19,10 +22,11 @@ export const S3Event = {
         return S3Event.validate.errors ?? undefined
     },
     is: (o: unknown): o is S3Event => S3Event.validate(o) === true,
-    assert: (o: unknown) => {
-        if (!S3Event.validate(o)) {
-            throw new AjvValidator.ValidationError(S3Event.errors ?? [])
+    parse: (o: unknown): { right: S3Event } | { left: DefinedError[] } => {
+        if (S3Event.is(o)) {
+            return { right: o }
         }
+        return { left: (S3Event.errors ?? []) as DefinedError[] }
     },
 } as const
 
@@ -71,7 +75,7 @@ export interface S3EventRecord {
 }
 
 export const S3EventRecord = {
-    validate: (await import('./schemas/s3-event-record.schema.js')).validate10 as unknown as ValidateFunction<S3EventRecord>,
+    validate: S3EventRecordValidator as ValidateFunction<S3EventRecord>,
     get schema() {
         return S3EventRecord.validate.schema
     },
@@ -79,10 +83,11 @@ export const S3EventRecord = {
         return S3EventRecord.validate.errors ?? undefined
     },
     is: (o: unknown): o is S3EventRecord => S3EventRecord.validate(o) === true,
-    assert: (o: unknown) => {
-        if (!S3EventRecord.validate(o)) {
-            throw new AjvValidator.ValidationError(S3EventRecord.errors ?? [])
+    parse: (o: unknown): { right: S3EventRecord } | { left: DefinedError[] } => {
+        if (S3EventRecord.is(o)) {
+            return { right: o }
         }
+        return { left: (S3EventRecord.errors ?? []) as DefinedError[] }
     },
 } as const
 

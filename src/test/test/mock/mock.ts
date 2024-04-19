@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import type { Logger } from '../../../observability/logger/logger.js'
 import type { Metrics } from '../../../observability/metrics/metrics.js'
 import type { Tracer } from '../../../observability/tracer/tracer.js'
@@ -14,6 +12,7 @@ export function mockLogger() {
     const instance = new AwsLogger()
     const shouldLogEvent = vi.spyOn(instance, 'shouldLogEvent')
     shouldLogEvent.mockReturnValue(false)
+    // biome-ignore lint/suspicious/noExplicitAny: circular instantiation
     const impl: any = vi.mocked({
         instance,
         debug: vi.fn(),
@@ -36,7 +35,6 @@ export function mockLogger() {
             shouldLogEvent.mockReturnValue(false)
         },
     } as const)
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const logger = vi.mocked<MockLogger>(impl)
     return logger
 }

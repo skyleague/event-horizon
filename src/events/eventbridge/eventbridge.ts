@@ -8,7 +8,7 @@ import type { DefaultServices } from '../types.js'
 
 export function eventBridgeHandler<Configuration, Service extends DefaultServices | undefined, Profile, Payload, Result, D>(
     definition: D & EventBridgeHandler<Configuration, Service, Profile, Payload, Result>,
-    { kernel = handleEventBridgeEvent }: { kernel?: typeof handleEventBridgeEvent } = {}
+    { kernel = handleEventBridgeEvent }: { kernel?: typeof handleEventBridgeEvent } = {},
 ): D & EventHandlerFn<Configuration, Service, Profile, Result> {
     return eventHandler(definition, {
         handler: (request, context) => {

@@ -38,16 +38,16 @@ export const s3EventRecord = $validator(
                 key: $string,
                 size: $integer,
                 eTag: $string,
-                versionId: $optional($string, 'explicit'),
+                versionId: $optional($string),
                 sequencer: $string,
             }),
         }),
-        glacierEventData: $optional(s3EventRecordGlacierEventData, 'explicit'),
-    })
+        glacierEventData: $optional(s3EventRecordGlacierEventData),
+    }),
 )
 
 export const s3Event = $validator(
     $object({
         Records: $array($ref(s3EventRecord)),
-    })
+    }),
 )

@@ -1,4 +1,4 @@
-import type { LambdaContext, EventHandlerDefinition } from '../types.js'
+import type { EventHandlerDefinition, LambdaContext } from '../types.js'
 
 import type { Promisable, Try } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'

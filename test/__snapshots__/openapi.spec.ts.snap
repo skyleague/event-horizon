@@ -1,0 +1,219 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`buids the petstore openapi 1`] = `
+{
+  "body": {
+    "components": {
+      "parameters": {
+        "Status": {
+          "$ref": "#/components/schemas/Status",
+        },
+      },
+      "requestBodies": {
+        "Pet": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Pet",
+              },
+            },
+          },
+          "description": "Pet object from the store",
+        },
+      },
+      "responses": {
+        "Error": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Error",
+              },
+            },
+          },
+          "description": "The default error error response for both 400 & 500 type errors",
+        },
+        "Pet": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Pet",
+              },
+            },
+          },
+          "description": "Pet object from the store",
+        },
+        "PetArray": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PetArray",
+              },
+            },
+          },
+          "description": "A list of Pet objects",
+        },
+      },
+      "schemas": {
+        "Category": {
+          "additionalProperties": true,
+          "properties": {
+            "id": {
+              "type": "integer",
+            },
+            "name": {
+              "type": "string",
+            },
+          },
+          "required": [
+            "id",
+            "name",
+          ],
+          "title": "Category",
+          "type": "object",
+        },
+        "Error": {
+          "description": "The default error error response for both 400 & 500 type errors",
+          "properties": {
+            "message": {
+              "description": "A detailed message of the error.",
+              "type": "string",
+            },
+            "stack": {
+              "description": "When debugging is enabled, a stack trace is exposed.",
+              "type": "string",
+            },
+            "statusCode": {
+              "description": "The status code of the response.",
+              "type": "integer",
+            },
+          },
+          "required": [
+            "statusCode",
+            "message",
+          ],
+          "title": "Default Error Response",
+          "type": "object",
+        },
+        "Pet": {
+          "additionalProperties": true,
+          "description": "Pet object from the store",
+          "properties": {
+            "category": {
+              "$ref": "#/components/schemas/Category",
+            },
+            "id": {
+              "type": "integer",
+            },
+            "name": {
+              "type": "string",
+            },
+            "photoUrls": {
+              "items": {
+                "type": "string",
+              },
+              "type": "array",
+            },
+            "status": {
+              "enum": [
+                "available",
+                "pending",
+                "sold",
+              ],
+            },
+            "tags": {
+              "items": {
+                "$ref": "#/components/schemas/Tag",
+              },
+              "type": "array",
+            },
+          },
+          "required": [
+            "name",
+            "photoUrls",
+          ],
+          "title": "Pet",
+          "type": "object",
+        },
+        "PetArray": {
+          "description": "A list of Pet objects",
+          "items": {
+            "$ref": "#/components/schemas/Pet",
+          },
+          "title": "PetArray",
+          "type": "array",
+        },
+        "Status": {
+          "enum": [
+            "available",
+            "pending",
+            "sold",
+          ],
+          "title": "Status",
+        },
+        "Tag": {
+          "additionalProperties": true,
+          "properties": {
+            "id": {
+              "type": "integer",
+            },
+            "name": {
+              "type": "string",
+            },
+          },
+          "title": "Tag",
+          "type": "object",
+        },
+      },
+    },
+    "info": {
+      "title": "@skyleague/event-horizon",
+      "version": "6.1.0",
+    },
+    "openapi": "3.0.1",
+    "paths": {
+      "/pet": {
+        "post": {
+          "description": "Add a new pet to the store",
+          "parameters": [],
+          "requestBody": {
+            "$ref": "#/components/requestBodies/Pet",
+          },
+          "responses": {
+            "200": {
+              "$ref": "#/components/responses/Pet",
+            },
+            "default": {
+              "$ref": "#/components/responses/Error",
+            },
+          },
+        },
+      },
+      "/pet/findByStatus": {
+        "get": {
+          "description": "Multiple status values can be provided with comma separated strings",
+          "parameters": [
+            {
+              "in": "query",
+              "name": "status",
+              "required": true,
+              "schema": {
+                "$ref": "#/components/parameters/Status",
+              },
+            },
+          ],
+          "responses": {
+            "200": {
+              "$ref": "#/components/responses/PetArray",
+            },
+            "default": {
+              "$ref": "#/components/responses/Error",
+            },
+          },
+          "summary": "Finds Pets by status",
+        },
+      },
+    },
+  },
+  "statusCode": 200,
+}
+`;

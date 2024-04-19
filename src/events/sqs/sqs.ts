@@ -3,7 +3,7 @@ import { handleSQSMessageGroup } from './handler.js'
 import type { SQSHandler, SQSMessageGrouping } from './types.js'
 
 import { EventError } from '../../errors/event-error/event-error.js'
-import { eventHandler, type EventHandlerFn } from '../common/event.js'
+import { type EventHandlerFn, eventHandler } from '../common/event.js'
 import type { DefaultServices } from '../types.js'
 
 import type { SQSRecord } from 'aws-lambda'
@@ -18,10 +18,11 @@ export function sqsHandler<
     Profile,
     Payload,
     D,
+    // biome-ignore lint/complexity/noBannedTypes: This is the real type
     MessageGrouping extends SQSMessageGrouping = {},
 >(
     definition: D & SQSHandler<Configuration, Service, Profile, Payload, MessageGrouping>,
-    { kernel }: { kernel?: SQSKernel<MessageGrouping> } = {}
+    { kernel }: { kernel?: SQSKernel<MessageGrouping> } = {},
 ): D & EventHandlerFn<Configuration, Service, Profile> {
     return eventHandler(definition, {
         handler: (request, context) => {
@@ -30,7 +31,7 @@ export function sqsHandler<
 
             if (typeof request === 'object' && request !== null && 'Records' in request) {
                 const records: SQSRecord[] = []
-                const other = []
+                const other: unknown[] = []
                 for (const record of request.Records) {
                     if ('messageAttributes' in record) {
                         records.push(record)

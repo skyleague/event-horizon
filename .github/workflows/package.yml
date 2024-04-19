@@ -17,21 +17,15 @@ on:
 
 jobs:
   typescript:
-    uses: skyleague/node-standards/.github/workflows/reusable-typescript.yml@v4.1.2
-    with:
-      postinstall: |
-        {
-          "check": "npm run build",
-          "test": "npm run build"
-        }
+    uses: skyleague/node-standards/.github/workflows/reusable-typescript.yml@main
     secrets:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   release:
     needs: [typescript]
-    uses: skyleague/node-standards/.github/workflows/reusable-release.yml@v4.1.2
+    uses: skyleague/node-standards/.github/workflows/reusable-release.yml@main
     with:
-      build_artifact_name: ${{ needs.build.outputs.artifact_name }}
+      build_artifact_name: ${{ needs.typescript.outputs.artifact-name }}
       beta_release: ${{ inputs.beta_release || false }}
     secrets:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

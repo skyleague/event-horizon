@@ -3,16 +3,18 @@
  * Do not manually touch this
  */
 /* eslint-disable */
-import AjvValidator from 'ajv'
-import type { ValidateFunction } from 'ajv'
+
+import type { DefinedError, ValidateFunction } from 'ajv'
+
+import { validate as KinesisStreamEventValidator } from './schemas/kinesis-stream-event.schema.js'
+import { validate as KinesisStreamRecordValidator } from './schemas/kinesis-stream-record.schema.js'
 
 export interface KinesisStreamEvent {
     Records: KinesisStreamRecord[]
 }
 
 export const KinesisStreamEvent = {
-    validate: (await import('./schemas/kinesis-stream-event.schema.js'))
-        .validate10 as unknown as ValidateFunction<KinesisStreamEvent>,
+    validate: KinesisStreamEventValidator as ValidateFunction<KinesisStreamEvent>,
     get schema() {
         return KinesisStreamEvent.validate.schema
     },
@@ -20,10 +22,11 @@ export const KinesisStreamEvent = {
         return KinesisStreamEvent.validate.errors ?? undefined
     },
     is: (o: unknown): o is KinesisStreamEvent => KinesisStreamEvent.validate(o) === true,
-    assert: (o: unknown) => {
-        if (!KinesisStreamEvent.validate(o)) {
-            throw new AjvValidator.ValidationError(KinesisStreamEvent.errors ?? [])
+    parse: (o: unknown): { right: KinesisStreamEvent } | { left: DefinedError[] } => {
+        if (KinesisStreamEvent.is(o)) {
+            return { right: o }
         }
+        return { left: (KinesisStreamEvent.errors ?? []) as DefinedError[] }
     },
 } as const
 
@@ -39,8 +42,7 @@ export interface KinesisStreamRecord {
 }
 
 export const KinesisStreamRecord = {
-    validate: (await import('./schemas/kinesis-stream-record.schema.js'))
-        .validate10 as unknown as ValidateFunction<KinesisStreamRecord>,
+    validate: KinesisStreamRecordValidator as ValidateFunction<KinesisStreamRecord>,
     get schema() {
         return KinesisStreamRecord.validate.schema
     },
@@ -48,10 +50,11 @@ export const KinesisStreamRecord = {
         return KinesisStreamRecord.validate.errors ?? undefined
     },
     is: (o: unknown): o is KinesisStreamRecord => KinesisStreamRecord.validate(o) === true,
-    assert: (o: unknown) => {
-        if (!KinesisStreamRecord.validate(o)) {
-            throw new AjvValidator.ValidationError(KinesisStreamRecord.errors ?? [])
+    parse: (o: unknown): { right: KinesisStreamRecord } | { left: DefinedError[] } => {
+        if (KinesisStreamRecord.is(o)) {
+            return { right: o }
         }
+        return { left: (KinesisStreamRecord.errors ?? []) as DefinedError[] }
     },
 } as const
 

@@ -1,11 +1,7 @@
-/* eslint-disable @typescript-eslint/unbound-method */
-
-import type { HTTPHeaders, HTTPMethod } from '../../events/http/types.js'
-import type { Logger } from '../../observability/logger/logger.js'
-
-import type { UndefinedFields } from '@skyleague/axioms'
 import { asArray, isError, isThrown } from '@skyleague/axioms'
 import type { ErrorObject } from 'ajv'
+import type { HTTPHeaders, HTTPMethod } from '../../events/http/types.js'
+import type { Logger } from '../../observability/logger/logger.js'
 
 export const httpStatusCodes: Record<number, string | undefined> = {
     100: 'Continue',
@@ -84,16 +80,16 @@ export type ErrorLike = Error | string
  * @group Errors
  */
 export interface EventOptions {
-    level?: 'error' | 'info' | 'warning'
-    errorHandling?: 'graceful' | 'throw'
-    expose?: boolean
-    headers?: HTTPHeaders
-    statusCode?: number
-    attributes?: Record<string, unknown>
-    cause?: unknown
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    ctor?: Function
-    name?: string
+    level?: 'error' | 'info' | 'warning' | undefined
+    errorHandling?: 'graceful' | 'throw' | undefined
+    expose?: boolean | undefined
+    headers?: HTTPHeaders | undefined
+    statusCode?: number | undefined
+    attributes?: Record<string, unknown> | undefined
+    cause?: unknown | undefined
+    // biome-ignore lint/complexity/noBannedTypes: ctor is as generic as it gets
+    ctor?: Function | undefined
+    name?: string | undefined
 }
 
 /**
@@ -124,7 +120,7 @@ export class EventError extends Error {
             errorHandling,
             ctor = EventError,
             name,
-        }: UndefinedFields<EventOptions> = {}
+        }: EventOptions = {},
     ) {
         super(isError(message) ? message.message : message, isError(message) ? { cause: message } : undefined)
         // cleanup stack trace
@@ -211,7 +207,7 @@ export class EventError extends Error {
         options: EventOptions & {
             errors?: ErrorObject[] | null | undefined
             location?: string
-        } = {}
+        } = {},
     ): EventError {
         const { errors, location, statusCode = 400 } = options
         const message =
@@ -252,7 +248,7 @@ export class EventError extends Error {
         options: EventOptions & {
             allow: HTTPMethod[]
             message?: ErrorLike
-        }
+        },
     ): EventError {
         const { allow, message } = options
         return new EventError(message, {

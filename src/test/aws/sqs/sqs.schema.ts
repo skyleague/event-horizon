@@ -1,24 +1,24 @@
-import { $array, $dict, $enum, $object, $optional, $ref, $string, $validator, $union } from '@skyleague/therefore'
+import { $array, $dict, $enum, $object, $optional, $ref, $string, $union, $validator } from '@skyleague/therefore'
 
 export const SQSMessageAttribute = $object({
-    stringValue: $optional($string, 'explicit'),
-    binaryValue: $optional($string, 'explicit'),
-    stringListValues: $optional($array($string), 'explicit'),
-    binaryListValues: $optional($array($string), 'explicit'),
+    stringValue: $optional($string),
+    binaryValue: $optional($string),
+    stringListValues: $optional($array($string)),
+    binaryListValues: $optional($array($string)),
     dataType: $union([$enum(['String', 'Number', 'Binary']), $string]),
 })
 
 export const SQSMessageAttributes = $dict($ref(SQSMessageAttribute))
 
 export const SQSRecordAttributes = $object({
-    AWSTraceHeader: $optional($string, 'explicit'),
+    AWSTraceHeader: $optional($string),
     ApproximateReceiveCount: $string,
     SentTimestamp: $string,
     SenderId: $string,
     ApproximateFirstReceiveTimestamp: $string,
-    SequenceNumber: $optional($string, 'explicit'),
-    MessageGroupId: $optional($string, 'explicit'),
-    MessageDeduplicationId: $optional($string, 'explicit'),
+    SequenceNumber: $optional($string),
+    MessageGroupId: $optional($string),
+    MessageDeduplicationId: $optional($string),
 })
 
 export const SQSRecord = $validator(
@@ -32,7 +32,7 @@ export const SQSRecord = $validator(
         eventSource: $string,
         eventSourceARN: $string,
         awsRegion: $string,
-    })
+    }),
 )
 
 export const SQSEvent = $validator($object({ Records: $array($ref(SQSRecord)) }))

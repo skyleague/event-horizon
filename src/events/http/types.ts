@@ -56,7 +56,7 @@ export interface HTTPEventHandler<
     handler: NoInfer<
         (
             request: HTTPRequest<Body, Path, Query, Headers, GV>,
-            context: LambdaContext<Configuration, Service, Profile>
+            context: LambdaContext<Configuration, Service, Profile>,
         ) => Promisable<Try<HTTPResponse<Result>>>
     >
 

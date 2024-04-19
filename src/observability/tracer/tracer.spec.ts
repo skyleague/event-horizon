@@ -2,7 +2,7 @@ import { createTracer } from './tracer.js'
 
 import type { Tracer as AWSTracer } from '@aws-lambda-powertools/tracer'
 import { asyncForAll, string, tuple, unknown } from '@skyleague/axioms'
-import { expect, beforeEach, it, vi } from 'vitest'
+import { beforeEach, expect, it, vi } from 'vitest'
 
 const subsegment = {
     close: vi.fn(),
@@ -17,7 +17,7 @@ const instance = {
     addErrorAsMetadata: vi.fn(),
     isTracingEnabled: vi.fn(),
     provider: {
-        captureAsyncFunc: vi.fn().mockImplementation((segmentName, fn) => fn(subsegment)),
+        captureAsyncFunc: vi.fn().mockImplementation((_segmentName, fn) => fn(subsegment)),
     },
     mockClear: () => {
         instance.addResponseAsMetadata.mockClear()

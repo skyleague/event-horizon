@@ -1,1 +1,7 @@
-module.exports = require('@skyleague/node-standards/typedoc.cjs')
+module.exports = {
+    entryPoints: ['index.ts'],
+    excludePrivate: true,
+    excludeInternal: true,
+    disableSources: true,
+    out: '.docs',
+}

@@ -1,17 +1,10 @@
 import type { EventHandler } from '../../events/common/types.js'
 import { HttpError } from '../../events/http/functions/http-error.type.js'
 
-import { cloneDeep, entriesOf, isArray, isBoolean, omitUndefined, valuesOf } from '@skyleague/axioms'
+import { entriesOf, isArray, isBoolean, omitUndefined, valuesOf } from '@skyleague/axioms'
 import type { OpenapiV3 } from '@skyleague/therefore'
 import type { JsonSchema } from '@skyleague/therefore/src/json.js'
-import type {
-    Info,
-    Parameter,
-    Reference,
-    RequestBody,
-    Responses,
-    Schema,
-} from '@skyleague/therefore/src/lib/primitives/restclient/openapi.type.js'
+import type { Info, Parameter, Reference, RequestBody, Responses, Schema } from '@skyleague/therefore/src/types/openapi.type.js'
 
 interface JsonSchemaContext {
     openapi: OpenapiV3
@@ -23,18 +16,23 @@ export function jsonptrToName(ptr: string) {
 
 export function addComponent(ctx: JsonSchemaContext, schema: JsonSchema | Schema, name?: string): string {
     const { openapi } = ctx
-    name = schema.title ?? name!
+
+    const component = schema.title ?? name
+
+    if (component === undefined) {
+        throw new Error('Component name is required')
+    }
     openapi.components ??= {}
     openapi.components.schemas ??= {}
-    openapi.components.schemas[name] ??= schema as Schema
+    openapi.components.schemas[component] ??= schema as Schema
 
-    return name
+    return component
 }
 
 export function ensureTarget(
     ctx: JsonSchemaContext,
     ptr: string,
-    target: 'parameters' | 'requestBodies' | 'responses' | 'schemas'
+    target: 'parameters' | 'requestBodies' | 'responses' | 'schemas',
 ) {
     ctx.openapi.components ??= {}
     ctx.openapi.components[target] ??= {}
@@ -71,7 +69,8 @@ export function normalizeSchema({
     target?: 'parameters' | 'requestBodies' | 'responses' | 'schemas'
     defsOnly?: boolean
 }): JsonSchema | Reference {
-    const jsonschema = cloneDeep(schema) as unknown as JsonSchema
+    const jsonschema = structuredClone(schema) as unknown as JsonSchema
+    // biome-ignore lint/performance/noDelete: we need to remove the $schema property
     delete jsonschema.$schema
 
     if (jsonschema.$defs !== undefined) {
@@ -81,10 +80,11 @@ export function normalizeSchema({
             }
         }
 
+        // biome-ignore lint/performance/noDelete: we need to remove the $defs property
         delete jsonschema.$defs
     }
 
-    if ('$ref' in jsonschema) {
+    if ('$ref' in jsonschema && jsonschema.$ref !== undefined) {
         ensureTarget(ctx, jsonschema.$ref, target)
         return { ...jsonschema, $ref: jsonschema.$ref.replace('#/$defs/', `#/components/${target}/`) }
     }
@@ -150,7 +150,7 @@ export function openapiFromHandlers(handlers: Record<string, unknown>, options: 
             requestBodies: {},
             responses: {
                 Error: {
-                    description: defaultError.description!,
+                    description: defaultError.description ?? 'An error occurred',
                     content: {
                         'application/json': {
                             schema: {
@@ -202,8 +202,8 @@ export function openapiFromHandlers(handlers: Record<string, unknown>, options: 
                             description: value.description,
                             deprecated: value.deprecated,
                             schema: value as unknown as Schema,
-                        })
-                    )
+                        } as const),
+                    ),
                 )
             }
 
@@ -218,8 +218,8 @@ export function openapiFromHandlers(handlers: Record<string, unknown>, options: 
                             description: value.description,
                             deprecated: value.deprecated,
                             schema: value as unknown as Schema,
-                        })
-                    )
+                        } as const),
+                    ),
                 )
             }
 
@@ -239,11 +239,12 @@ export function openapiFromHandlers(handlers: Record<string, unknown>, options: 
                                 schema: value as unknown as Schema,
                                 target: 'parameters',
                             }) as Reference,
-                        })
-                    )
+                        } as const),
+                    ),
                 )
             }
 
+            // biome-ignore lint/style/noNonNullAssertion: we know it exists
             openapi.paths[handler.http.path]![handler.http.method] = omitUndefined({
                 operationId: handler.operationId,
                 summary: handler.summary,

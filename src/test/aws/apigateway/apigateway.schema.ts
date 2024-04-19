@@ -2,11 +2,11 @@ import {
     $array,
     $boolean,
     $const,
-    $dict,
     $integer,
     $null,
     $object,
     $optional,
+    $record,
     $ref,
     $string,
     $union,
@@ -15,14 +15,14 @@ import {
 } from '@skyleague/therefore'
 import type { ThereforeSchema } from '@skyleague/therefore/src/lib/primitives/types.js'
 
-export const APIGatewayProxyEventHeaders = $dict($string)
-export const APIGatewayProxyEventMultiValueHeaders = $dict($array($string))
-export const APIGatewayProxyEventPathParameters = $dict($string)
-export const APIGatewayProxyEventQueryStringParameters = $dict($string)
-export const APIGatewayProxyEventMultiValueQueryStringParameters = $dict($array($string))
-export const APIGatewayProxyEventStageVariables = $dict($string)
+export const APIGatewayProxyEventHeaders = $record($string)
+export const APIGatewayProxyEventMultiValueHeaders = $record($array($string))
+export const APIGatewayProxyEventPathParameters = $record($string)
+export const APIGatewayProxyEventQueryStringParameters = $record($string)
+export const APIGatewayProxyEventMultiValueQueryStringParameters = $record($array($string))
+export const APIGatewayProxyEventStageVariables = $record($string)
 
-export const APIGatewayEventDefaultAuthorizerContext = $union([$const(undefined), $null, $dict($unknown)])
+export const APIGatewayEventDefaultAuthorizerContext = $union([$null, $record($unknown), $const(undefined)])
 
 export const APIGatewayEventClientCertificate = $object({
     clientCertPem: $string,
@@ -58,25 +58,25 @@ export const APIGatewayEventRequestContextWithAuthorizer = (context: ThereforeSc
         accountId: $string,
         apiId: $string,
         authorizer: context,
-        connectedAt: $optional($integer, 'explicit'),
-        connectionId: $optional($string, 'explicit'),
-        domainName: $optional($string, 'explicit'),
-        domainPrefix: $optional($string, 'explicit'),
-        eventType: $optional($string, 'explicit'),
-        extendedRequestId: $optional($string, 'explicit'),
+        connectedAt: $optional($integer),
+        connectionId: $optional($string),
+        domainName: $optional($string),
+        domainPrefix: $optional($string),
+        eventType: $optional($string),
+        extendedRequestId: $optional($string),
         protocol: $string,
         httpMethod: $string,
         identity: $ref(APIGatewayEventIdentity),
-        messageDirection: $optional($string, 'explicit'),
-        messageId: $union([$string, $null, $const(undefined)]),
+        messageDirection: $optional($string),
+        messageId: $union([$string, $null]).optional(),
         path: $string,
         stage: $string,
         requestId: $string,
-        requestTime: $optional($string, 'explicit'),
+        requestTime: $optional($string),
         requestTimeEpoch: $integer,
         resourceId: $string,
         resourcePath: $string,
-        routeKey: $optional($string, 'explicit'),
+        routeKey: $optional($string),
     })
 
 export const APIGatewayProxyEventBase = (context: ThereforeSchema) =>
