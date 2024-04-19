@@ -38,30 +38,30 @@
     "test": "npx vitest run"
   },
   "dependencies": {
-    "@aws-lambda-powertools/logger": "^1.17.0",
-    "@aws-lambda-powertools/metrics": "^1.17.0",
-    "@aws-lambda-powertools/parameters": "1.17.0",
-    "@aws-lambda-powertools/tracer": "^1.17.0",
-    "@skyleague/axioms": "^3.5.0",
-    "@types/aws-lambda": "^8.10.131",
+    "@aws-lambda-powertools/logger": "^1.18.1",
+    "@aws-lambda-powertools/metrics": "^1.18.1",
+    "@aws-lambda-powertools/parameters": "^1.18.1",
+    "@aws-lambda-powertools/tracer": "^1.18.1",
+    "@skyleague/axioms": "^3.6.0",
+    "@types/aws-lambda": "^8.10.137",
     "secure-json-parse": "^2.7.0",
     "tslib": "^2.6.2"
   },
   "peerDependencies": {
-    "@aws-sdk/client-appconfigdata": "^3.478.0",
-    "@aws-sdk/client-secrets-manager": "^3.478.0"
+    "@aws-sdk/client-appconfigdata": "^3.554.0",
+    "@aws-sdk/client-secrets-manager": "^3.554.0"
   },
   "devDependencies": {
     "@skyleague/event-horizon": "./",
     "@skyleague/event-horizon-dev": "^5.1.0",
-    "@skyleague/node-standards": "^4.1.2",
+    "@skyleague/node-standards": "^5.0.0",
     "@skyleague/therefore": "^4.1.1",
-    "@types/node": "^20.11.5",
-    "aws-sdk-client-mock": "^3.0.1",
-    "aws-sdk-client-mock-jest": "^3.0.1",
-    "got": "^14.0.0",
-    "nock": "^13.5.0",
-    "typescript": "^5.3.3"
+    "@types/node": "^20.12.7",
+    "aws-sdk-client-mock": "3.0.0",
+    "aws-sdk-client-mock-jest": "3.0.0",
+    "got": "^14.2.1",
+    "nock": "^13.5.4",
+    "typescript": "5.4.5"
   },
   "engines": {
     "node": ">=20"

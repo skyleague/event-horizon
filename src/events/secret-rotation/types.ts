@@ -15,7 +15,9 @@ export interface SecretRotationEventHandler<
     Service extends RequireKeys<DefaultServices, 'secretsManager'> = RequireKeys<DefaultServices, 'secretsManager'>,
     Profile = unknown,
 > {
-    handler: (request: SecretRotationRequest, context: LambdaContext<Configuration, Service, Profile>) => Promisable<Try<void>>
+    handler: NoInfer<
+        (request: SecretRotationRequest, context: LambdaContext<Configuration, Service, Profile>) => Promisable<Try<void>>
+    >
 }
 
 export interface SecretRotationHandler<

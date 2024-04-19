@@ -1,6 +1,7 @@
-import { httpHandler } from './http.js'
+import { httpApiHandler } from './http.js'
+import type { HTTPRequest } from './types.js'
 
-import { warmerEvent } from '../../../test/schema.js'
+import { literalSchema, warmerEvent } from '../../../test/schema.js'
 
 import { alpha, asyncForAll, constant, oneOf, random, tuple, unknown } from '@skyleague/axioms'
 import {
@@ -16,14 +17,14 @@ import {
 } from '@skyleague/event-horizon-dev'
 import { context } from '@skyleague/event-horizon-dev/test'
 import { arbitrary } from '@skyleague/therefore'
-import { expect, it, vi } from 'vitest'
+import { expect, it, vi, expectTypeOf } from 'vitest'
 
 const method = random(oneOf(constant('get'), constant('put')))
 const path = `/${random(alpha())}` as const
 
 it('handles http events', async () => {
     const http = vi.fn()
-    const handler = httpHandler(
+    const handler = httpApiHandler(
         {
             http: {
                 method,
@@ -45,9 +46,59 @@ it('handles http events', async () => {
     })
 })
 
+it('handles schema types', () => {
+    const handler = httpApiHandler({
+        http: {
+            method,
+            path,
+            schema: {
+                body: literalSchema<'body'>(),
+                path: literalSchema<'path'>(),
+                query: literalSchema<'query'>(),
+                headers: literalSchema<'headers'>(),
+                responses: { 200: literalSchema<'200-response'>() },
+            },
+            bodyType: 'plaintext' as const,
+            handler: (request) => {
+                expectTypeOf(request).toEqualTypeOf<HTTPRequest<'body', 'path', 'query', 'headers'>>()
+
+                return {
+                    statusCode: 200,
+                    body: '200-response',
+                }
+            },
+        },
+    })
+    expectTypeOf(handler.http.handler).toEqualTypeOf<
+        (request: HTTPRequest<'body', 'path', 'query', 'headers'>) => {
+            statusCode: number
+            body: '200-response'
+        }
+    >()
+})
+
+it('handles schema types and gives errors', () => {
+    httpApiHandler({
+        http: {
+            method,
+            path,
+            schema: {
+                responses: { 200: literalSchema<'200-response'>() },
+            },
+            // @ts-expect-error handler is not a valid return type
+            handler: () => {
+                return {
+                    statusCode: 200,
+                    body: 'not-200-response',
+                }
+            },
+        },
+    })
+})
+
 it('does not handle non http events', async () => {
     const http = vi.fn()
-    const handler = httpHandler(
+    const handler = httpApiHandler(
         {
             http: {
                 method,
@@ -87,7 +138,7 @@ it('does not handle non http events', async () => {
 
 it('warmup should early exit', async () => {
     const http = vi.fn()
-    const handler = httpHandler(
+    const handler = httpApiHandler(
         {
             http: {
                 method,

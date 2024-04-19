@@ -25,9 +25,8 @@ export function sqsHandler<
 ): D & EventHandlerFn<Configuration, Service, Profile> {
     return eventHandler(definition, {
         handler: (request, context) => {
-            kernel ??= (
-                definition.sqs.messageGrouping === undefined ? handleSQSEvent : handleSQSMessageGroup
-            ) as SQSKernel<MessageGrouping>
+            const determinedKernel =
+                kernel ?? (definition.sqs.messageGrouping === undefined ? handleSQSEvent : handleSQSMessageGroup)
 
             if (typeof request === 'object' && request !== null && 'Records' in request) {
                 const records: SQSRecord[] = []
@@ -42,7 +41,7 @@ export function sqsHandler<
                 if (other.length > 0) {
                     throw EventError.unexpectedEventType()
                 }
-                return kernel(definition, records, context)
+                return determinedKernel(definition, records, context)
             }
             throw EventError.unexpectedEventType()
         },
