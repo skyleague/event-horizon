@@ -1,7 +1,7 @@
 import { handleRawEvent } from './handler.js'
 
+import { context } from '../../dev/test/context/context.js'
 import { EventError } from '../../errors/event-error/event-error.js'
-import { context } from '../../test/test/context/context.js'
 
 import { asyncForAll, failure, json, tuple } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'

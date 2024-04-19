@@ -1,8 +1,8 @@
 import { handleSNSEvent } from './handler.js'
 
+import { SNSEvent } from '../../dev/aws/sns/sns.type.js'
+import { context } from '../../dev/test/context/context.js'
 import { EventError } from '../../errors/event-error/event-error.js'
-import { SNSEvent } from '../../test/aws/sns/sns.type.js'
-import { context } from '../../test/test/context/context.js'
 
 import { asyncForAll, enumerate, failure, json, random, tuple } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'

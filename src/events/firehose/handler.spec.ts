@@ -6,9 +6,9 @@ import { arbitrary } from '@skyleague/therefore'
 import type { FirehoseTransformationEventRecord } from 'aws-lambda/trigger/kinesis-firehose-transformation.js'
 import { expect, it, vi } from 'vitest'
 import { alwaysTrueSchema, neverTrueSchema } from '../../../test/schema.js'
+import { FirehoseTransformationEvent } from '../../dev/aws/firehose/firehose.type.js'
+import { context } from '../../dev/test/context/context.js'
 import { EventError } from '../../errors/event-error/event-error.js'
-import { FirehoseTransformationEvent } from '../../test/aws/firehose/firehose.type.js'
-import { context } from '../../test/test/context/context.js'
 
 it('binary events does not give failures', async () => {
     await asyncForAll(

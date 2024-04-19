@@ -1,8 +1,8 @@
 import { handleS3Event } from './handler.js'
 
+import { S3Event } from '../../dev/aws/s3/s3.type.js'
+import { context } from '../../dev/test/context/context.js'
 import { EventError } from '../../errors/event-error/event-error.js'
-import { S3Event } from '../../test/aws/s3/s3.type.js'
-import { context } from '../../test/test/context/context.js'
 
 import { asyncForAll, enumerate, failure, tuple } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
