@@ -1,8 +1,8 @@
 import { handleS3Batch } from './handler.js'
 
 import { S3BatchEvent } from '../../dev/aws/s3-batch/s3.type.js'
-import { context } from '../../dev/test/context/context.js'
 import { EventError } from '../../errors/event-error/event-error.js'
+import { context } from '../../test/context/context.js'
 
 import { array, asyncForAll, enumerate, isString, json, omit, random, tuple } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'

@@ -2,9 +2,9 @@ import { handleSQSEvent, handleSQSMessageGroup } from './handler.js'
 import type { SQSMessageGroup } from './types.js'
 
 import { SQSEvent } from '../../dev/aws/sqs/sqs.type.js'
-import { context } from '../../dev/test/context/context.js'
 import { EventError } from '../../errors/event-error/event-error.js'
 import type { Logger } from '../../observability/logger/logger.js'
+import { context } from '../../test/context/context.js'
 
 import { asyncForAll, enumerate, groupBy, isFailure, json, map, random, tuple } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'

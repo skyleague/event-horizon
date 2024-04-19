@@ -11,7 +11,7 @@ import { S3Event } from '../../dev/aws/s3/s3.type.js'
 import { SecretRotationEvent } from '../../dev/aws/secret-rotation/secret-rotation.type.js'
 import { SNSEvent } from '../../dev/aws/sns/sns.type.js'
 import { SQSEvent } from '../../dev/aws/sqs/sqs.type.js'
-import { context } from '../../dev/test/context/context.js'
+import { context } from '../../test/context/context.js'
 
 import { asyncForAll, oneOf, random, tuple, unknown } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'

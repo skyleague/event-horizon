@@ -1,8 +1,8 @@
 import { handleSecretRotationEvent } from './handler.js'
 
 import { secretRotationEvent } from '../../dev/event-horizon/secret-rotation/secret-rotation.js'
-import { context } from '../../dev/test/context/context.js'
 import { EventError } from '../../errors/event-error/event-error.js'
+import { context } from '../../test/context/context.js'
 
 import { DescribeSecretCommand, SecretsManager, SecretsManagerClient } from '@aws-sdk/client-secrets-manager'
 import { asyncForAll, failure, tuple } from '@skyleague/axioms'

@@ -1,7 +1,7 @@
 import { handler } from './handler.js'
 
 import { httpEvent } from '../../../../src/dev/event-horizon/http/http.js'
-import { context } from '../../../../src/dev/test/context/context.js'
+import { context } from '../../../../src/test/context/context.js'
 import { Pet } from '../../lib/models.type.js'
 
 import { forAll, tuple } from '@skyleague/axioms'
