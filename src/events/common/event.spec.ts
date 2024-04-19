@@ -8,10 +8,10 @@ import { asyncForAll, failure, forAll, json, record, sleep, string, tuple, unkno
 import { mockClient } from 'aws-sdk-client-mock'
 import { describe, expect, it, vi } from 'vitest'
 import { alwaysTrueSchema, neverTrueSchema } from '../../../test/schema.js'
+import { context } from '../../dev/test/context/context.js'
+import { mockLogger, mockMetrics, mockTracer } from '../../dev/test/mock/mock.js'
 import { EventError } from '../../errors/index.js'
 import { logger } from '../../observability/logger/logger.js'
-import { context } from '../../test/test/context/context.js'
-import { mockLogger, mockMetrics, mockTracer } from '../../test/test/mock/mock.js'
 import { createLambdaContext, eventHandler } from './event.js'
 import type { LambdaHandler } from './raw-aws.js'
 

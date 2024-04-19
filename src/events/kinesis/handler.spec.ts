@@ -1,8 +1,8 @@
 import { handleKinesisEvent } from './handler.js'
 
+import { KinesisStreamEvent } from '../../dev/aws/kinesis/kinesis.type.js'
+import { context } from '../../dev/test/context/context.js'
 import { EventError } from '../../errors/event-error/event-error.js'
-import { KinesisStreamEvent } from '../../test/aws/kinesis/kinesis.type.js'
-import { context } from '../../test/test/context/context.js'
 
 import { asyncForAll, enumerate, json, random, tuple } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'

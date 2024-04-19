@@ -1,8 +1,8 @@
 import { secretValidateEvent } from './validate-event.js'
 
+import { secretRotationEvent } from '../../../dev/event-horizon/secret-rotation/secret-rotation.js'
+import { context } from '../../../dev/test/context/context.js'
 import { EventError } from '../../../errors/event-error/event-error.js'
-import { secretRotationEvent } from '../../../test/event-horizon/secret-rotation/secret-rotation.js'
-import { context } from '../../../test/test/context/context.js'
 
 import { DescribeSecretCommand, SecretsManager, SecretsManagerClient } from '@aws-sdk/client-secrets-manager'
 import { Nothing, asyncForAll, tuple } from '@skyleague/axioms'

@@ -1,8 +1,8 @@
 import { handleHTTPEvent } from './handler.js'
 
+import { httpEvent } from '../../dev/event-horizon/http/http.js'
+import { context } from '../../dev/test/context/context.js'
 import { EventError } from '../../errors/event-error/event-error.js'
-import { httpEvent } from '../../test/event-horizon/http/http.js'
-import { context } from '../../test/test/context/context.js'
 
 import { constants, alpha, asyncForAll, integer, isString, json, object, random, tuple } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
