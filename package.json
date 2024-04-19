@@ -13,7 +13,7 @@
   "type": "module",
   "exports": {
     ".": "./.dist/index.js",
-    "./dev": "./.dist/src/test/index.js",
+    "./dev": "./.dist/src/dev/index.js",
     "./package.json": "./package.json",
     "./*.js": "./.dist/*.js"
   },
