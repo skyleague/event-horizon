@@ -1,7 +1,7 @@
 import { httpErrorHandler } from './error-handler.js'
 
-import { context } from '../../../dev/test/context/context.js'
 import { EventError } from '../../../errors/event-error/event-error.js'
+import { context } from '../../../test/context/context.js'
 
 import { forAll, random, string, tuple, unknown } from '@skyleague/axioms'
 import { expect, it } from 'vitest'

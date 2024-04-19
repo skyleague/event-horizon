@@ -7,8 +7,8 @@ import type { FirehoseTransformationEventRecord } from 'aws-lambda/trigger/kines
 import { expect, it, vi } from 'vitest'
 import { alwaysTrueSchema, neverTrueSchema } from '../../../test/schema.js'
 import { FirehoseTransformationEvent } from '../../dev/aws/firehose/firehose.type.js'
-import { context } from '../../dev/test/context/context.js'
 import { EventError } from '../../errors/event-error/event-error.js'
+import { context } from '../../test/context/context.js'
 
 it('binary events does not give failures', async () => {
     await asyncForAll(

@@ -1,6 +1,6 @@
-import type { Logger } from '../../../observability/logger/logger.js'
-import type { Metrics } from '../../../observability/metrics/metrics.js'
-import type { Tracer } from '../../../observability/tracer/tracer.js'
+import type { Logger } from '../../observability/logger/logger.js'
+import type { Metrics } from '../../observability/metrics/metrics.js'
+import type { Tracer } from '../../observability/tracer/tracer.js'
 
 import { Logger as AwsLogger } from '@aws-lambda-powertools/logger'
 import { Metrics as AwsMetrics } from '@aws-lambda-powertools/metrics'
