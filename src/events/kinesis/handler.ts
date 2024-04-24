@@ -11,7 +11,7 @@ import type { Try } from '@skyleague/axioms'
 import { enumerate, isLeft, mapLeft, mapTry, tryAsValue, tryToEither } from '@skyleague/axioms'
 import type { KinesisStreamBatchItemFailure, KinesisStreamBatchResponse, KinesisStreamRecord } from 'aws-lambda'
 
-export async function handleKinesisEvent<const Configuration, const Service, const Profile, const Payload>(
+export async function handleKinesisEvent<Configuration, Service, Profile, Payload>(
     handler: KinesisHandler<Configuration, Service, Profile, Payload>,
     events: KinesisStreamRecord[],
     context: LambdaContext<Configuration, Service, Profile>,

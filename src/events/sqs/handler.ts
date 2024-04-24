@@ -22,7 +22,7 @@ import {
 } from '@skyleague/axioms'
 import type { SQSBatchItemFailure, SQSBatchResponse, SQSRecord } from 'aws-lambda'
 
-export async function handleSQSEvent<const Configuration, const Service, const Profile, const Payload>(
+export async function handleSQSEvent<Configuration, Service, Profile, Payload>(
     handler: SQSHandler<Configuration, Service, Profile, Payload>,
     events: SQSRecord[],
     context: LambdaContext<Configuration, Service, Profile>,

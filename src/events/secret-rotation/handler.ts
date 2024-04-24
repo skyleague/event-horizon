@@ -10,9 +10,9 @@ import { Nothing, isJust, mapTry } from '@skyleague/axioms'
 import type { SecretsManagerRotationEvent } from 'aws-lambda'
 
 export async function handleSecretRotationEvent<
-    const Configuration,
-    const Service extends RequireKeys<DefaultServices, 'secretsManager'>,
-    const Profile,
+    Configuration,
+    Service extends RequireKeys<DefaultServices, 'secretsManager'>,
+    Profile,
 >(
     handler: SecretRotationHandler<Configuration, Service, Profile>,
     event: SecretsManagerRotationEvent,

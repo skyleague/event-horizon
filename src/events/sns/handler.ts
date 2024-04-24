@@ -10,7 +10,7 @@ import type { Try } from '@skyleague/axioms'
 import { enumerate, isFailure, mapTry } from '@skyleague/axioms'
 import type { SNSEventRecord } from 'aws-lambda'
 
-export async function handleSNSEvent<const Configuration, const Service, const Profile, const Payload>(
+export async function handleSNSEvent<Configuration, Service, Profile, Payload>(
     handler: SNSHandler<Configuration, Service, Profile, Payload>,
     events: SNSEventRecord[],
     context: LambdaContext<Configuration, Service, Profile>,

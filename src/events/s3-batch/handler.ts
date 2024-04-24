@@ -12,7 +12,7 @@ import type { Try } from '@skyleague/axioms'
 import { enumerate, isSuccess, mapTry, transformTry } from '@skyleague/axioms'
 import type { S3BatchEvent, S3BatchResult, S3BatchResultResult } from 'aws-lambda'
 
-export async function handleS3Batch<const Configuration, const Service, const Profile, const Result>(
+export async function handleS3Batch<Configuration, Service, Profile, Result>(
     handler: S3BatchHandler<Configuration, Service, Profile, Result>,
     event: S3BatchEvent,
     context: LambdaContext<Configuration, Service, Profile>,

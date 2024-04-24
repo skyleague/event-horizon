@@ -7,7 +7,7 @@ import type { LambdaContext } from '../types.js'
 import type { Try } from '@skyleague/axioms'
 import { mapTry, tryAsValue } from '@skyleague/axioms'
 
-export async function handleRawEvent<const Configuration, const Service, const Profile, const Payload, const Result>(
+export async function handleRawEvent<Configuration, Service, Profile, Payload, Result>(
     handler: RawHandler<Configuration, Service, Profile, Payload, Result>,
     event: unknown,
     context: LambdaContext<Configuration, Service, Profile>,
