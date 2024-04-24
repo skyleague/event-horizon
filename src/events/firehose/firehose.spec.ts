@@ -45,14 +45,14 @@ it('handles schema types', () => {
             handler: (request) => {
                 expectTypeOf(request).toEqualTypeOf<FirehoseTransformationEvent<'payload'>>()
 
-                return { status: 'Ok', payload: 'result' }
+                return { status: 'Ok', payload: 'result' } as const
             },
         },
     })
     expectTypeOf(handler.firehose.handler).toEqualTypeOf<
-        (request: FirehoseTransformationEvent<'payload'>) => {
-            status: 'Ok'
-            payload: 'result'
+        (request: NoInfer<FirehoseTransformationEvent<'payload'>>) => {
+            readonly status: 'Ok'
+            readonly payload: 'result'
         }
     >()
 })
@@ -63,7 +63,7 @@ it('handles schema types and gives errors', () => {
             schema: { payload: literalSchema<'payload'>(), result: literalSchema<'result'>() },
             // @ts-expect-error handler is not a valid return type
             handler: () => {
-                return { status: 'Ok', payload: 'not-result' }
+                return { status: 'Ok', payload: 'not-result' } as const
             },
         },
     })

@@ -25,12 +25,10 @@ export interface FirehoseTransformationEventHandler<
         payload?: Schema<Payload>
         result?: Schema<Result>
     }
-    handler: NoInfer<
-        (
-            request: FirehoseTransformationEvent<Payload>,
-            context: LambdaContext<Configuration, Service, Profile>,
-        ) => Promisable<Try<FirehoseTransformationResult<Result>>>
-    >
+    handler: (
+        request: NoInfer<FirehoseTransformationEvent<Payload>>,
+        context: LambdaContext<Configuration, Service, Profile>,
+    ) => Promisable<Try<NoInfer<FirehoseTransformationResult<Result>>>>
     payloadType?: 'binary' | 'json' | 'plaintext'
 }
 

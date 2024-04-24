@@ -23,7 +23,7 @@ it('handles schema types', () => {
             handler: (request) => {
                 expectTypeOf(request).toEqualTypeOf<'payload'>()
 
-                return 'result'
+                return 'result' as const
             },
         },
     })

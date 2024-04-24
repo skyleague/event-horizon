@@ -42,7 +42,7 @@ it('handles schema types', () => {
             handler: (request) => {
                 expectTypeOf(request).toEqualTypeOf<EventBridgeEvent<'payload'>>()
 
-                return 'result'
+                return 'result' as const
             },
         },
     })
@@ -55,7 +55,7 @@ it('handles schema types and gives errors', () => {
             schema: { payload: literalSchema<'payload'>(), result: literalSchema<'result'>() },
             // @ts-expect-error handler is not a valid return type
             handler: () => {
-                return 'not-result'
+                return 'not-result' as const
             },
         },
     })

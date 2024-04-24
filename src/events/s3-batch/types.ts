@@ -21,12 +21,10 @@ export interface S3BatchEventHandler<Configuration = unknown, Service = unknown,
     schema: {
         result?: Schema<Result>
     }
-    handler: NoInfer<
-        (
-            request: S3BatchTask,
-            context: LambdaContext<Configuration, Service, Profile>,
-        ) => Promisable<Try<S3BatchTaskResult<Result>>>
-    >
+    handler: (
+        request: NoInfer<S3BatchTask>,
+        context: LambdaContext<Configuration, Service, Profile>,
+    ) => Promisable<Try<NoInfer<S3BatchTaskResult<Result>>>>
     treatMissingKeysAs?: S3BatchResultResultCode
     treatErrorsAs?: S3BatchResultResultCode
 }

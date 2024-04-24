@@ -13,9 +13,10 @@ export interface SNSEventHandler<Configuration = unknown, Service = unknown, Pro
     schema: {
         payload?: Schema<Payload>
     }
-    handler: NoInfer<
-        (request: SNSEvent<Payload>, context: LambdaContext<Configuration, Service, Profile>) => Promisable<Try<void>>
-    >
+    handler: (
+        request: NoInfer<SNSEvent<Payload>>,
+        context: LambdaContext<Configuration, Service, Profile>,
+    ) => Promisable<Try<NoInfer<void>>>
     payloadType?: 'binary' | 'json' | 'plaintext'
 }
 

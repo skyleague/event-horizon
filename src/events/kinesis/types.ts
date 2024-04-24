@@ -19,13 +19,11 @@ export interface KinesisEventHandler<
     schema: {
         payload?: Schema<Payload>
     }
-    handler: NoInfer<
-        (
-            request: KinesisEvent<Payload>,
-            context: LambdaContext<Configuration, Service, Profile>,
-            // biome-ignore lint/suspicious/noConfusingVoidType: this is the real type we want here
-        ) => Promisable<Try<Return | void>>
-    >
+    handler: (
+        request: NoInfer<KinesisEvent<Payload>>,
+        context: LambdaContext<Configuration, Service, Profile>,
+        // biome-ignore lint/suspicious/noConfusingVoidType: this is the real type we want here
+    ) => Promisable<Try<NoInfer<Return | void>>>
     payloadType?: 'binary' | 'json' | 'plaintext'
 }
 

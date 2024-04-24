@@ -16,15 +16,15 @@ function findHeader(name: string) {
 }
 
 export function restApiHandler<
-    Configuration,
-    Service extends DefaultServices | undefined,
-    Profile,
-    Body,
-    Path,
-    Query,
-    Headers,
-    Result,
-    D,
+    const Configuration,
+    const Service extends DefaultServices | undefined,
+    const Profile,
+    const Body,
+    const Path,
+    const Query,
+    const Headers,
+    const Result,
+    const D,
 >(
     definition: D & HTTPHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, 'rest'>,
     { kernel = handleHTTPEvent }: { kernel?: typeof handleHTTPEvent } = {},
@@ -42,15 +42,15 @@ export function restApiHandler<
 }
 
 export function httpApiHandler<
-    Configuration,
-    Service extends DefaultServices | undefined,
-    Profile,
-    Body,
-    Path,
-    Query,
-    Headers,
-    Result,
-    D,
+    const Configuration,
+    const Service extends DefaultServices | undefined,
+    const Profile,
+    const Body,
+    const Path,
+    const Query,
+    const Headers,
+    const Result,
+    const D,
 >(
     definition: D & HTTPHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result>,
     { kernel = handleHTTPEvent }: { kernel?: typeof handleHTTPEvent } = {},

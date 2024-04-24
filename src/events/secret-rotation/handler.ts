@@ -6,13 +6,13 @@ import { ioLogger } from '../functions/io-logger.js'
 import type { DefaultServices, LambdaContext } from '../types.js'
 
 import type { RequireKeys, Try } from '@skyleague/axioms'
-import { isJust, mapTry } from '@skyleague/axioms'
+import { Nothing, isJust, mapTry } from '@skyleague/axioms'
 import type { SecretsManagerRotationEvent } from 'aws-lambda'
 
 export async function handleSecretRotationEvent<
-    Configuration,
-    Service extends RequireKeys<DefaultServices, 'secretsManager'>,
-    Profile,
+    const Configuration,
+    const Service extends RequireKeys<DefaultServices, 'secretsManager'>,
+    const Profile,
 >(
     handler: SecretRotationHandler<Configuration, Service, Profile>,
     event: SecretsManagerRotationEvent,
@@ -32,9 +32,11 @@ export async function handleSecretRotationEvent<
         if (isJust(request)) {
             return secretRotation.handler(request, context)
         }
+        return Nothing
     })
 
     ioLoggerFn.after()
 
-    return response
+    // biome-ignore lint/suspicious/noConfusingVoidType: this is the real type we want here
+    return response as void
 }

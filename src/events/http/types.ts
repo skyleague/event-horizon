@@ -53,12 +53,10 @@ export interface HTTPEventHandler<
         headers?: Schema<Headers>
         responses: Record<PropertyKey, Schema<Result>>
     }
-    handler: NoInfer<
-        (
-            request: HTTPRequest<Body, Path, Query, Headers, GV>,
-            context: LambdaContext<Configuration, Service, Profile>,
-        ) => Promisable<Try<HTTPResponse<Result>>>
-    >
+    handler: (
+        request: NoInfer<HTTPRequest<Body, Path, Query, Headers, GV>>,
+        context: LambdaContext<Configuration, Service, Profile>,
+    ) => Promisable<Try<NoInfer<HTTPResponse<Result>>>>
 
     bodyType?: 'binary' | 'json' | 'plaintext'
 

@@ -17,11 +17,11 @@ import type {
 } from 'aws-lambda'
 
 export async function handleFirehoseTransformation<
-    Configuration,
-    Service extends DefaultServices | undefined,
-    Profile,
-    Payload,
-    Result,
+    const Configuration,
+    const Service extends DefaultServices | undefined,
+    const Profile,
+    const Payload,
+    const Result,
 >(
     handler: FirehoseTransformationHandler<Configuration, Service, Profile, Payload, Result>,
     events: FirehoseTransformationEventRecord[],

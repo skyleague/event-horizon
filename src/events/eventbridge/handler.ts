@@ -11,11 +11,11 @@ import type { UndefinedOnPartialDeep } from '@skyleague/axioms/types'
 import type { EventBridgeEvent as AWSEventBridgeEvent } from 'aws-lambda'
 
 export async function handleEventBridgeEvent<
-    Configuration,
-    Service extends DefaultServices | undefined,
-    Profile,
-    Payload,
-    Result,
+    const Configuration,
+    const Service extends DefaultServices | undefined,
+    const Profile,
+    const Payload,
+    const Result,
 >(
     handler: EventBridgeHandler<Configuration, Service, Profile, Payload, Result>,
     event: UndefinedOnPartialDeep<AWSEventBridgeEvent<string, unknown>>,

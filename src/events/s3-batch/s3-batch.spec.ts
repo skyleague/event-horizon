@@ -41,14 +41,14 @@ it('handles schema types', () => {
             schema: { result: literalSchema<'result'>() },
             handler: (request) => {
                 expectTypeOf(request).toEqualTypeOf<S3BatchTask>()
-                return { status: 'Succeeded', payload: 'result' }
+                return { status: 'Succeeded', payload: 'result' } as const
             },
         },
     })
     expectTypeOf(handler.s3Batch.handler).toEqualTypeOf<
-        (request: S3BatchTask) => {
-            status: 'Succeeded'
-            payload: 'result'
+        (request: NoInfer<S3BatchTask>) => {
+            readonly status: 'Succeeded'
+            readonly payload: 'result'
         }
     >()
 })
