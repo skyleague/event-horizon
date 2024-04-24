@@ -4,7 +4,15 @@ import { HttpError } from '../../events/http/functions/http-error.type.js'
 import { entriesOf, isArray, isBoolean, omitUndefined, valuesOf } from '@skyleague/axioms'
 import type { OpenapiV3 } from '@skyleague/therefore'
 import type { JsonSchema } from '@skyleague/therefore/src/json.js'
-import type { Info, Parameter, Reference, RequestBody, Responses, Schema } from '@skyleague/therefore/src/types/openapi.type.js'
+import type {
+    Info,
+    Operation,
+    Parameter,
+    Reference,
+    RequestBody,
+    Responses,
+    Schema,
+} from '@skyleague/therefore/src/types/openapi.type.js'
 
 interface JsonSchemaContext {
     openapi: OpenapiV3
@@ -249,11 +257,12 @@ export function openapiFromHandlers(handlers: Record<string, unknown>, options: 
                 operationId: handler.operationId,
                 summary: handler.summary,
                 description: handler.description,
+                deprecated: handler.deprecated,
                 tags: handler.tags,
                 parameters,
                 requestBody,
                 responses,
-            })
+            } satisfies Operation)
         }
     }
 

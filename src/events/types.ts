@@ -39,6 +39,7 @@ export interface EventHandlerDefinition<Configuration = unknown, Service = unkno
     operationId?: string
     summary?: string
     description?: string
+    deprecated?: boolean
     tags?: string[]
     isSensitive?: boolean
     logger?: Logger
