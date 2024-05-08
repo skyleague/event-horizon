@@ -1,6 +1,6 @@
 import packageJSON from '../../../../package.json' assert { type: 'json' }
-import { openapiFromHandlers } from '../../../../src/dev/openapi/openapi.js'
 import { httpApiHandler } from '../../../../src/events/http/http.js'
+import { openapiFromHandlers } from '../../../../src/spec/openapi/openapi.js'
 
 import * as handlers from '../index.js'
 

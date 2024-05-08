@@ -15,6 +15,7 @@
     ".": "./.dist/index.js",
     "./dev": "./.dist/src/dev/index.js",
     "./test": "./.dist/src/test/index.js",
+    "./spec": "./.dist/src/spec/index.js",
     "./package.json": "./package.json",
     "./*.js": "./.dist/*.js"
   },
