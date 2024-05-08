@@ -1,3 +1,4 @@
+import type { SetRequired } from '@skyleague/axioms/types'
 import type { EventBridgeHandler } from '../eventbridge/types.js'
 import type { FirehoseTransformationHandler } from '../firehose/types.js'
 import type { HTTPHandler } from '../http/types.js'
@@ -10,8 +11,6 @@ import type { SNSHandler } from '../sns/types.js'
 import type { SQSHandler } from '../sqs/types.js'
 import type { DefaultServices } from '../types.js'
 
-import type { RequireKeys } from '@skyleague/axioms'
-
 export type EventHandler<Service = unknown> =
     | EventBridgeHandler
     | FirehoseTransformationHandler
@@ -22,4 +21,4 @@ export type EventHandler<Service = unknown> =
     | S3Handler
     | SNSHandler
     | SQSHandler
-    | (Service extends RequireKeys<DefaultServices, 'secretsManager'> ? SecretRotationHandler<unknown, Service> : never)
+    | (Service extends SetRequired<DefaultServices, 'secretsManager'> ? SecretRotationHandler<unknown, Service> : never)

@@ -1,10 +1,8 @@
-import { addComponent, ensureTarget, jsonptrToName, normalizeSchema, openapiFromHandlers } from './openapi.js'
-
-import { HttpError } from '../../events/http/functions/http-error.type.js'
-
-import { alpha, array, dict, entriesOf, forAll, json, omit, omitUndefined, random, string, tuple } from '@skyleague/axioms'
+import { alpha, array, entriesOf, forAll, json, omit, omitUndefined, random, record, string, tuple } from '@skyleague/axioms'
 import { describe, expect, it, vi } from 'vitest'
+import { HttpError } from '../../events/http/functions/http-error.type.js'
 import { httpApiHandler } from '../../events/http/http.js'
+import { addComponent, ensureTarget, jsonptrToName, normalizeSchema, openapiFromHandlers } from './openapi.js'
 
 describe('jsonptrToName', () => {
     it('refs schemas', () => {
@@ -23,7 +21,7 @@ describe('jsonptrToName', () => {
 describe('addComponent', () => {
     let openapi: any = {}
     it('adds components', () => {
-        forAll(tuple(string(), dict(json())), ([title, schema]) => {
+        forAll(tuple(string(), record(json())), ([title, schema]) => {
             openapi = {}
             expect(addComponent({ openapi } as any, { ...schema, title })).toEqual(title)
             expect(openapi.components.schemas[title]).toEqual({ ...schema, title })
@@ -31,7 +29,7 @@ describe('addComponent', () => {
     })
 
     it('only adds first value', () => {
-        forAll(tuple(string(), dict(json()), dict(json())), ([title, schema1, schema2]) => {
+        forAll(tuple(string(), record(json()), record(json())), ([title, schema1, schema2]) => {
             openapi = {}
             expect(addComponent({ openapi } as any, { ...schema1, title })).toEqual(title)
             expect(addComponent({ openapi } as any, { ...schema2, title })).toEqual(title)
@@ -101,7 +99,7 @@ describe('normalizeSchema', () => {
     it('refs schemas', () => {
         forAll(
             tuple(
-                dict(json()),
+                record(json()),
                 array(alpha({ minLength: 1 }), { minLength: 1 }).map((xs) => xs.join('/')),
                 alpha({ minLength: 1 }),
             ).map(([jsonschema, ptr, name]) => [{ ...jsonschema, $ref: `#/${ptr}/${name}` }, ptr, name] as const),
@@ -119,7 +117,7 @@ describe('normalizeSchema', () => {
     it('refs parameters', () => {
         forAll(
             tuple(
-                dict(json()),
+                record(json()),
                 array(alpha({ minLength: 1 }), { minLength: 1 }).map((xs) => xs.join('/')),
                 alpha({ minLength: 1 }),
             ).map(([jsonschema, ptr, name]) => [{ ...jsonschema, $ref: `#/${ptr}/${name}` }, ptr, name] as const),
@@ -139,7 +137,7 @@ describe('normalizeSchema', () => {
     it.each(['requestBodies', 'responses'] as const)('refs $target', (target) => {
         forAll(
             tuple(
-                dict(json()),
+                record(json()),
                 array(alpha({ minLength: 1 }), { minLength: 1 }).map((xs) => xs.join('/')),
                 alpha({ minLength: 1 }),
             ).map(([jsonschema, ptr, name]) => [{ ...jsonschema, $ref: `#/${ptr}/${name}` }, ptr, name] as const),
@@ -165,7 +163,7 @@ describe('normalizeSchema', () => {
 
     it('anyOf with ref', () => {
         forAll(
-            tuple(dict(json()), dict(json()), alpha({ minLength: 1 })).map(
+            tuple(record(json()), record(json()), alpha({ minLength: 1 })).map(
                 ([jsonschema, definition, name]) =>
                     [
                         { ...jsonschema, anyOf: [{ $ref: `#/$defs/${name}` }], $defs: { [name]: definition } },
@@ -190,7 +188,7 @@ describe('normalizeSchema', () => {
 
     it('oneOf with ref', () => {
         forAll(
-            tuple(dict(json()), dict(json()), alpha({ minLength: 1 })).map(
+            tuple(record(json()), record(json()), alpha({ minLength: 1 })).map(
                 ([jsonschema, definition, name]) =>
                     [
                         { ...jsonschema, oneOf: [{ $ref: `#/$defs/${name}` }], $defs: { [name]: definition } },
@@ -215,7 +213,7 @@ describe('normalizeSchema', () => {
 
     it('array with ref', () => {
         forAll(
-            tuple(dict(json()), dict(json()), alpha({ minLength: 1 })).map(
+            tuple(record(json()), record(json()), alpha({ minLength: 1 })).map(
                 ([jsonschema, definition, name]) =>
                     [
                         { ...jsonschema, type: 'array', items: { $ref: `#/$defs/${name}` }, $defs: { [name]: definition } },
@@ -238,7 +236,7 @@ describe('normalizeSchema', () => {
 
     it('array with refs', () => {
         forAll(
-            tuple(dict(json()), dict(json()), alpha({ minLength: 1 })).map(
+            tuple(record(json()), record(json()), alpha({ minLength: 1 })).map(
                 ([jsonschema, definition, name]) =>
                     [
                         { ...jsonschema, type: 'array', items: [{ $ref: `#/$defs/${name}` }], $defs: { [name]: definition } },
@@ -263,7 +261,7 @@ describe('normalizeSchema', () => {
 
     it('object with ref properties', () => {
         forAll(
-            tuple(dict(json()), dict(json()), alpha({ minLength: 1 })).map(
+            tuple(record(json()), record(json()), alpha({ minLength: 1 })).map(
                 ([jsonschema, definition, name]) =>
                     [
                         {
@@ -289,7 +287,7 @@ describe('normalizeSchema', () => {
 
     it('object with ref patternProperties', () => {
         forAll(
-            tuple(dict(json()), dict(json()), alpha({ minLength: 1 })).map(
+            tuple(record(json()), record(json()), alpha({ minLength: 1 })).map(
                 ([jsonschema, definition, name]) =>
                     [
                         {
@@ -315,7 +313,7 @@ describe('normalizeSchema', () => {
 
     it('object with ref additionalProperties', () => {
         forAll(
-            tuple(dict(json()), dict(json()), alpha({ minLength: 1 })).map(
+            tuple(record(json()), record(json()), alpha({ minLength: 1 })).map(
                 ([jsonschema, definition, name]) =>
                     [
                         {
@@ -341,7 +339,7 @@ describe('normalizeSchema', () => {
 
     it('object with ref properties to component', () => {
         forAll(
-            tuple(dict(json()), dict(json()), alpha({ minLength: 1 }), string()).map(
+            tuple(record(json()), record(json()), alpha({ minLength: 1 }), string()).map(
                 ([jsonschema, definition, name, title]) =>
                     [
                         {
@@ -374,7 +372,7 @@ describe('normalizeSchema', () => {
 
     it('definition only object with ref properties', () => {
         forAll(
-            tuple(dict(json()), dict(json()), alpha({ minLength: 1 })).map(
+            tuple(record(json()), record(json()), alpha({ minLength: 1 })).map(
                 ([jsonschema, definition, name]) =>
                     [
                         {
@@ -435,7 +433,7 @@ describe('openapiFromHandlers', () => {
 
     it('request body', () => {
         const h = vi.fn()
-        forAll(tuple(string(), string(), dict(json())), ([method, path, schema]) => {
+        forAll(tuple(string(), string(), record(json())), ([method, path, schema]) => {
             const helloWorld = httpApiHandler({
                 http: {
                     method,
@@ -468,7 +466,7 @@ describe('openapiFromHandlers', () => {
 
     it('response', () => {
         const h = vi.fn()
-        forAll(tuple(string(), string(), dict(json())), ([method, path, schema]) => {
+        forAll(tuple(string(), string(), record(json())), ([method, path, schema]) => {
             const helloWorld = httpApiHandler({
                 http: {
                     method,
@@ -508,7 +506,7 @@ describe('openapiFromHandlers', () => {
 
     it('response default overrides', () => {
         const h = vi.fn()
-        forAll(tuple(string(), string(), dict(json())), ([method, path, schema]) => {
+        forAll(tuple(string(), string(), record(json())), ([method, path, schema]) => {
             const helloWorld = httpApiHandler({
                 http: {
                     method,
@@ -552,7 +550,7 @@ describe('openapiFromHandlers', () => {
             tuple(
                 string(),
                 string(),
-                dict(dict(json())).map((j) => ({ properties: j, type: 'object', required: [] as string[] })),
+                record(record(json())).map((j) => ({ properties: j, type: 'object', required: [] as string[] })),
             ),
             ([method, path, schema]) => {
                 const helloWorld = httpApiHandler({
@@ -608,7 +606,7 @@ describe('openapiFromHandlers', () => {
             tuple(
                 string(),
                 string(),
-                dict(dict(json())).map((j) => ({ properties: j, type: 'object', required: [] as string[] })),
+                record(record(json())).map((j) => ({ properties: j, type: 'object', required: [] as string[] })),
             ),
             ([method, path, schema]) => {
                 const helloWorld = httpApiHandler({
@@ -664,7 +662,7 @@ describe('openapiFromHandlers', () => {
             tuple(
                 string(),
                 string(),
-                dict(dict(json())).map((j) => ({ properties: j, type: 'query', required: [] as string[] })),
+                record(record(json())).map((j) => ({ properties: j, type: 'query', required: [] as string[] })),
             ),
             ([method, path, schema]) => {
                 const helloWorld = httpApiHandler({

@@ -37,22 +37,24 @@
     "@aws-lambda-powertools/metrics": "^2.1.0",
     "@aws-lambda-powertools/parameters": "2.1.0",
     "@aws-lambda-powertools/tracer": "^2.1.0",
-    "@skyleague/axioms": "^4.0.1",
+    "@skyleague/axioms": "^4.3.1",
     "@types/aws-lambda": "^8.10.137",
     "secure-json-parse": "^2.7.0"
   },
   "peerDependencies": {
-    "@aws-sdk/client-appconfigdata": "^3.556.0",
-    "@aws-sdk/client-secrets-manager": "^3.556.0"
+    "@aws-sdk/client-appconfigdata": "^3.569.0",
+    "@aws-sdk/client-secrets-manager": "^3.569.0"
   },
   "devDependencies": {
+    "@aws-lambda-powertools/parser": "2.1.0-beta",
     "@skyleague/node-standards": "^7.0.0",
-    "@skyleague/therefore": "^5.0.4",
-    "@types/node": "^20.12.7",
+    "@skyleague/therefore": "^5.1.0",
+    "@types/node": "^20.12.10",
     "aws-sdk-client-mock": "^4.0.0",
     "aws-sdk-client-mock-vitest": "^2.0.0",
     "got": "^14.2.1",
     "nock": "^13.5.4",
+    "type-testing": "^0.2.0",
     "typescript": "5.4.5"
   },
   "engines": {

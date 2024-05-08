@@ -1,20 +1,18 @@
-import { handleKinesisEvent } from './handler.js'
-import type { KinesisHandler } from './types.js'
-
+import type { KinesisDataStreamRecord } from '../../dev/aws/kinesis/kinesis.type.js'
 import { EventError } from '../../errors/event-error/event-error.js'
 import { type EventHandlerFn, eventHandler } from '../common/event.js'
 import type { DefaultServices } from '../types.js'
-
-import type { KinesisStreamRecord } from 'aws-lambda'
+import { handleKinesisEvent } from './handler.js'
+import type { KinesisHandler } from './types.js'
 
 export function kinesisHandler<Configuration, Service extends DefaultServices | undefined, Profile, Payload, D>(
     definition: D & KinesisHandler<Configuration, Service, Profile, Payload>,
-    { kernel = handleKinesisEvent }: { kernel?: typeof handleKinesisEvent } = {},
+    { _kernel = handleKinesisEvent }: { _kernel?: typeof handleKinesisEvent } = {},
 ): D & EventHandlerFn<Configuration, Service, Profile> {
     return eventHandler(definition, {
         handler: (request, context) => {
             if (typeof request === 'object' && request !== null && 'Records' in request) {
-                const records: KinesisStreamRecord[] = []
+                const records: KinesisDataStreamRecord[] = []
                 const other: unknown[] = []
                 for (const record of request.Records) {
                     if ('kinesis' in record) {
@@ -26,7 +24,7 @@ export function kinesisHandler<Configuration, Service extends DefaultServices | 
                 if (other.length > 0) {
                     throw EventError.unexpectedEventType()
                 }
-                return kernel(definition, records, context)
+                return _kernel(definition, records, context)
             }
             throw EventError.unexpectedEventType()
         },

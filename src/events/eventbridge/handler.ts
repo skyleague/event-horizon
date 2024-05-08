@@ -1,14 +1,11 @@
-import { eventBridgeParseEvent } from './functions/parse-event.js'
-import type { EventBridgeEvent, EventBridgeHandler } from './types.js'
-
+import type { Try } from '@skyleague/axioms'
+import { mapTry } from '@skyleague/axioms'
+import type { EventBridgeSchema } from '../../dev/aws/eventbridge/eventbridge.type.js'
 import { ioLogger } from '../functions/io-logger.js'
 import { ioValidate } from '../functions/io-validate.js'
 import type { DefaultServices, LambdaContext } from '../types.js'
-
-import type { Try } from '@skyleague/axioms'
-import { mapTry } from '@skyleague/axioms'
-import type { UndefinedOnPartialDeep } from '@skyleague/axioms/types'
-import type { EventBridgeEvent as AWSEventBridgeEvent } from 'aws-lambda'
+import { eventBridgeParseEvent } from './functions/parse-event.js'
+import type { EventBridgeEvent, EventBridgeHandler } from './types.js'
 
 export async function handleEventBridgeEvent<
     const Configuration,
@@ -18,7 +15,7 @@ export async function handleEventBridgeEvent<
     const Result,
 >(
     handler: EventBridgeHandler<Configuration, Service, Profile, Payload, Result>,
-    event: UndefinedOnPartialDeep<AWSEventBridgeEvent<string, unknown>>,
+    event: EventBridgeSchema,
     context: LambdaContext<Configuration, Service, Profile>,
 ): Promise<Try<unknown>> {
     const { eventBridge } = handler

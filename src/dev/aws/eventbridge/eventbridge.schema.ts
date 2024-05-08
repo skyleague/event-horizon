@@ -1,3 +1,4 @@
-import { $eventBridge } from './eventbridge.js'
+import { EventBridgeSchema } from '@aws-lambda-powertools/parser/schemas'
+import { $ref } from '@skyleague/therefore'
 
-export const eventBridgeEvent = $eventBridge()
+export const eventBridgeSchema = $ref(EventBridgeSchema).validator()

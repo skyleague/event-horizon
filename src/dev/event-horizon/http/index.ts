@@ -1,1 +1,2 @@
-export { httpEvent } from './http.js'
+export { httpApiEvent } from './http.js'
+export { restApiEvent } from './rest.js'

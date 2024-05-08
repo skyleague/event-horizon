@@ -1,12 +1,11 @@
-import type { EventHandlerDefinition, LambdaContext } from '../types.js'
-
 import type { Promisable, Try } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
-import type { SNSEventRecord } from 'aws-lambda'
+import type { SnsRecordSchema } from '../../dev/aws/sns/sns.type.js'
+import type { EventHandlerDefinition, LambdaContext } from '../types.js'
 
 export interface SNSEvent<Payload = unknown> {
     payload: Payload
-    raw: SNSEventRecord
+    readonly raw: SnsRecordSchema
 }
 
 export interface SNSEventHandler<Configuration = unknown, Service = unknown, Profile = unknown, Payload = unknown> {

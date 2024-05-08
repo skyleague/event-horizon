@@ -7,7 +7,7 @@ export interface SecretRotationRequest {
     step: 'createSecret' | 'finishSecret' | 'setSecret' | 'testSecret'
     secretId: string
     clientRequestToken: string
-    raw: SecretsManagerRotationEvent
+    readonly raw: SecretsManagerRotationEvent
 }
 
 export interface SecretRotationEventHandler<

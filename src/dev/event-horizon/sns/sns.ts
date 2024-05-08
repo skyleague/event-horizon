@@ -1,16 +1,17 @@
 import type { SNSEvent, SNSHandler } from '../../../events/sns/types.js'
-import { SNSEventRecord } from '../../aws/sns/sns.schema.js'
 
 import type { Dependent } from '@skyleague/axioms'
 import { object, unknown } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
+import { SnsRecordSchema } from '../../aws/sns/sns.type.js'
 
 export function snsEvent<Configuration, Service, Profile, Payload>(
     definition: SNSHandler<Configuration, Service, Profile, Payload>,
+    { generation = 'fast' }: { generation?: 'full' | 'fast' } = {},
 ): Dependent<SNSEvent<Payload>> {
     const { sns } = definition
     return object({
         payload: sns.schema.payload !== undefined ? arbitrary(sns.schema.payload) : unknown(),
-        raw: arbitrary(SNSEventRecord),
+        raw: arbitrary(SnsRecordSchema).constant(generation === 'fast'),
     }) as unknown as Dependent<SNSEvent<Payload>>
 }

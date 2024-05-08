@@ -2,13 +2,14 @@ import type { EventHandlerDefinition, LambdaContext } from '../types.js'
 
 import type { Promisable, Try } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
-import type { SQSBatchItemFailure, SQSRecord } from 'aws-lambda'
+import type { SQSBatchItemFailure } from 'aws-lambda'
+import type { SqsRecordSchema } from '../../dev/aws/sqs/sqs.type.js'
 
 export interface SQSEvent<Payload = unknown> {
     messageGroupId: string
     payload: Payload
-    raw: SQSRecord
     item: number
+    readonly raw: SqsRecordSchema
 }
 
 export interface SQSMessageGroup<Payload = unknown> {

@@ -6,74 +6,75 @@
 
 import type { DefinedError, ValidateFunction } from 'ajv'
 
-import { validate as SNSEventRecordValidator } from './schemas/sns-event-record.schema.js'
-import { validate as SNSEventValidator } from './schemas/sns-event.schema.js'
+import { validate as SnsRecordSchemaValidator } from './schemas/sns-record-schema.schema.js'
+import { validate as SnsSchemaValidator } from './schemas/sns-schema.schema.js'
 
-export interface SNSEvent {
-    Records: SNSEventRecord[]
-}
-
-export const SNSEvent = {
-    validate: SNSEventValidator as ValidateFunction<SNSEvent>,
-    get schema() {
-        return SNSEvent.validate.schema
-    },
-    get errors() {
-        return SNSEvent.validate.errors ?? undefined
-    },
-    is: (o: unknown): o is SNSEvent => SNSEvent.validate(o) === true,
-    parse: (o: unknown): { right: SNSEvent } | { left: DefinedError[] } => {
-        if (SNSEvent.is(o)) {
-            return { right: o }
-        }
-        return { left: (SNSEvent.errors ?? []) as DefinedError[] }
-    },
-} as const
-
-export interface SNSEventRecord {
-    EventVersion: string
-    EventSubscriptionArn: string
-    EventSource: string
-    Sns: SNSMessage
-}
-
-export const SNSEventRecord = {
-    validate: SNSEventRecordValidator as ValidateFunction<SNSEventRecord>,
-    get schema() {
-        return SNSEventRecord.validate.schema
-    },
-    get errors() {
-        return SNSEventRecord.validate.errors ?? undefined
-    },
-    is: (o: unknown): o is SNSEventRecord => SNSEventRecord.validate(o) === true,
-    parse: (o: unknown): { right: SNSEventRecord } | { left: DefinedError[] } => {
-        if (SNSEventRecord.is(o)) {
-            return { right: o }
-        }
-        return { left: (SNSEventRecord.errors ?? []) as DefinedError[] }
-    },
-} as const
-
-export interface SNSMessage {
-    SignatureVersion: string
-    Timestamp: string
-    Signature: string
-    SigningCertUrl: string
-    MessageId: string
-    Message: string
-    MessageAttributes: SNSMessageAttributes
-    Type: string
-    UnsubscribeUrl: string
-    TopicArn: string
-    Subject?: string | undefined
-    Token?: string | undefined
-}
-
-export interface SNSMessageAttribute {
+export interface SnsMsgAttribute {
     Type: string
     Value: string
 }
 
-export interface SNSMessageAttributes {
-    [k: string]: SNSMessageAttribute | undefined
+export interface SnsNotificationSchema {
+    Subject?: string | undefined
+    TopicArn: string
+    UnsubscribeUrl: string
+    UnsubscribeURL?: string | undefined
+    SigningCertUrl?: string | undefined
+    SigningCertURL?: string | undefined
+    Type: 'Notification'
+    MessageAttributes?:
+        | {
+              [k: string]: SnsMsgAttribute | undefined
+          }
+        | undefined
+    Message: string
+    MessageId: string
+    Signature?: string | undefined
+    SignatureVersion?: string | undefined
+    Timestamp: string
 }
+
+export interface SnsRecordSchema {
+    EventSource: 'aws:sns'
+    EventVersion: string
+    EventSubscriptionArn: string
+    Sns: SnsNotificationSchema
+}
+
+export const SnsRecordSchema = {
+    validate: SnsRecordSchemaValidator as ValidateFunction<SnsRecordSchema>,
+    get schema() {
+        return SnsRecordSchema.validate.schema
+    },
+    get errors() {
+        return SnsRecordSchema.validate.errors ?? undefined
+    },
+    is: (o: unknown): o is SnsRecordSchema => SnsRecordSchema.validate(o) === true,
+    parse: (o: unknown): { right: SnsRecordSchema } | { left: DefinedError[] } => {
+        if (SnsRecordSchema.is(o)) {
+            return { right: o }
+        }
+        return { left: (SnsRecordSchema.errors ?? []) as DefinedError[] }
+    },
+} as const
+
+export interface SnsSchema {
+    Records: SnsRecordSchema[]
+}
+
+export const SnsSchema = {
+    validate: SnsSchemaValidator as ValidateFunction<SnsSchema>,
+    get schema() {
+        return SnsSchema.validate.schema
+    },
+    get errors() {
+        return SnsSchema.validate.errors ?? undefined
+    },
+    is: (o: unknown): o is SnsSchema => SnsSchema.validate(o) === true,
+    parse: (o: unknown): { right: SnsSchema } | { left: DefinedError[] } => {
+        if (SnsSchema.is(o)) {
+            return { right: o }
+        }
+        return { left: (SnsSchema.errors ?? []) as DefinedError[] }
+    },
+} as const

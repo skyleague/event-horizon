@@ -1,5 +1,6 @@
-import { $array, $object, $string, $unknown, $validator } from '@skyleague/therefore'
+import { $string, $unknown } from '@skyleague/therefore'
 import type { ThereforeSchema } from '@skyleague/therefore/src/lib/primitives/types.js'
+import { eventBridgeSchema } from './eventbridge.schema.js'
 
 export function $eventBridge({
     detailType = $string(),
@@ -8,18 +9,10 @@ export function $eventBridge({
     detailType?: ThereforeSchema
     detail?: ThereforeSchema
 } = {}) {
-    return $validator(
-        $object({
-            id: $string,
-            version: $string,
-            account: $string,
-            time: $string,
-            region: $string,
-            resources: $array($string()),
-            source: $string,
+    return eventBridgeSchema
+        .extend({
             'detail-type': detailType,
             detail: detail,
-            'replay-name': $string().optional(),
-        }),
-    )
+        })
+        .validator()
 }

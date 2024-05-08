@@ -1,16 +1,14 @@
+import type { Try } from '@skyleague/axioms'
+import { enumerate, isFailure, mapTry } from '@skyleague/axioms'
+import type { S3RecordSchema } from '../../dev/aws/s3/s3.type.js'
+import { ioLogger } from '../functions/io-logger.js'
+import type { LambdaContext } from '../types.js'
 import { s3ParseEvent } from './functions/parse-event.js'
 import type { S3Handler } from './types.js'
 
-import { ioLogger } from '../functions/io-logger.js'
-import type { LambdaContext } from '../types.js'
-
-import type { Try } from '@skyleague/axioms'
-import { enumerate, isFailure, mapTry } from '@skyleague/axioms'
-import type { S3EventRecord } from 'aws-lambda'
-
 export async function handleS3Event<Configuration, Service, Profile>(
     handler: S3Handler<Configuration, Service, Profile>,
-    events: S3EventRecord[],
+    events: S3RecordSchema[],
     context: LambdaContext<Configuration, Service, Profile>,
 ): Promise<Try<void>> {
     const { s3 } = handler

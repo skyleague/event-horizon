@@ -1,19 +1,17 @@
-import { httpEvent } from './http.js'
-
-import { APIGatewayProxyEvent } from '../../aws/apigateway/apigateway.type.js'
-
 import { forAll, isString } from '@skyleague/axioms'
 import { it, vi } from 'vitest'
+import { APIGatewayProxyEventV2Schema } from '../../aws/apigateway/http.type.js'
+import { httpApiEvent } from './http.js'
 
-it('httpEvent === httpEvent', () => {
-    forAll(httpEvent({ http: { method: 'get', path: '/', handler: vi.fn(), schema: { responses: {} } } }), (e) =>
-        APIGatewayProxyEvent.is(e.raw),
+it('httpApiEvent === httpApiEvent', () => {
+    forAll(httpApiEvent({ http: { method: 'get', path: '/', handler: vi.fn(), schema: { responses: {} } } }), (e) =>
+        APIGatewayProxyEventV2Schema.is(e.raw),
     )
 })
 
-it('httpEvent body === body', () => {
+it('httpApiEvent body === body', () => {
     forAll(
-        httpEvent({
+        httpApiEvent({
             http: {
                 method: 'get',
                 path: '/',

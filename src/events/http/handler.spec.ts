@@ -1,6 +1,6 @@
 import { handleHTTPEvent } from './handler.js'
 
-import { httpEvent } from '../../dev/event-horizon/http/http.js'
+import { httpApiEvent } from '../../dev/event-horizon/http/http.js'
 import { EventError } from '../../errors/event-error/event-error.js'
 import { context } from '../../test/context/context.js'
 
@@ -29,7 +29,7 @@ it.each([httpApiHandler, restApiHandler])('plaintext success does not give failu
             handler: h,
         },
     })
-    await asyncForAll(tuple(httpEvent(handler), json(), await context({})), async ([req, ret, ctx]) => {
+    await asyncForAll(tuple(httpApiEvent(handler), json(), await context({})), async ([req, ret, ctx]) => {
         ctx.mockClear()
 
         h.mockReturnValue({ statusCode: 200, body: ret })
@@ -66,7 +66,7 @@ it.each([httpApiHandler, restApiHandler])('json success does not give failures',
             handler: h,
         },
     })
-    await asyncForAll(tuple(httpEvent(handler), json(), await context({})), async ([req, ret, ctx]) => {
+    await asyncForAll(tuple(httpApiEvent(handler), json(), await context({})), async ([req, ret, ctx]) => {
         ctx.mockClear()
 
         h.mockReturnValue({ statusCode: 200, body: ret })
@@ -103,7 +103,7 @@ it.each([httpApiHandler, restApiHandler])('binary success does not give failures
             handler: h,
         },
     })
-    await asyncForAll(tuple(httpEvent(handler), json(), await context({})), async ([req, ret, ctx]) => {
+    await asyncForAll(tuple(httpApiEvent(handler), json(), await context({})), async ([req, ret, ctx]) => {
         ctx.mockClear()
 
         h.mockReturnValue({ statusCode: 200, body: ret })
@@ -139,7 +139,7 @@ it.each([httpApiHandler, restApiHandler])('body schema validation, gives failure
             handler: h,
         },
     })
-    await asyncForAll(tuple(httpEvent(handler), json(), await context({})), async ([req, ret, ctx]) => {
+    await asyncForAll(tuple(httpApiEvent(handler), json(), await context({})), async ([req, ret, ctx]) => {
         ctx.mockClear()
 
         h.mockReturnValue({ statusCode: 200, body: ret })
@@ -174,7 +174,7 @@ it.each([httpApiHandler, restApiHandler])('query schema validation, gives failur
             handler: h,
         },
     })
-    await asyncForAll(tuple(httpEvent(handler), json(), await context({})), async ([req, ret, ctx]) => {
+    await asyncForAll(tuple(httpApiEvent(handler), json(), await context({})), async ([req, ret, ctx]) => {
         ctx.mockClear()
 
         h.mockReturnValue({ statusCode: 200, body: ret })
@@ -209,7 +209,7 @@ it.each([httpApiHandler, restApiHandler])('path schema validation, gives failure
             handler: h,
         },
     })
-    await asyncForAll(tuple(httpEvent(handler), json(), await context({})), async ([req, ret, ctx]) => {
+    await asyncForAll(tuple(httpApiEvent(handler), json(), await context({})), async ([req, ret, ctx]) => {
         ctx.mockClear()
 
         h.mockReturnValue({ statusCode: 200, body: ret })
@@ -244,7 +244,7 @@ it.each([httpApiHandler, restApiHandler])('headers schema validation, gives fail
             handler: h,
         },
     })
-    await asyncForAll(tuple(httpEvent(handler), json(), await context({})), async ([req, ret, ctx]) => {
+    await asyncForAll(tuple(httpApiEvent(handler), json(), await context({})), async ([req, ret, ctx]) => {
         ctx.mockClear()
 
         h.mockReturnValue({ statusCode: 200, body: ret })
@@ -279,7 +279,7 @@ it.each([new Error(), EventError.internalServerError(), 'foobar'])('promise reje
             handler: h,
         },
     })
-    await asyncForAll(tuple(httpEvent(handler), await context({})), async ([req, ctx]) => {
+    await asyncForAll(tuple(httpApiEvent(handler), await context({})), async ([req, ctx]) => {
         ctx.mockClear()
 
         h.mockRejectedValue(error)
@@ -313,7 +313,7 @@ it.each([new Error(), EventError.internalServerError(), 'foobar'])('promise thro
             handler: h,
         },
     })
-    await asyncForAll(tuple(httpEvent(handler), await context({})), async ([req, ctx]) => {
+    await asyncForAll(tuple(httpApiEvent(handler), await context({})), async ([req, ctx]) => {
         ctx.mockClear()
 
         h.mockImplementation(() => {
@@ -357,7 +357,7 @@ it.each([new Error(), EventError.internalServerError(), 'foobar'])(
             },
         })
         await asyncForAll(
-            tuple(httpEvent(handler), await context({}), object({ body: json(), headers: json(), statusCode: integer() })),
+            tuple(httpApiEvent(handler), await context({}), object({ body: json(), headers: json(), statusCode: integer() })),
             async ([req, ctx, ret]) => {
                 ctx.mockClear()
 

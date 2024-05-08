@@ -1,11 +1,10 @@
-import { sqsErrorHandler } from './functions/error-handler.js'
-import { sqsParseEvent } from './functions/parse-event.js'
-import type { SQSEvent, SQSHandler, SQSMessageGroup, SQSMessageGrouping, SQSPayload } from './types.js'
-
 import { ioLoggerChild } from '../functions/io-logger-child.js'
 import { ioLogger } from '../functions/io-logger.js'
 import { ioValidate } from '../functions/io-validate.js'
 import type { LambdaContext } from '../types.js'
+import { sqsErrorHandler } from './functions/error-handler.js'
+import { sqsParseEvent } from './functions/parse-event.js'
+import type { SQSEvent, SQSHandler, SQSMessageGroup, SQSMessageGrouping, SQSPayload } from './types.js'
 
 import {
     type Try,
@@ -20,11 +19,12 @@ import {
     parallelLimit,
     tryToEither,
 } from '@skyleague/axioms'
-import type { SQSBatchItemFailure, SQSBatchResponse, SQSRecord } from 'aws-lambda'
+import type { SQSBatchItemFailure, SQSBatchResponse } from 'aws-lambda'
+import type { SqsRecordSchema } from '../../dev/aws/sqs/sqs.type.js'
 
 export async function handleSQSEvent<Configuration, Service, Profile, Payload>(
     handler: SQSHandler<Configuration, Service, Profile, Payload>,
-    events: SQSRecord[],
+    events: SqsRecordSchema[],
     context: LambdaContext<Configuration, Service, Profile>,
     // biome-ignore lint/suspicious/noConfusingVoidType: this is the real type we want here
 ): Promise<SQSBatchResponse | void> {
@@ -72,7 +72,7 @@ export async function handleSQSEvent<Configuration, Service, Profile, Payload>(
 
 export async function handleSQSMessageGroup<Configuration, Service, Profile, Payload, MessageGrouping extends SQSMessageGrouping>(
     handler: SQSHandler<Configuration, Service, Profile, Payload, MessageGrouping>,
-    events: SQSRecord[],
+    events: SqsRecordSchema[],
     context: LambdaContext<Configuration, Service, Profile>,
     // biome-ignore lint/suspicious/noConfusingVoidType: this is the real type we want here
 ): Promise<SQSBatchResponse | void> {

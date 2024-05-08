@@ -1,10 +1,10 @@
 import type { EventHandlerDefinition, LambdaContext } from '../types.js'
 
 import type { Promisable, Try } from '@skyleague/axioms'
-import type { S3EventRecord } from 'aws-lambda'
+import type { S3RecordSchema } from '../../dev/aws/s3/s3.type.js'
 
 export interface S3Event {
-    raw: S3EventRecord
+    readonly raw: S3RecordSchema
 }
 
 export interface S3EventHandler<Configuration = unknown, Service = unknown, Profile = unknown> {

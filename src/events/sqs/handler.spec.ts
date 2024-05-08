@@ -1,7 +1,7 @@
 import { handleSQSEvent, handleSQSMessageGroup } from './handler.js'
 import type { SQSMessageGroup } from './types.js'
 
-import { SQSEvent } from '../../dev/aws/sqs/sqs.type.js'
+import { type SqsRecordSchema, SqsSchema } from '../../dev/aws/sqs/sqs.type.js'
 import { EventError } from '../../errors/event-error/event-error.js'
 import type { Logger } from '../../observability/logger/logger.js'
 import { context } from '../../test/context/context.js'
@@ -9,7 +9,7 @@ import { context } from '../../test/context/context.js'
 import { asyncForAll, enumerate, groupBy, isFailure, json, map, random, tuple } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
 import { arbitrary } from '@skyleague/therefore'
-import type { SQSBatchItemFailure, SQSBatchResponse, SQSRecord } from 'aws-lambda/trigger/sqs.js'
+import type { SQSBatchItemFailure, SQSBatchResponse } from 'aws-lambda/trigger/sqs.js'
 import { describe, expect, it, vi } from 'vitest'
 
 // biome-ignore lint/suspicious/noConfusingVoidType: this is the real type we want here
@@ -30,13 +30,13 @@ function handleMessageGroup({ records }: SQSMessageGroup, { logger }: { logger: 
 
 describe('plaintext events does not give failures', () => {
     it('handleSQSEvent', async () => {
-        await asyncForAll(tuple(arbitrary(SQSEvent), await context({})), async ([{ Records }, ctx]) => {
+        await asyncForAll(tuple(arbitrary(SqsSchema), await context({})), async ([{ Records }, ctx]) => {
             ctx.mockClear()
 
             const handler = vi.fn()
             const response = await handleSQSEvent(
                 { sqs: { schema: {}, handler, payloadType: 'plaintext' } },
-                Records as SQSRecord[],
+                Records as SqsRecordSchema[],
                 ctx,
             )
 
@@ -61,13 +61,13 @@ describe('plaintext events does not give failures', () => {
     })
 
     it('handleSQSMessageGroup', async () => {
-        await asyncForAll(tuple(arbitrary(SQSEvent), await context({})), async ([{ Records }, ctx]) => {
+        await asyncForAll(tuple(arbitrary(SqsSchema), await context({})), async ([{ Records }, ctx]) => {
             ctx.mockClear()
 
             const handler = vi.fn().mockImplementation(handleMessageGroup)
             const response = await handleSQSMessageGroup(
                 { sqs: { schema: {}, handler, payloadType: 'plaintext' } },
-                Records as SQSRecord[],
+                Records as SqsRecordSchema[],
                 ctx,
             )
 
@@ -109,7 +109,7 @@ describe('plaintext events does not give failures', () => {
 describe('json events does not give failures', () => {
     it('handleSQSEvent', async () => {
         await asyncForAll(
-            tuple(arbitrary(SQSEvent), await context({})).map(([e, ctx]) => {
+            tuple(arbitrary(SqsSchema), await context({})).map(([e, ctx]) => {
                 for (const record of e.Records) {
                     record.body = JSON.stringify(random(json({})))
                 }
@@ -119,7 +119,7 @@ describe('json events does not give failures', () => {
                 ctx.mockClear()
 
                 const handler = vi.fn()
-                const response = await handleSQSEvent({ sqs: { schema: {}, handler } }, Records as SQSRecord[], ctx)
+                const response = await handleSQSEvent({ sqs: { schema: {}, handler } }, Records as SqsRecordSchema[], ctx)
 
                 expect(response).toEqual(undefined)
 
@@ -144,7 +144,7 @@ describe('json events does not give failures', () => {
 
     it('handleSQSMessageGroup', async () => {
         await asyncForAll(
-            tuple(arbitrary(SQSEvent), await context({})).map(([e, ctx]) => {
+            tuple(arbitrary(SqsSchema), await context({})).map(([e, ctx]) => {
                 for (const record of e.Records) {
                     record.body = JSON.stringify(random(json({})))
                 }
@@ -154,7 +154,7 @@ describe('json events does not give failures', () => {
                 ctx.mockClear()
 
                 const handler = vi.fn().mockImplementation(handleMessageGroup)
-                const response = await handleSQSMessageGroup({ sqs: { schema: {}, handler } }, Records as SQSRecord[], ctx)
+                const response = await handleSQSMessageGroup({ sqs: { schema: {}, handler } }, Records as SqsRecordSchema[], ctx)
 
                 expect(response).toEqual(undefined)
 
@@ -198,7 +198,7 @@ describe('json events does not give failures', () => {
 describe('json parse failure, gives failure', () => {
     it('handleSQSEvent', async () => {
         await asyncForAll(
-            tuple(arbitrary(SQSEvent), await context({})).map(([e, ctx]) => {
+            tuple(arbitrary(SqsSchema), await context({})).map(([e, ctx]) => {
                 for (const record of e.Records) {
                     record.body = `${JSON.stringify(random(json({})))}{`
                 }
@@ -208,7 +208,7 @@ describe('json parse failure, gives failure', () => {
                 ctx.mockClear()
 
                 const handler = vi.fn()
-                const response = await handleSQSEvent({ sqs: { schema: {}, handler } }, Records as SQSRecord[], ctx)
+                const response = await handleSQSEvent({ sqs: { schema: {}, handler } }, Records as SqsRecordSchema[], ctx)
 
                 if (Records.length > 0) {
                     expect(response).toEqual({ batchItemFailures: Records.map((r) => ({ itemIdentifier: r.messageId })) })
@@ -233,7 +233,7 @@ describe('json parse failure, gives failure', () => {
     })
     it('handleSQSMessageGroup', async () => {
         await asyncForAll(
-            tuple(arbitrary(SQSEvent), await context({})).map(([e, ctx]) => {
+            tuple(arbitrary(SqsSchema), await context({})).map(([e, ctx]) => {
                 for (const record of e.Records) {
                     record.body = `${JSON.stringify(random(json({})))}{`
                 }
@@ -243,7 +243,7 @@ describe('json parse failure, gives failure', () => {
                 ctx.mockClear()
 
                 const handler = vi.fn().mockImplementation(handleMessageGroup)
-                const response = await handleSQSMessageGroup({ sqs: { schema: {}, handler } }, Records as SQSRecord[], ctx)
+                const response = await handleSQSMessageGroup({ sqs: { schema: {}, handler } }, Records as SqsRecordSchema[], ctx)
 
                 const groups = groupBy(
                     map(enumerate(Records), ([item, record]) => ({ item, record })),
@@ -301,7 +301,7 @@ describe('schema validation, gives failure', () => {
             errors: [],
         } as unknown as Schema<string>
         await asyncForAll(
-            tuple(arbitrary(SQSEvent), await context({})).map(([e, ctx]) => {
+            tuple(arbitrary(SqsSchema), await context({})).map(([e, ctx]) => {
                 for (const record of e.Records) {
                     record.body = JSON.stringify(random(json({})))
                 }
@@ -313,7 +313,7 @@ describe('schema validation, gives failure', () => {
                 const handler = vi.fn()
                 const response = await handleSQSEvent(
                     { sqs: { schema: { payload: neverTrue }, handler } },
-                    Records as SQSRecord[],
+                    Records as SqsRecordSchema[],
                     ctx,
                 )
 
@@ -344,7 +344,7 @@ describe('schema validation, gives failure', () => {
             errors: [],
         } as unknown as Schema<string>
         await asyncForAll(
-            tuple(arbitrary(SQSEvent), await context({})).map(([e, ctx]) => {
+            tuple(arbitrary(SqsSchema), await context({})).map(([e, ctx]) => {
                 for (const record of e.Records) {
                     record.body = JSON.stringify(random(json({})))
                 }
@@ -356,7 +356,7 @@ describe('schema validation, gives failure', () => {
                 const handler = vi.fn().mockImplementation(handleMessageGroup)
                 const response = await handleSQSMessageGroup(
                     { sqs: { schema: { payload: neverTrue }, handler } },
-                    Records as SQSRecord[],
+                    Records as SqsRecordSchema[],
                     ctx,
                 )
 
@@ -411,13 +411,13 @@ describe('schema validation, gives failure', () => {
 
 describe.each([new Error(), 'foobar'])('promise reject with Error, gives failure', (error) => {
     it('handleSQSEvent', async () => {
-        await asyncForAll(tuple(arbitrary(SQSEvent), await context({})), async ([{ Records }, ctx]) => {
+        await asyncForAll(tuple(arbitrary(SqsSchema), await context({})), async ([{ Records }, ctx]) => {
             ctx.mockClear()
 
             const handler = vi.fn().mockRejectedValue(error)
             const response = await handleSQSEvent(
                 { sqs: { schema: {}, handler, payloadType: 'plaintext' } },
-                Records as SQSRecord[],
+                Records as SqsRecordSchema[],
                 ctx,
             )
 
@@ -444,13 +444,13 @@ describe.each([new Error(), 'foobar'])('promise reject with Error, gives failure
         })
     })
     it('handleSQSMessageGroup', async () => {
-        await asyncForAll(tuple(arbitrary(SQSEvent), await context({})), async ([{ Records }, ctx]) => {
+        await asyncForAll(tuple(arbitrary(SqsSchema), await context({})), async ([{ Records }, ctx]) => {
             ctx.mockClear()
 
             const handler = vi.fn().mockRejectedValue(error)
             const response = await handleSQSMessageGroup(
                 { sqs: { schema: {}, handler, payloadType: 'plaintext' } },
-                Records as SQSRecord[],
+                Records as SqsRecordSchema[],
                 ctx,
             )
 
@@ -500,13 +500,13 @@ describe.each([new Error(), 'foobar'])('promise reject with Error, gives failure
 
 describe.each([EventError.badRequest()])('promise reject with error error, gives errors', (error) => {
     it('handleSQSEvent', async () => {
-        await asyncForAll(tuple(arbitrary(SQSEvent), await context({})), async ([{ Records }, ctx]) => {
+        await asyncForAll(tuple(arbitrary(SqsSchema), await context({})), async ([{ Records }, ctx]) => {
             ctx.mockClear()
 
             const handler = vi.fn().mockRejectedValue(error)
             const response = await handleSQSEvent(
                 { sqs: { schema: {}, handler, payloadType: 'plaintext' } },
-                Records as SQSRecord[],
+                Records as SqsRecordSchema[],
                 ctx,
             )
 
@@ -533,13 +533,13 @@ describe.each([EventError.badRequest()])('promise reject with error error, gives
         })
     })
     it('handleSQSMessageGroup', async () => {
-        await asyncForAll(tuple(arbitrary(SQSEvent), await context({})), async ([{ Records }, ctx]) => {
+        await asyncForAll(tuple(arbitrary(SqsSchema), await context({})), async ([{ Records }, ctx]) => {
             ctx.mockClear()
 
             const handler = vi.fn().mockRejectedValue(error)
             const response = await handleSQSMessageGroup(
                 { sqs: { schema: {}, handler, payloadType: 'plaintext' } },
-                Records as SQSRecord[],
+                Records as SqsRecordSchema[],
                 ctx,
             )
 
@@ -589,7 +589,7 @@ describe.each([EventError.badRequest()])('promise reject with error error, gives
 
 describe.each([new Error(), 'foobar'])('promise throws with Error, gives failure', (error) => {
     it('handleSQSEvent', async () => {
-        await asyncForAll(tuple(arbitrary(SQSEvent), await context({})), async ([{ Records }, ctx]) => {
+        await asyncForAll(tuple(arbitrary(SqsSchema), await context({})), async ([{ Records }, ctx]) => {
             ctx.mockClear()
 
             const handler = vi.fn().mockImplementation(() => {
@@ -597,7 +597,7 @@ describe.each([new Error(), 'foobar'])('promise throws with Error, gives failure
             })
             const response = await handleSQSEvent(
                 { sqs: { schema: {}, handler, payloadType: 'plaintext' } },
-                Records as SQSRecord[],
+                Records as SqsRecordSchema[],
                 ctx,
             )
 
@@ -624,7 +624,7 @@ describe.each([new Error(), 'foobar'])('promise throws with Error, gives failure
         })
     })
     it('handleSQSMessageGroup', async () => {
-        await asyncForAll(tuple(arbitrary(SQSEvent), await context({})), async ([{ Records }, ctx]) => {
+        await asyncForAll(tuple(arbitrary(SqsSchema), await context({})), async ([{ Records }, ctx]) => {
             ctx.mockClear()
 
             const handler = vi.fn().mockImplementation(() => {
@@ -632,7 +632,7 @@ describe.each([new Error(), 'foobar'])('promise throws with Error, gives failure
             })
             const response = await handleSQSMessageGroup(
                 { sqs: { schema: {}, handler, payloadType: 'plaintext' } },
-                Records as SQSRecord[],
+                Records as SqsRecordSchema[],
                 ctx,
             )
 
@@ -682,7 +682,7 @@ describe.each([new Error(), 'foobar'])('promise throws with Error, gives failure
 
 describe.each([EventError.badRequest()])('promise throws with client error, gives errors', (error) => {
     it('handleSQSEvent', async () => {
-        await asyncForAll(tuple(arbitrary(SQSEvent), await context({})), async ([{ Records }, ctx]) => {
+        await asyncForAll(tuple(arbitrary(SqsSchema), await context({})), async ([{ Records }, ctx]) => {
             ctx.mockClear()
 
             const handler = vi.fn().mockImplementation(() => {
@@ -690,7 +690,7 @@ describe.each([EventError.badRequest()])('promise throws with client error, give
             })
             const response = await handleSQSEvent(
                 { sqs: { schema: {}, handler, payloadType: 'plaintext' } },
-                Records as SQSRecord[],
+                Records as SqsRecordSchema[],
                 ctx,
             )
 
@@ -717,7 +717,7 @@ describe.each([EventError.badRequest()])('promise throws with client error, give
         })
     })
     it('handleSQSMessageGroup', async () => {
-        await asyncForAll(tuple(arbitrary(SQSEvent), await context({})), async ([{ Records }, ctx]) => {
+        await asyncForAll(tuple(arbitrary(SqsSchema), await context({})), async ([{ Records }, ctx]) => {
             ctx.mockClear()
 
             const handler = vi.fn().mockImplementation(() => {
@@ -725,7 +725,7 @@ describe.each([EventError.badRequest()])('promise throws with client error, give
             })
             const response = await handleSQSMessageGroup(
                 { sqs: { schema: {}, handler, payloadType: 'plaintext' } },
-                Records as SQSRecord[],
+                Records as SqsRecordSchema[],
                 ctx,
             )
 

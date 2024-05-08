@@ -9,12 +9,12 @@ import type { RequireKeys } from '@skyleague/axioms'
 
 export function secretRotationHandler<Configuration, Service extends RequireKeys<DefaultServices, 'secretsManager'>, Profile, D>(
     definition: D & SecretRotationHandler<Configuration, Service, Profile>,
-    { kernel = handleSecretRotationEvent }: { kernel?: typeof handleSecretRotationEvent } = {},
+    { _kernel = handleSecretRotationEvent }: { _kernel?: typeof handleSecretRotationEvent } = {},
 ): D & EventHandlerFn<Configuration, Service, Profile> {
     return eventHandler(definition, {
         handler: (request, context) => {
             if (typeof request === 'object' && request !== null && 'SecretId' in request) {
-                return kernel(definition, request, context)
+                return _kernel(definition, request, context)
             }
             throw EventError.unexpectedEventType()
         },

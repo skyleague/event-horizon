@@ -1,12 +1,11 @@
-import type { EventHandlerDefinition, LambdaContext } from '../types.js'
-
 import type { Promisable, Try } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
-import type { KinesisStreamRecord } from 'aws-lambda'
+import type { KinesisDataStreamRecord } from '../../dev/aws/kinesis/kinesis.type.js'
+import type { EventHandlerDefinition, LambdaContext } from '../types.js'
 
 export interface KinesisEvent<Payload = unknown> {
     payload: Payload
-    raw: KinesisStreamRecord
+    readonly raw: KinesisDataStreamRecord
 }
 
 export interface KinesisEventHandler<

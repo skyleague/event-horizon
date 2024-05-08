@@ -6,34 +6,34 @@
 
 import type { DefinedError, ValidateFunction } from 'ajv'
 
-import { validate as EventBridgeEventValidator } from './schemas/event-bridge-event.schema.js'
+import { validate as EventBridgeSchemaValidator } from './schemas/event-bridge-schema.schema.js'
 
-export interface EventBridgeEvent {
-    id: string
+export interface EventBridgeSchema {
     version: string
+    id: string
+    source: string
     account: string
     time: string
     region: string
     resources: string[]
-    source: string
     'detail-type': string
     detail: unknown
     'replay-name'?: string | undefined
 }
 
-export const EventBridgeEvent = {
-    validate: EventBridgeEventValidator as ValidateFunction<EventBridgeEvent>,
+export const EventBridgeSchema = {
+    validate: EventBridgeSchemaValidator as ValidateFunction<EventBridgeSchema>,
     get schema() {
-        return EventBridgeEvent.validate.schema
+        return EventBridgeSchema.validate.schema
     },
     get errors() {
-        return EventBridgeEvent.validate.errors ?? undefined
+        return EventBridgeSchema.validate.errors ?? undefined
     },
-    is: (o: unknown): o is EventBridgeEvent => EventBridgeEvent.validate(o) === true,
-    parse: (o: unknown): { right: EventBridgeEvent } | { left: DefinedError[] } => {
-        if (EventBridgeEvent.is(o)) {
+    is: (o: unknown): o is EventBridgeSchema => EventBridgeSchema.validate(o) === true,
+    parse: (o: unknown): { right: EventBridgeSchema } | { left: DefinedError[] } => {
+        if (EventBridgeSchema.is(o)) {
             return { right: o }
         }
-        return { left: (EventBridgeEvent.errors ?? []) as DefinedError[] }
+        return { left: (EventBridgeSchema.errors ?? []) as DefinedError[] }
     },
 } as const

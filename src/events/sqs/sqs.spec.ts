@@ -1,22 +1,21 @@
-import { sqsHandler } from './sqs.js'
-import type { SQSEvent, SQSMessageGroup } from './types.js'
-
-import { literalSchema, warmerEvent } from '../../../test/schema.js'
-import { APIGatewayProxyEvent } from '../../dev/aws/apigateway/apigateway.type.js'
-import { EventBridgeEvent } from '../../dev/aws/eventbridge/eventbridge.type.js'
-import { FirehoseTransformationEvent } from '../../dev/aws/firehose/firehose.type.js'
-import { KinesisStreamEvent } from '../../dev/aws/kinesis/kinesis.type.js'
-import { S3BatchEvent } from '../../dev/aws/s3-batch/s3.type.js'
-import { S3Event } from '../../dev/aws/s3/s3.type.js'
-import { SecretRotationEvent } from '../../dev/aws/secret-rotation/secret-rotation.type.js'
-import { SNSEvent } from '../../dev/aws/sns/sns.type.js'
-import { SQSEvent as SQSEventSchema } from '../../dev/aws/sqs/sqs.type.js'
-import { context } from '../../test/context/context.js'
-
 import { asyncForAll, oneOf, random, tuple, unknown } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
 import type { SQSBatchItemFailure } from 'aws-lambda'
 import { expect, expectTypeOf, it, vi } from 'vitest'
+import { literalSchema, warmerEvent } from '../../../test/schema.js'
+import { APIGatewayProxyEventV2Schema } from '../../dev/aws/apigateway/http.type.js'
+import { APIGatewayProxyEventSchema } from '../../dev/aws/apigateway/rest.type.js'
+import { EventBridgeSchema } from '../../dev/aws/eventbridge/eventbridge.type.js'
+import { KinesisFirehoseSchema } from '../../dev/aws/firehose/firehose.type.js'
+import { KinesisDataStreamSchema } from '../../dev/aws/kinesis/kinesis.type.js'
+import { S3BatchEvent } from '../../dev/aws/s3-batch/s3.type.js'
+import { S3Schema } from '../../dev/aws/s3/s3.type.js'
+import { SecretRotationEvent } from '../../dev/aws/secret-rotation/secret-rotation.type.js'
+import { SnsSchema } from '../../dev/aws/sns/sns.type.js'
+import { SqsSchema } from '../../dev/aws/sqs/sqs.type.js'
+import { context } from '../../test/context/context.js'
+import { sqsHandler } from './sqs.js'
+import type { SQSEvent, SQSMessageGroup } from './types.js'
 
 it('handles sqs events', async () => {
     const sqs = vi.fn()
@@ -26,7 +25,7 @@ it('handles sqs events', async () => {
         },
         { kernel: sqs },
     )
-    await asyncForAll(tuple(arbitrary(SQSEventSchema), unknown(), await context(handler)), async ([event, ret, ctx]) => {
+    await asyncForAll(tuple(arbitrary(SqsSchema), unknown(), await context(handler)), async ([event, ret, ctx]) => {
         sqs.mockClear()
         sqs.mockReturnValue(ret)
 
@@ -56,7 +55,7 @@ it('handles sqs events - message grouping', async () => {
         },
         { kernel: sqs },
     )
-    await asyncForAll(tuple(arbitrary(SQSEventSchema), unknown(), await context(handler)), async ([event, ret, ctx]) => {
+    await asyncForAll(tuple(arbitrary(SqsSchema), unknown(), await context(handler)), async ([event, ret, ctx]) => {
         sqs.mockClear()
         sqs.mockReturnValue(ret)
 
@@ -91,14 +90,15 @@ it('does not handle non sqs events', async () => {
     await asyncForAll(
         tuple(
             oneOf(
-                arbitrary(EventBridgeEvent),
-                arbitrary(FirehoseTransformationEvent),
-                arbitrary(APIGatewayProxyEvent),
-                arbitrary(KinesisStreamEvent),
-                arbitrary(S3Event),
+                arbitrary(EventBridgeSchema),
+                arbitrary(KinesisFirehoseSchema),
+                arbitrary(APIGatewayProxyEventSchema),
+                arbitrary(APIGatewayProxyEventV2Schema),
+                arbitrary(KinesisDataStreamSchema),
+                arbitrary(S3Schema),
                 arbitrary(S3BatchEvent),
                 arbitrary(SecretRotationEvent),
-                arbitrary(SNSEvent),
+                arbitrary(SnsSchema),
                 // arbitrary(SQSEvent)
             ).filter((e) => !('Records' in e) || e.Records.length > 0),
             unknown(),

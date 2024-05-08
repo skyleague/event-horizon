@@ -1,28 +1,6 @@
-import { $array, $number, $object, $ref, $string, $validator } from '@skyleague/therefore'
+import { KinesisDataStreamSchema } from '@aws-lambda-powertools/parser/schemas'
+import { $ref } from '@skyleague/therefore'
 
-export const kinesisStreamRecordPayload = $object({
-    approximateArrivalTimestamp: $number,
-    data: $string,
-    kinesisSchemaVersion: $string,
-    partitionKey: $string,
-    sequenceNumber: $string,
-})
-
-export const kinesisStreamRecord = $validator(
-    $object({
-        awsRegion: $string,
-        eventID: $string,
-        eventName: $string,
-        eventSource: $string,
-        eventSourceARN: $string,
-        eventVersion: $string,
-        invokeIdentityArn: $string,
-        kinesis: $ref(kinesisStreamRecordPayload),
-    }),
-)
-
-export const kinesisStreamEvent = $validator(
-    $object({
-        Records: $array($ref(kinesisStreamRecord)),
-    }),
-)
+export const kinesisDataStreamSchema = $ref(KinesisDataStreamSchema).validator()
+export const kinesisDataStreamRecord = kinesisDataStreamSchema.shape.Records.element.validator()
+export const kinesisDataStreamRecordPayload = kinesisDataStreamRecord.shape.kinesis

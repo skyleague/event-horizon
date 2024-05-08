@@ -4,7 +4,8 @@ import type { EventHandlerDefinition, LambdaContext } from '../types.js'
 
 import type { Promisable, Try } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
-import type { APIGatewayProxyEvent, APIGatewayProxyEventV2 } from 'aws-lambda'
+import type { APIGatewayProxyEventV2Schema } from '../../dev/aws/apigateway/http.type.js'
+import type { APIGatewayProxyEventSchema } from '../../dev/aws/apigateway/rest.type.js'
 
 export type HTTPMethod = 'delete' | 'get' | 'head' | 'options' | 'patch' | 'post' | 'put' | 'trace'
 export type HTTPHeaders = Record<string, string | undefined>
@@ -16,13 +17,13 @@ export interface HTTPRequest<
     Path = HTTPPathParameters | undefined,
     Query = HTTPQueryParameters | undefined,
     Headers = HTTPHeaders | undefined,
-    GV extends GatewayVersion = 'http',
+    GV extends GatewayVersion = 'http' | 'rest',
 > {
     body: Body
     headers: Headers
     query: Query
     path: Path
-    raw: GV extends 'http' ? APIGatewayProxyEvent : APIGatewayProxyEventV2
+    readonly raw: GV extends 'http' ? APIGatewayProxyEventV2Schema : APIGatewayProxyEventSchema
 }
 
 export interface HTTPResponse<Result = unknown> {
@@ -42,7 +43,7 @@ export interface HTTPEventHandler<
     Query = unknown,
     Headers = unknown,
     Result = unknown,
-    GV extends GatewayVersion = 'http',
+    GV extends GatewayVersion = 'http' | 'rest',
 > {
     method: HTTPMethod
     path: `/${string}`
@@ -74,7 +75,7 @@ export interface HTTPHandler<
     Query = unknown,
     Headers = unknown,
     Result = unknown,
-    GV extends GatewayVersion = 'http',
+    GV extends GatewayVersion = 'http' | 'rest',
 > extends EventHandlerDefinition<Configuration, Service, Profile> {
     http: HTTPEventHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, GV>
     serialize?: {

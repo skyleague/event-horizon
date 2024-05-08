@@ -7,4 +7,4 @@ import { memoize } from '@skyleague/axioms'
  * @group Services
  * @internal
  */
-export const createAppConfigData = memoize<AppConfigData>(() => tracer.captureAWSv3Client(new AppConfigData({})))
+export const createAppConfigData = memoize(() => tracer.captureAWSv3Client(new AppConfigData({})))

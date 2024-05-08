@@ -7,11 +7,11 @@ import type { DefaultServices } from '../types.js'
 
 export function rawHandler<Configuration, Service extends DefaultServices | undefined, Profile, Payload, Result, D>(
     definition: D & RawHandler<Configuration, Service, Profile, Payload, Result>,
-    { kernel = handleRawEvent }: { kernel?: typeof handleRawEvent } = {},
+    { _kernel = handleRawEvent }: { _kernel?: typeof handleRawEvent } = {},
 ): D & EventHandlerFn<Configuration, Service, Profile, Result> {
     return eventHandler(definition, {
         handler: (request, context) => {
-            return kernel(definition, request, context)
+            return _kernel(definition, request, context)
         },
     }) as D & EventHandlerFn<Configuration, Service, Profile, Result>
 }

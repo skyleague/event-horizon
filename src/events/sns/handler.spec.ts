@@ -1,24 +1,21 @@
-import { handleSNSEvent } from './handler.js'
-
-import { SNSEvent } from '../../dev/aws/sns/sns.type.js'
-import { EventError } from '../../errors/event-error/event-error.js'
-import { context } from '../../test/context/context.js'
-
 import { asyncForAll, enumerate, failure, json, random, tuple } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
 import { arbitrary } from '@skyleague/therefore'
-import type { SNSEventRecord } from 'aws-lambda/trigger/sns.js'
 import { expect, it, vi } from 'vitest'
+import { type SnsRecordSchema, SnsSchema } from '../../dev/aws/sns/sns.type.js'
+import { EventError } from '../../errors/event-error/event-error.js'
+import { context } from '../../test/context/context.js'
+import { handleSNSEvent } from './handler.js'
 
 it('binary events does not give failures', async () => {
-    await asyncForAll(tuple(arbitrary(SNSEvent), await context()), async ([{ Records }, ctx]) => {
+    await asyncForAll(tuple(arbitrary(SnsSchema), await context()), async ([{ Records }, ctx]) => {
         ctx.mockClear()
 
         const handler = vi.fn()
 
         const response = await handleSNSEvent(
             { sns: { schema: {}, handler, payloadType: 'binary' } },
-            Records as SNSEventRecord[],
+            Records as SnsRecordSchema[],
             ctx,
         )
 
@@ -41,13 +38,13 @@ it('binary events does not give failures', async () => {
 })
 
 it('plaintext events does not give failures', async () => {
-    await asyncForAll(tuple(arbitrary(SNSEvent), await context()), async ([{ Records }, ctx]) => {
+    await asyncForAll(tuple(arbitrary(SnsSchema), await context()), async ([{ Records }, ctx]) => {
         ctx.mockClear()
 
         const handler = vi.fn()
         const response = await handleSNSEvent(
             { sns: { schema: {}, handler, payloadType: 'plaintext' } },
-            Records as SNSEventRecord[],
+            Records as SnsRecordSchema[],
             ctx,
         )
 
@@ -71,7 +68,7 @@ it('plaintext events does not give failures', async () => {
 
 it('json events does not give failures', async () => {
     await asyncForAll(
-        tuple(arbitrary(SNSEvent), await context()).map(([e, ctx]) => {
+        tuple(arbitrary(SnsSchema), await context()).map(([e, ctx]) => {
             for (const record of e.Records) {
                 record.Sns.Message = JSON.stringify(random(json({})))
             }
@@ -81,7 +78,7 @@ it('json events does not give failures', async () => {
             ctx.mockClear()
 
             const handler = vi.fn()
-            const response = await handleSNSEvent({ sns: { schema: {}, handler } }, Records as SNSEventRecord[], ctx)
+            const response = await handleSNSEvent({ sns: { schema: {}, handler } }, Records as SnsRecordSchema[], ctx)
 
             expect(response).toEqual(undefined)
 
@@ -104,7 +101,7 @@ it('json events does not give failures', async () => {
 
 it('json parse failure, gives failure', async () => {
     await asyncForAll(
-        tuple(arbitrary(SNSEvent), await context()).map(([e, ctx]) => {
+        tuple(arbitrary(SnsSchema), await context()).map(([e, ctx]) => {
             for (const record of e.Records) {
                 record.Sns.Message = `${JSON.stringify(random(json({})))}{`
             }
@@ -114,7 +111,7 @@ it('json parse failure, gives failure', async () => {
             ctx.mockClear()
 
             const handler = vi.fn()
-            const response = await handleSNSEvent({ sns: { schema: {}, handler } }, Records as SNSEventRecord[], ctx)
+            const response = await handleSNSEvent({ sns: { schema: {}, handler } }, Records as SnsRecordSchema[], ctx)
 
             if (Records.length > 0) {
                 expect(response).toEqual(expect.any(SyntaxError))
@@ -146,7 +143,7 @@ it('schema validation, gives failure', async () => {
         errors: [],
     } as unknown as Schema<string>
     await asyncForAll(
-        tuple(arbitrary(SNSEvent), await context()).map(([e, ctx]) => {
+        tuple(arbitrary(SnsSchema), await context()).map(([e, ctx]) => {
             for (const record of e.Records) {
                 record.Sns.Message = JSON.stringify(random(json({})))
             }
@@ -158,7 +155,7 @@ it('schema validation, gives failure', async () => {
             const handler = vi.fn()
             const response = await handleSNSEvent(
                 { sns: { schema: { payload: neverTrue }, handler } },
-                Records as SNSEventRecord[],
+                Records as SnsRecordSchema[],
                 ctx,
             )
 
@@ -188,13 +185,13 @@ it('schema validation, gives failure', async () => {
 })
 
 it.each([new Error(), EventError.badRequest(), 'foobar'])('promise reject with Error, gives failure', async (error) => {
-    await asyncForAll(tuple(arbitrary(SNSEvent), await context()), async ([{ Records }, ctx]) => {
+    await asyncForAll(tuple(arbitrary(SnsSchema), await context()), async ([{ Records }, ctx]) => {
         ctx.mockClear()
 
         const handler = vi.fn().mockRejectedValue(error)
         const response = await handleSNSEvent(
             { sns: { schema: {}, handler, payloadType: 'binary' } },
-            Records as SNSEventRecord[],
+            Records as SnsRecordSchema[],
             ctx,
         )
 
@@ -225,7 +222,7 @@ it.each([new Error(), EventError.badRequest(), 'foobar'])('promise reject with E
 })
 
 it.each([new Error(), EventError.badRequest(), 'foobar'])('promise throws with Error, gives failure', async (error) => {
-    await asyncForAll(tuple(arbitrary(SNSEvent), await context()), async ([{ Records }, ctx]) => {
+    await asyncForAll(tuple(arbitrary(SnsSchema), await context()), async ([{ Records }, ctx]) => {
         ctx.mockClear()
 
         const handler = vi.fn().mockImplementation(() => {
@@ -233,7 +230,7 @@ it.each([new Error(), EventError.badRequest(), 'foobar'])('promise throws with E
         })
         const response = await handleSNSEvent(
             { sns: { schema: {}, handler, payloadType: 'binary' } },
-            Records as SNSEventRecord[],
+            Records as SnsRecordSchema[],
             ctx,
         )
 

@@ -1,14 +1,15 @@
 import type { EventBridgeEvent, EventBridgeHandler } from '../../../events/eventbridge/types.js'
-import { EventBridgeEvent as AWSEventBridgeEvent } from '../../aws/eventbridge/eventbridge.type.js'
+import { EventBridgeSchema } from '../../aws/eventbridge/eventbridge.type.js'
 
 import type { Dependent } from '@skyleague/axioms'
 import { tuple, unknown } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
 
-export function eventBridgeEvent<Configuration, Service, Profile, Payload, Result>({
-    eventBridge,
-}: EventBridgeHandler<Configuration, Service, Profile, Payload, Result>): Dependent<EventBridgeEvent<Payload>> {
-    const record = arbitrary(AWSEventBridgeEvent)
+export function eventBridgeEvent<Configuration, Service, Profile, Payload, Result>(
+    { eventBridge }: EventBridgeHandler<Configuration, Service, Profile, Payload, Result>,
+    { generation = 'fast' }: { generation?: 'full' | 'fast' } = {},
+): Dependent<EventBridgeEvent<Payload>> {
+    const record = arbitrary(EventBridgeSchema).constant(generation === 'fast')
     const payload = eventBridge.schema.payload !== undefined ? arbitrary(eventBridge.schema.payload) : unknown()
     return tuple(record, payload).map(([r, p]) => ({
         raw: r,

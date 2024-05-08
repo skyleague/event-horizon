@@ -1,8 +1,7 @@
-import type { EventHandlerDefinition, LambdaContext } from '../types.js'
-
 import type { Promisable, Try } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
 import type { S3BatchEvent, S3BatchEventTask, S3BatchResultResultCode } from 'aws-lambda'
+import type { EventHandlerDefinition, LambdaContext } from '../types.js'
 
 export interface S3BatchTaskResult<Result = unknown> {
     status: S3BatchResultResultCode
@@ -14,7 +13,7 @@ export interface S3BatchTask {
     s3Key: string
     s3VersionId: string | undefined
     s3BucketArn: string
-    raw: { task: S3BatchEventTask; job: Omit<S3BatchEvent, 'tasks'> }
+    readonly raw: { task: S3BatchEventTask; job: Omit<S3BatchEvent, 'tasks'> }
 }
 
 export interface S3BatchEventHandler<Configuration = unknown, Service = unknown, Profile = unknown, Result = unknown> {

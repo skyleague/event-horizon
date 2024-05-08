@@ -12,9 +12,9 @@ import type { Try } from '@skyleague/axioms'
 import { enumerate, isSuccess, mapTry, transformTry } from '@skyleague/axioms'
 import type {
     FirehoseTransformationResult as AWSFirehoseTransformationResult,
-    FirehoseTransformationEventRecord,
     FirehoseTransformationResultRecord,
 } from 'aws-lambda'
+import type { KinesisFirehoseRecord } from '../../dev/aws/firehose/firehose.type.js'
 
 export async function handleFirehoseTransformation<
     const Configuration,
@@ -24,7 +24,7 @@ export async function handleFirehoseTransformation<
     const Result,
 >(
     handler: FirehoseTransformationHandler<Configuration, Service, Profile, Payload, Result>,
-    events: FirehoseTransformationEventRecord[],
+    events: KinesisFirehoseRecord[],
     context: LambdaContext<Configuration, Service, Profile>,
 ): Promise<Try<AWSFirehoseTransformationResult>> {
     const { firehose } = handler

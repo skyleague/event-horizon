@@ -6,62 +6,61 @@
 
 import type { DefinedError, ValidateFunction } from 'ajv'
 
-import { validate as KinesisStreamEventValidator } from './schemas/kinesis-stream-event.schema.js'
-import { validate as KinesisStreamRecordValidator } from './schemas/kinesis-stream-record.schema.js'
+import { validate as KinesisDataStreamRecordValidator } from './schemas/kinesis-data-stream-record.schema.js'
+import { validate as KinesisDataStreamSchemaValidator } from './schemas/kinesis-data-stream-schema.schema.js'
 
-export interface KinesisStreamEvent {
-    Records: KinesisStreamRecord[]
-}
-
-export const KinesisStreamEvent = {
-    validate: KinesisStreamEventValidator as ValidateFunction<KinesisStreamEvent>,
-    get schema() {
-        return KinesisStreamEvent.validate.schema
-    },
-    get errors() {
-        return KinesisStreamEvent.validate.errors ?? undefined
-    },
-    is: (o: unknown): o is KinesisStreamEvent => KinesisStreamEvent.validate(o) === true,
-    parse: (o: unknown): { right: KinesisStreamEvent } | { left: DefinedError[] } => {
-        if (KinesisStreamEvent.is(o)) {
-            return { right: o }
-        }
-        return { left: (KinesisStreamEvent.errors ?? []) as DefinedError[] }
-    },
-} as const
-
-export interface KinesisStreamRecord {
-    awsRegion: string
-    eventID: string
-    eventName: string
-    eventSource: string
-    eventSourceARN: string
+export interface KinesisDataStreamRecord {
+    eventSource: 'aws:kinesis'
     eventVersion: string
+    eventID: string
+    eventName: 'aws:kinesis:record'
     invokeIdentityArn: string
-    kinesis: KinesisStreamRecordPayload
+    eventSourceARN: string
+    kinesis: KinesisDataStreamRecordPayload
 }
 
-export const KinesisStreamRecord = {
-    validate: KinesisStreamRecordValidator as ValidateFunction<KinesisStreamRecord>,
+export const KinesisDataStreamRecord = {
+    validate: KinesisDataStreamRecordValidator as ValidateFunction<KinesisDataStreamRecord>,
     get schema() {
-        return KinesisStreamRecord.validate.schema
+        return KinesisDataStreamRecord.validate.schema
     },
     get errors() {
-        return KinesisStreamRecord.validate.errors ?? undefined
+        return KinesisDataStreamRecord.validate.errors ?? undefined
     },
-    is: (o: unknown): o is KinesisStreamRecord => KinesisStreamRecord.validate(o) === true,
-    parse: (o: unknown): { right: KinesisStreamRecord } | { left: DefinedError[] } => {
-        if (KinesisStreamRecord.is(o)) {
+    is: (o: unknown): o is KinesisDataStreamRecord => KinesisDataStreamRecord.validate(o) === true,
+    parse: (o: unknown): { right: KinesisDataStreamRecord } | { left: DefinedError[] } => {
+        if (KinesisDataStreamRecord.is(o)) {
             return { right: o }
         }
-        return { left: (KinesisStreamRecord.errors ?? []) as DefinedError[] }
+        return { left: (KinesisDataStreamRecord.errors ?? []) as DefinedError[] }
     },
 } as const
 
-export interface KinesisStreamRecordPayload {
-    approximateArrivalTimestamp: number
-    data: string
+export interface KinesisDataStreamRecordPayload {
     kinesisSchemaVersion: string
     partitionKey: string
     sequenceNumber: string
+    approximateArrivalTimestamp: number
+    data: string
 }
+
+export interface KinesisDataStreamSchema {
+    Records: KinesisDataStreamRecord[]
+}
+
+export const KinesisDataStreamSchema = {
+    validate: KinesisDataStreamSchemaValidator as ValidateFunction<KinesisDataStreamSchema>,
+    get schema() {
+        return KinesisDataStreamSchema.validate.schema
+    },
+    get errors() {
+        return KinesisDataStreamSchema.validate.errors ?? undefined
+    },
+    is: (o: unknown): o is KinesisDataStreamSchema => KinesisDataStreamSchema.validate(o) === true,
+    parse: (o: unknown): { right: KinesisDataStreamSchema } | { left: DefinedError[] } => {
+        if (KinesisDataStreamSchema.is(o)) {
+            return { right: o }
+        }
+        return { left: (KinesisDataStreamSchema.errors ?? []) as DefinedError[] }
+    },
+} as const

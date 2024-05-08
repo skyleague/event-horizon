@@ -6,13 +6,13 @@ import { arbitrary } from '@skyleague/therefore'
 import type { FirehoseTransformationEventRecord } from 'aws-lambda/trigger/kinesis-firehose-transformation.js'
 import { expect, it, vi } from 'vitest'
 import { alwaysTrueSchema, neverTrueSchema } from '../../../test/schema.js'
-import { FirehoseTransformationEvent } from '../../dev/aws/firehose/firehose.type.js'
+import { KinesisFirehoseSchema } from '../../dev/aws/firehose/firehose.type.js'
 import { EventError } from '../../errors/event-error/event-error.js'
 import { context } from '../../test/context/context.js'
 
 it('binary events does not give failures', async () => {
     await asyncForAll(
-        tuple(arbitrary(FirehoseTransformationEvent), await context()).map(([e, ctx]) => {
+        tuple(arbitrary(KinesisFirehoseSchema), await context()).map(([e, ctx]) => {
             const results: JsonValue[] = []
             for (const record of e.records) {
                 record.data = Buffer.from(record.data).toString('base64')
@@ -67,7 +67,7 @@ it('binary events does not give failures', async () => {
 
 it('plaintext events does not give failures', async () => {
     await asyncForAll(
-        tuple(arbitrary(FirehoseTransformationEvent), await context()).map(([e, ctx]) => {
+        tuple(arbitrary(KinesisFirehoseSchema), await context()).map(([e, ctx]) => {
             const results: JsonValue[] = []
             for (const record of e.records) {
                 record.data = Buffer.from(record.data).toString('base64')
@@ -121,7 +121,7 @@ it('plaintext events does not give failures', async () => {
 
 it('json events does not give failures', async () => {
     await asyncForAll(
-        tuple(arbitrary(FirehoseTransformationEvent), await context()).map(([e, ctx]) => {
+        tuple(arbitrary(KinesisFirehoseSchema), await context()).map(([e, ctx]) => {
             const results: JsonValue[] = []
             for (const record of e.records) {
                 record.data = Buffer.from(JSON.stringify(random(json()))).toString('base64')
@@ -175,7 +175,7 @@ it('json events does not give failures', async () => {
 
 it('json parse failure, gives failure', async () => {
     await asyncForAll(
-        tuple(arbitrary(FirehoseTransformationEvent), await context()).map(([e, ctx]) => {
+        tuple(arbitrary(KinesisFirehoseSchema), await context()).map(([e, ctx]) => {
             const results: JsonValue[] = []
             for (const record of e.records) {
                 record.data = Buffer.from(`${JSON.stringify(random(json()))}{`).toString('base64')
@@ -226,7 +226,7 @@ it('json parse failure, gives failure', async () => {
 
 it('payload schema validation, gives failure', async () => {
     await asyncForAll(
-        tuple(arbitrary(FirehoseTransformationEvent), await context({})).map(([e, ctx]) => {
+        tuple(arbitrary(KinesisFirehoseSchema), await context({})).map(([e, ctx]) => {
             const results: JsonValue[] = []
             for (const record of e.records) {
                 record.data = Buffer.from(JSON.stringify(random(json()))).toString('base64')
@@ -278,7 +278,7 @@ it('payload schema validation, gives failure', async () => {
 
 it('result schema validation, gives failure', async () => {
     await asyncForAll(
-        tuple(arbitrary(FirehoseTransformationEvent), await context({})).map(([e, ctx]) => {
+        tuple(arbitrary(KinesisFirehoseSchema), await context({})).map(([e, ctx]) => {
             const results: JsonValue[] = []
             for (const record of e.records) {
                 record.data = Buffer.from(JSON.stringify(random(json()))).toString('base64')
@@ -329,7 +329,7 @@ it('result schema validation, gives failure', async () => {
 })
 
 it.each([new Error(), 'foobar'])('promise reject with Error, gives failure', async (error) => {
-    await asyncForAll(tuple(arbitrary(FirehoseTransformationEvent), await context({})), async ([{ records }, ctx]) => {
+    await asyncForAll(tuple(arbitrary(KinesisFirehoseSchema), await context({})), async ([{ records }, ctx]) => {
         ctx.mockClear()
 
         const handler = vi.fn().mockRejectedValue(error)
@@ -366,7 +366,7 @@ it.each([new Error(), 'foobar'])('promise reject with Error, gives failure', asy
 })
 
 it.each([EventError.badRequest()])('promise reject with client error, gives errors', async (error) => {
-    await asyncForAll(tuple(arbitrary(FirehoseTransformationEvent), await context({})), async ([{ records }, ctx]) => {
+    await asyncForAll(tuple(arbitrary(KinesisFirehoseSchema), await context({})), async ([{ records }, ctx]) => {
         ctx.mockClear()
 
         const handler = vi.fn().mockRejectedValue(error)
@@ -403,7 +403,7 @@ it.each([EventError.badRequest()])('promise reject with client error, gives erro
 })
 
 it.each([new Error(), 'foobar'])('promise throws with Error, gives failure', async (error) => {
-    await asyncForAll(tuple(arbitrary(FirehoseTransformationEvent), await context({})), async ([{ records }, ctx]) => {
+    await asyncForAll(tuple(arbitrary(KinesisFirehoseSchema), await context({})), async ([{ records }, ctx]) => {
         ctx.mockClear()
 
         const handler = vi.fn().mockImplementation(() => {
@@ -442,7 +442,7 @@ it.each([new Error(), 'foobar'])('promise throws with Error, gives failure', asy
 })
 
 it.each([EventError.badRequest()])('promise throws with client error, gives errors', async (error) => {
-    await asyncForAll(tuple(arbitrary(FirehoseTransformationEvent), await context({})), async ([{ records }, ctx]) => {
+    await asyncForAll(tuple(arbitrary(KinesisFirehoseSchema), await context({})), async ([{ records }, ctx]) => {
         ctx.mockClear()
 
         const handler = vi.fn().mockImplementation(() => {

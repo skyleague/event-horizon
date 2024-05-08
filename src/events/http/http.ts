@@ -10,7 +10,7 @@ import type { DefaultServices } from '../types.js'
 
 function findHeader(name: string) {
     return (request: RawRequest) =>
-        Object.entries(typeof request === 'object' && request !== null && 'headers' in request ? request.headers : {}).find(
+        Object.entries(typeof request === 'object' && request !== null && 'headers' in request ? request.headers ?? {} : {}).find(
             ([n]) => n.toLowerCase() === name.toLowerCase(),
         )?.[1]
 }
@@ -27,12 +27,12 @@ export function restApiHandler<
     const D,
 >(
     definition: D & HTTPHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, 'rest'>,
-    { kernel = handleHTTPEvent }: { kernel?: typeof handleHTTPEvent } = {},
+    { _kernel = handleHTTPEvent }: { _kernel?: typeof handleHTTPEvent } = {},
 ): D & EventHandlerFn<Configuration, Service, Profile> {
     return eventHandler(definition, {
         handler: (request, context) => {
             if (typeof request === 'object' && request !== null && 'headers' in request) {
-                return kernel(definition, request, context)
+                return _kernel(definition, request, context)
             }
             throw EventError.unexpectedEventType()
         },
@@ -52,13 +52,13 @@ export function httpApiHandler<
     const Result,
     const D,
 >(
-    definition: D & HTTPHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result>,
-    { kernel = handleHTTPEvent }: { kernel?: typeof handleHTTPEvent } = {},
+    definition: D & HTTPHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, 'http'>,
+    { _kernel = handleHTTPEvent }: { _kernel?: typeof handleHTTPEvent } = {},
 ): D & EventHandlerFn<Configuration, Service, Profile> {
     return eventHandler(definition, {
         handler: (request, context) => {
             if (typeof request === 'object' && request !== null && 'headers' in request) {
-                return kernel(definition, request, context)
+                return _kernel(definition, request, context)
             }
             throw EventError.unexpectedEventType()
         },

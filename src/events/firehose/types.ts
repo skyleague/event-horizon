@@ -1,8 +1,8 @@
-import type { EventHandlerDefinition, LambdaContext } from '../types.js'
-
 import type { Promisable, Try } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
-import type { FirehoseRecordTransformationStatus, FirehoseTransformationEventRecord } from 'aws-lambda'
+import type { FirehoseRecordTransformationStatus } from 'aws-lambda'
+import type { KinesisFirehoseRecord } from '../../dev/aws/firehose/firehose.type.js'
+import type { EventHandlerDefinition, LambdaContext } from '../types.js'
 
 export interface FirehoseTransformationResult<Payload = unknown> {
     status: FirehoseRecordTransformationStatus
@@ -11,7 +11,7 @@ export interface FirehoseTransformationResult<Payload = unknown> {
 
 export interface FirehoseTransformationEvent<Payload = unknown> {
     payload: Payload
-    raw: FirehoseTransformationEventRecord
+    readonly raw: KinesisFirehoseRecord
 }
 
 export interface FirehoseTransformationEventHandler<

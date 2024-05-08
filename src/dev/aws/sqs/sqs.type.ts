@@ -6,78 +6,78 @@
 
 import type { DefinedError, ValidateFunction } from 'ajv'
 
-import { validate as SQSEventValidator } from './schemas/sqs-event.schema.js'
-import { validate as SQSRecordValidator } from './schemas/sqs-record.schema.js'
+import { validate as SqsRecordSchemaValidator } from './schemas/sqs-record-schema.schema.js'
+import { validate as SqsSchemaValidator } from './schemas/sqs-schema.schema.js'
 
-export interface SQSEvent {
-    Records: SQSRecord[]
+export interface SqsAttributesSchema {
+    ApproximateReceiveCount: string
+    ApproximateFirstReceiveTimestamp: string
+    MessageDeduplicationId?: string | undefined
+    MessageGroupId?: string | undefined
+    SenderId: string
+    SentTimestamp: string
+    SequenceNumber?: string | undefined
+    AWSTraceHeader?: string | undefined
+    DeadLetterQueueSourceArn?: string | undefined
 }
 
-export const SQSEvent = {
-    validate: SQSEventValidator as ValidateFunction<SQSEvent>,
-    get schema() {
-        return SQSEvent.validate.schema
-    },
-    get errors() {
-        return SQSEvent.validate.errors ?? undefined
-    },
-    is: (o: unknown): o is SQSEvent => SQSEvent.validate(o) === true,
-    parse: (o: unknown): { right: SQSEvent } | { left: DefinedError[] } => {
-        if (SQSEvent.is(o)) {
-            return { right: o }
-        }
-        return { left: (SQSEvent.errors ?? []) as DefinedError[] }
-    },
-} as const
-
-export interface SQSMessageAttribute {
+export interface SqsMsgAttributeSchema {
     stringValue?: string | undefined
     binaryValue?: string | undefined
     stringListValues?: string[] | undefined
     binaryListValues?: string[] | undefined
-    dataType: 'String' | 'Number' | 'Binary' | string
+    dataType: string
 }
 
-export interface SQSMessageAttributes {
-    [k: string]: SQSMessageAttribute | undefined
-}
-
-export interface SQSRecord {
+export interface SqsRecordSchema {
     messageId: string
     receiptHandle: string
     body: string
-    attributes: SQSRecordAttributes
-    messageAttributes: SQSMessageAttributes
+    attributes: SqsAttributesSchema
+    messageAttributes: {
+        [k: string]: SqsMsgAttributeSchema | undefined
+    }
     md5OfBody: string
-    eventSource: string
+    md5OfMessageAttributes?: string | null | undefined
+    eventSource: 'aws:sqs'
     eventSourceARN: string
     awsRegion: string
 }
 
-export const SQSRecord = {
-    validate: SQSRecordValidator as ValidateFunction<SQSRecord>,
+export const SqsRecordSchema = {
+    validate: SqsRecordSchemaValidator as ValidateFunction<SqsRecordSchema>,
     get schema() {
-        return SQSRecord.validate.schema
+        return SqsRecordSchema.validate.schema
     },
     get errors() {
-        return SQSRecord.validate.errors ?? undefined
+        return SqsRecordSchema.validate.errors ?? undefined
     },
-    is: (o: unknown): o is SQSRecord => SQSRecord.validate(o) === true,
-    parse: (o: unknown): { right: SQSRecord } | { left: DefinedError[] } => {
-        if (SQSRecord.is(o)) {
+    is: (o: unknown): o is SqsRecordSchema => SqsRecordSchema.validate(o) === true,
+    parse: (o: unknown): { right: SqsRecordSchema } | { left: DefinedError[] } => {
+        if (SqsRecordSchema.is(o)) {
             return { right: o }
         }
-        return { left: (SQSRecord.errors ?? []) as DefinedError[] }
+        return { left: (SqsRecordSchema.errors ?? []) as DefinedError[] }
     },
 } as const
 
-export interface SQSRecordAttributes {
-    AWSTraceHeader?: string | undefined
-    ApproximateReceiveCount: string
-    SentTimestamp: string
-    SenderId: string
-    ApproximateFirstReceiveTimestamp: string
-    SequenceNumber?: string | undefined
-    MessageGroupId?: string | undefined
-    MessageDeduplicationId?: string | undefined
+export interface SqsSchema {
+    Records: SqsRecordSchema[]
 }
+
+export const SqsSchema = {
+    validate: SqsSchemaValidator as ValidateFunction<SqsSchema>,
+    get schema() {
+        return SqsSchema.validate.schema
+    },
+    get errors() {
+        return SqsSchema.validate.errors ?? undefined
+    },
+    is: (o: unknown): o is SqsSchema => SqsSchema.validate(o) === true,
+    parse: (o: unknown): { right: SqsSchema } | { left: DefinedError[] } => {
+        if (SqsSchema.is(o)) {
+            return { right: o }
+        }
+        return { left: (SqsSchema.errors ?? []) as DefinedError[] }
+    },
+} as const

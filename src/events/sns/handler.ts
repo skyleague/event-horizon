@@ -1,18 +1,16 @@
-import { snsParseEvent } from './functions/parse-event.js'
-import type { SNSEvent, SNSHandler } from './types.js'
-
+import type { Try } from '@skyleague/axioms'
+import { enumerate, isFailure, mapTry } from '@skyleague/axioms'
+import type { SnsRecordSchema } from '../../dev/aws/sns/sns.type.js'
 import { ioLoggerChild } from '../functions/io-logger-child.js'
 import { ioLogger } from '../functions/io-logger.js'
 import { ioValidate } from '../functions/io-validate.js'
 import type { LambdaContext } from '../types.js'
-
-import type { Try } from '@skyleague/axioms'
-import { enumerate, isFailure, mapTry } from '@skyleague/axioms'
-import type { SNSEventRecord } from 'aws-lambda'
+import { snsParseEvent } from './functions/parse-event.js'
+import type { SNSEvent, SNSHandler } from './types.js'
 
 export async function handleSNSEvent<Configuration, Service, Profile, Payload>(
     handler: SNSHandler<Configuration, Service, Profile, Payload>,
-    events: SNSEventRecord[],
+    events: SnsRecordSchema[],
     context: LambdaContext<Configuration, Service, Profile>,
 ): Promise<Try<void>> {
     const { sns } = handler

@@ -1,11 +1,11 @@
+import type { KinesisStreamBatchItemFailure } from 'aws-lambda'
+import type { KinesisDataStreamRecord } from '../../../dev/aws/kinesis/kinesis.type.js'
 import { EventError } from '../../../errors/event-error/event-error.js'
 import type { LambdaContext } from '../../types.js'
 
-import type { KinesisStreamBatchItemFailure, KinesisStreamRecord } from 'aws-lambda'
-
 export function kinesisErrorHandler({ logger, isSensitive }: Pick<LambdaContext, 'logger' | 'isSensitive'>) {
     return {
-        onError: (original: KinesisStreamRecord, error: Error | unknown): KinesisStreamBatchItemFailure => {
+        onError: (original: KinesisDataStreamRecord, error: Error | unknown): KinesisStreamBatchItemFailure => {
             if (!isSensitive) {
                 EventError.log(logger, error, 'error')
             }

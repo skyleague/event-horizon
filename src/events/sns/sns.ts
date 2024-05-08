@@ -1,20 +1,18 @@
-import { handleSNSEvent } from './handler.js'
-import type { SNSHandler } from './types.js'
-
+import type { SnsRecordSchema } from '../../dev/aws/sns/sns.type.js'
 import { EventError } from '../../errors/event-error/event-error.js'
 import { type EventHandlerFn, eventHandler } from '../common/event.js'
 import type { DefaultServices } from '../types.js'
-
-import type { SNSEventRecord } from 'aws-lambda'
+import { handleSNSEvent } from './handler.js'
+import type { SNSHandler } from './types.js'
 
 export function snsHandler<Configuration, Service extends DefaultServices | undefined, Profile, Payload, D>(
     definition: D & SNSHandler<Configuration, Service, Profile, Payload>,
-    { kernel = handleSNSEvent }: { kernel?: typeof handleSNSEvent } = {},
+    { _kernel = handleSNSEvent }: { _kernel?: typeof handleSNSEvent } = {},
 ): D & EventHandlerFn<Configuration, Service, Profile> {
     return eventHandler(definition, {
         handler: (request, context) => {
             if (typeof request === 'object' && request !== null && 'Records' in request) {
-                const records: SNSEventRecord[] = []
+                const records: SnsRecordSchema[] = []
                 const other: unknown[] = []
                 for (const record of request.Records) {
                     if ('Sns' in record) {
@@ -26,7 +24,7 @@ export function snsHandler<Configuration, Service extends DefaultServices | unde
                 if (other.length > 0) {
                     throw EventError.unexpectedEventType()
                 }
-                return kernel(definition, records, context)
+                return _kernel(definition, records, context)
             }
             throw EventError.unexpectedEventType()
         },

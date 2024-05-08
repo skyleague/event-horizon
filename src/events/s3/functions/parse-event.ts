@@ -1,10 +1,9 @@
+import type { S3RecordSchema } from '../../../dev/aws/s3/s3.type.js'
 import type { S3Event } from '../types.js'
-
-import type { S3EventRecord } from 'aws-lambda'
 
 export function s3ParseEvent() {
     return {
-        before: (event: S3EventRecord): S3Event => {
+        before: (event: S3RecordSchema): S3Event => {
             return {
                 raw: event,
             }

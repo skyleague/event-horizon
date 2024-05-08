@@ -1,20 +1,19 @@
 import { handleS3Event } from './handler.js'
 import type { S3Handler } from './types.js'
 
+import type { S3RecordSchema } from '../../dev/aws/s3/s3.type.js'
 import { EventError } from '../../errors/event-error/event-error.js'
 import { type EventHandlerFn, eventHandler } from '../common/event.js'
 import type { DefaultServices } from '../types.js'
 
-import type { S3EventRecord } from 'aws-lambda'
-
 export function s3Handler<Configuration, Service extends DefaultServices | undefined, Profile, D>(
     definition: D & S3Handler<Configuration, Service, Profile>,
-    { kernel = handleS3Event }: { kernel?: typeof handleS3Event } = {},
+    { _kernel = handleS3Event }: { _kernel?: typeof handleS3Event } = {},
 ): D & EventHandlerFn<Configuration, Service, Profile> {
     return eventHandler(definition, {
         handler: (request, context) => {
             if (typeof request === 'object' && request !== null && 'Records' in request) {
-                const records: S3EventRecord[] = []
+                const records: S3RecordSchema[] = []
                 const other: unknown[] = []
                 for (const record of request.Records) {
                     if ('s3' in record) {
@@ -26,7 +25,7 @@ export function s3Handler<Configuration, Service extends DefaultServices | undef
                 if (other.length > 0) {
                     throw EventError.unexpectedEventType()
                 }
-                return kernel(definition, records, context)
+                return _kernel(definition, records, context)
             }
             throw EventError.unexpectedEventType()
         },

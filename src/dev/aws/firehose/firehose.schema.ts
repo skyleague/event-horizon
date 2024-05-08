@@ -1,29 +1,6 @@
-import { $array, $integer, $object, $optional, $ref, $string, $validator } from '@skyleague/therefore'
+import { KinesisFirehoseSchema } from '@aws-lambda-powertools/parser/schemas'
+import { $ref } from '@skyleague/therefore'
 
-export const firehoseRecordMetadata = $object({
-    shardId: $string,
-    partitionKey: $string,
-    approximateArrivalTimestamp: $integer,
-    sequenceNumber: $string,
-    subsequenceNumber: $string,
-})
-
-export const firehoseTransformationEventRecord = $validator(
-    $object({
-        recordId: $string,
-        approximateArrivalTimestamp: $integer,
-        // Base64 encoded
-        data: $string,
-        kinesisRecordMetadata: $optional($ref(firehoseRecordMetadata)),
-    }),
-)
-
-export const firehoseTransformationEvent = $validator(
-    $object({
-        invocationId: $string,
-        deliveryStreamArn: $string,
-        sourceKinesisStreamArn: $optional($string),
-        region: $string,
-        records: $array($ref(firehoseTransformationEventRecord)),
-    }),
-)
+export const kinesisFirehoseSchema = $ref(KinesisFirehoseSchema).validator()
+export const kinesisFirehoseRecord = kinesisFirehoseSchema.shape.records.element.validator()
+export const kinesisRecordMetaData = kinesisFirehoseRecord.shape.kinesisRecordMetaData

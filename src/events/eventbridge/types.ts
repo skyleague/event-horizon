@@ -1,13 +1,11 @@
-import type { EventHandlerDefinition, LambdaContext } from '../types.js'
-
 import type { Promisable, Try } from '@skyleague/axioms'
-import type { UndefinedOnPartialDeep } from '@skyleague/axioms/types'
 import type { Schema } from '@skyleague/therefore'
-import type { EventBridgeEvent as AWSEventBridgeEvent } from 'aws-lambda/trigger/eventbridge.js'
+import type { EventBridgeSchema } from '../../dev/aws/eventbridge/eventbridge.type.js'
+import type { EventHandlerDefinition, LambdaContext } from '../types.js'
 
 export interface EventBridgeEvent<Payload = unknown> {
     payload: Payload
-    raw: UndefinedOnPartialDeep<AWSEventBridgeEvent<string, Payload>>
+    readonly raw: EventBridgeSchema
 }
 
 export interface EventBridgeEventHandler<

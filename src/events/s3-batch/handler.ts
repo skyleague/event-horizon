@@ -1,16 +1,14 @@
-import { s3BatchErrorHandler } from './functions/error-handler.js'
-import { s3BatchParseEvent } from './functions/parse-event.js'
-import { s3BatchSerializeResult } from './functions/serialize-result.js'
-import type { S3BatchHandler, S3BatchTaskResult } from './types.js'
-
+import type { Try } from '@skyleague/axioms'
+import { enumerate, isSuccess, mapTry, transformTry } from '@skyleague/axioms'
+import type { S3BatchEvent, S3BatchResult, S3BatchResultResult } from 'aws-lambda'
 import { ioLoggerChild } from '../functions/io-logger-child.js'
 import { ioLogger } from '../functions/io-logger.js'
 import { ioValidate } from '../functions/io-validate.js'
 import type { LambdaContext } from '../types.js'
-
-import type { Try } from '@skyleague/axioms'
-import { enumerate, isSuccess, mapTry, transformTry } from '@skyleague/axioms'
-import type { S3BatchEvent, S3BatchResult, S3BatchResultResult } from 'aws-lambda'
+import { s3BatchErrorHandler } from './functions/error-handler.js'
+import { s3BatchParseEvent } from './functions/parse-event.js'
+import { s3BatchSerializeResult } from './functions/serialize-result.js'
+import type { S3BatchHandler, S3BatchTaskResult } from './types.js'
 
 export async function handleS3Batch<Configuration, Service, Profile, Result>(
     handler: S3BatchHandler<Configuration, Service, Profile, Result>,

@@ -1,11 +1,10 @@
+import type { SnsRecordSchema } from '../../../dev/aws/sns/sns.type.js'
 import { parseJSON } from '../../../parsers/json/json.js'
 import type { SNSEvent, SNSEventHandler } from '../types.js'
 
-import type { SNSEventRecord } from 'aws-lambda'
-
 export function snsParseEvent({ payloadType = 'json' }: Pick<SNSEventHandler, 'payloadType'>) {
     return {
-        before: (event: SNSEventRecord): SNSEvent => {
+        before: (event: SnsRecordSchema): SNSEvent => {
             let payload: unknown = event.Sns.Message
             if (payloadType !== 'binary') {
                 payload = payloadType === 'json' ? parseJSON(event.Sns.Message) : event.Sns.Message

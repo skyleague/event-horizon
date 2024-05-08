@@ -6,94 +6,96 @@
 
 import type { DefinedError, ValidateFunction } from 'ajv'
 
-import { validate as S3EventRecordValidator } from './schemas/s3-event-record.schema.js'
-import { validate as S3EventValidator } from './schemas/s3-event.schema.js'
+import { validate as S3RecordSchemaValidator } from './schemas/s3-record-schema.schema.js'
+import { validate as S3SchemaValidator } from './schemas/s3-schema.schema.js'
 
-export interface S3Event {
-    Records: S3EventRecord[]
+export type S3EventRecordGlacierEventData =
+    | {
+          restoreEventData: {
+              lifecycleRestorationExpiryTime: string
+              lifecycleRestoreStorageClass: string
+          }
+      }
+    | undefined
+
+export interface S3Identity {
+    principalId: string
 }
 
-export const S3Event = {
-    validate: S3EventValidator as ValidateFunction<S3Event>,
-    get schema() {
-        return S3Event.validate.schema
-    },
-    get errors() {
-        return S3Event.validate.errors ?? undefined
-    },
-    is: (o: unknown): o is S3Event => S3Event.validate(o) === true,
-    parse: (o: unknown): { right: S3Event } | { left: DefinedError[] } => {
-        if (S3Event.is(o)) {
-            return { right: o }
-        }
-        return { left: (S3Event.errors ?? []) as DefinedError[] }
-    },
-} as const
+export interface S3Message {
+    s3SchemaVersion: string
+    configurationId: string
+    object: {
+        key: string
+        size?: number | undefined
+        urlDecodedKey?: string | undefined
+        eTag?: string | undefined
+        sequencer: string
+        versionId?: string | undefined
+    }
+    bucket: {
+        name: string
+        ownerIdentity: S3Identity
+        arn: string
+    }
+}
 
-export interface S3EventRecord {
+export interface S3RecordSchema {
     eventVersion: string
-    eventSource: string
+    eventSource: 'aws:s3'
     awsRegion: string
     eventTime: string
     eventName: string
-    userIdentity: {
-        principalId: string
-    }
-    requestParameters: {
-        sourceIPAddress: string
-    }
-    responseElements: {
-        'x-amz-request-id': string
-        'x-amz-id-2': string
-    }
-    s3: {
-        s3SchemaVersion: string
-        configurationId: string
-        bucket: {
-            name: string
-            ownerIdentity: {
-                principalId: string
-            }
-            arn: string
-        }
-        object: {
-            key: string
-            size: number
-            eTag: string
-            versionId?: string | undefined
-            sequencer: string
-        }
-    }
-    glacierEventData?:
-        | {
-              restoreEventData: {
-                  lifecycleRestorationExpiryTime: string
-                  lifecycleRestoreStorageClass: string
-              }
-          }
-        | undefined
+    userIdentity: S3Identity
+    requestParameters: S3RequestParameters
+    responseElements: S3ResponseElements
+    s3: S3Message
+    glacierEventData?: S3EventRecordGlacierEventData | null | undefined
 }
 
-export const S3EventRecord = {
-    validate: S3EventRecordValidator as ValidateFunction<S3EventRecord>,
+export const S3RecordSchema = {
+    validate: S3RecordSchemaValidator as ValidateFunction<S3RecordSchema>,
     get schema() {
-        return S3EventRecord.validate.schema
+        return S3RecordSchema.validate.schema
     },
     get errors() {
-        return S3EventRecord.validate.errors ?? undefined
+        return S3RecordSchema.validate.errors ?? undefined
     },
-    is: (o: unknown): o is S3EventRecord => S3EventRecord.validate(o) === true,
-    parse: (o: unknown): { right: S3EventRecord } | { left: DefinedError[] } => {
-        if (S3EventRecord.is(o)) {
+    is: (o: unknown): o is S3RecordSchema => S3RecordSchema.validate(o) === true,
+    parse: (o: unknown): { right: S3RecordSchema } | { left: DefinedError[] } => {
+        if (S3RecordSchema.is(o)) {
             return { right: o }
         }
-        return { left: (S3EventRecord.errors ?? []) as DefinedError[] }
+        return { left: (S3RecordSchema.errors ?? []) as DefinedError[] }
     },
 } as const
 
-export interface S3EventRecordGlacierEventData {
-    restoreEventData: {
-        lifecycleRestorationExpiryTime: string
-        lifecycleRestoreStorageClass: string
-    }
+export interface S3RequestParameters {
+    sourceIPAddress: string
 }
+
+export interface S3ResponseElements {
+    'x-amz-request-id': string
+    'x-amz-id-2': string
+}
+
+export interface S3Schema {
+    Records: S3RecordSchema[]
+}
+
+export const S3Schema = {
+    validate: S3SchemaValidator as ValidateFunction<S3Schema>,
+    get schema() {
+        return S3Schema.validate.schema
+    },
+    get errors() {
+        return S3Schema.validate.errors ?? undefined
+    },
+    is: (o: unknown): o is S3Schema => S3Schema.validate(o) === true,
+    parse: (o: unknown): { right: S3Schema } | { left: DefinedError[] } => {
+        if (S3Schema.is(o)) {
+            return { right: o }
+        }
+        return { left: (S3Schema.errors ?? []) as DefinedError[] }
+    },
+} as const

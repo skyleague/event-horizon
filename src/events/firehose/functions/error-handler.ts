@@ -1,13 +1,13 @@
+import type { FirehoseTransformationResultRecord } from 'aws-lambda'
+import type { KinesisFirehoseRecord } from '../../../dev/aws/firehose/firehose.type.js'
 import { EventError } from '../../../errors/event-error/event-error.js'
 import type { LambdaContext } from '../../types.js'
 
-import type { FirehoseTransformationEventRecord, FirehoseTransformationResultRecord } from 'aws-lambda'
-
 export function firehoseErrorHandler({ logger, isSensitive }: LambdaContext): {
-    onError: (original: FirehoseTransformationEventRecord, error: Error | unknown) => FirehoseTransformationResultRecord
+    onError: (original: KinesisFirehoseRecord, error: Error | unknown) => FirehoseTransformationResultRecord
 } {
     return {
-        onError: (original: FirehoseTransformationEventRecord, error: Error | unknown): FirehoseTransformationResultRecord => {
+        onError: (original: KinesisFirehoseRecord, error: Error | unknown): FirehoseTransformationResultRecord => {
             if (!isSensitive) {
                 EventError.log(logger, error, 'error')
             }

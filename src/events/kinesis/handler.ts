@@ -1,19 +1,18 @@
-import { kinesisErrorHandler } from './functions/error-handler.js'
-import { kinesisParseEvent } from './functions/parse-event.js'
-import type { KinesisEvent, KinesisHandler } from './types.js'
-
+import type { Try } from '@skyleague/axioms'
+import { enumerate, isLeft, mapLeft, mapTry, tryAsValue, tryToEither } from '@skyleague/axioms'
+import type { KinesisStreamBatchItemFailure, KinesisStreamBatchResponse } from 'aws-lambda'
+import type { KinesisDataStreamRecord } from '../../dev/aws/kinesis/kinesis.type.js'
 import { ioLoggerChild } from '../functions/io-logger-child.js'
 import { ioLogger } from '../functions/io-logger.js'
 import { ioValidate } from '../functions/io-validate.js'
 import type { LambdaContext } from '../types.js'
-
-import type { Try } from '@skyleague/axioms'
-import { enumerate, isLeft, mapLeft, mapTry, tryAsValue, tryToEither } from '@skyleague/axioms'
-import type { KinesisStreamBatchItemFailure, KinesisStreamBatchResponse, KinesisStreamRecord } from 'aws-lambda'
+import { kinesisErrorHandler } from './functions/error-handler.js'
+import { kinesisParseEvent } from './functions/parse-event.js'
+import type { KinesisEvent, KinesisHandler } from './types.js'
 
 export async function handleKinesisEvent<Configuration, Service, Profile, Payload>(
     handler: KinesisHandler<Configuration, Service, Profile, Payload>,
-    events: KinesisStreamRecord[],
+    events: KinesisDataStreamRecord[],
     context: LambdaContext<Configuration, Service, Profile>,
     // biome-ignore lint/suspicious/noConfusingVoidType: this is the real type we want here
 ): Promise<Try<KinesisStreamBatchResponse | void>> {

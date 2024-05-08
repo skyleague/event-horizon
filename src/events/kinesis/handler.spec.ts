@@ -1,6 +1,6 @@
 import { handleKinesisEvent } from './handler.js'
 
-import { KinesisStreamEvent } from '../../dev/aws/kinesis/kinesis.type.js'
+import { KinesisDataStreamSchema } from '../../dev/aws/kinesis/kinesis.type.js'
 import { EventError } from '../../errors/event-error/event-error.js'
 import { context } from '../../test/context/context.js'
 
@@ -10,7 +10,7 @@ import { arbitrary } from '@skyleague/therefore'
 import { expect, it, vi } from 'vitest'
 
 it('binary events does not give failures', async () => {
-    await asyncForAll(tuple(arbitrary(KinesisStreamEvent), await context({})), async ([{ Records }, ctx]) => {
+    await asyncForAll(tuple(arbitrary(KinesisDataStreamSchema), await context({})), async ([{ Records }, ctx]) => {
         ctx.mockClear()
 
         const handler = vi.fn()
@@ -35,7 +35,7 @@ it('binary events does not give failures', async () => {
 })
 
 it('plaintext events does not give failures', async () => {
-    await asyncForAll(tuple(arbitrary(KinesisStreamEvent), await context({})), async ([{ Records }, ctx]) => {
+    await asyncForAll(tuple(arbitrary(KinesisDataStreamSchema), await context({})), async ([{ Records }, ctx]) => {
         ctx.mockClear()
 
         const handler = vi.fn()
@@ -61,7 +61,7 @@ it('plaintext events does not give failures', async () => {
 
 it('json events does not give failures', async () => {
     await asyncForAll(
-        tuple(arbitrary(KinesisStreamEvent), await context({})).map(([e, ctx]) => {
+        tuple(arbitrary(KinesisDataStreamSchema), await context({})).map(([e, ctx]) => {
             for (const record of e.Records) {
                 record.kinesis.data = Buffer.from(JSON.stringify(random(json({})))).toString('base64')
             }
@@ -94,7 +94,7 @@ it('json events does not give failures', async () => {
 
 it('json parse failure, gives failure', async () => {
     await asyncForAll(
-        tuple(arbitrary(KinesisStreamEvent), await context({})).map(([e, ctx]) => {
+        tuple(arbitrary(KinesisDataStreamSchema), await context({})).map(([e, ctx]) => {
             for (const record of e.Records) {
                 record.kinesis.data = Buffer.from(`${JSON.stringify(random(json({})))}{[error]`).toString('base64')
             }
@@ -133,7 +133,7 @@ it('schema validation, gives failure', async () => {
         errors: [],
     } as unknown as Schema<string>
     await asyncForAll(
-        tuple(arbitrary(KinesisStreamEvent), await context({})).map(([e, ctx]) => {
+        tuple(arbitrary(KinesisDataStreamSchema), await context({})).map(([e, ctx]) => {
             for (const record of e.Records) {
                 record.kinesis.data = Buffer.from(JSON.stringify(random(json({})))).toString('base64')
             }
@@ -168,7 +168,7 @@ it('schema validation, gives failure', async () => {
 })
 
 it.each([new Error(), 'foobar'])('promise reject with Error, gives failure', async (error) => {
-    await asyncForAll(tuple(arbitrary(KinesisStreamEvent), await context({})), async ([{ Records }, ctx]) => {
+    await asyncForAll(tuple(arbitrary(KinesisDataStreamSchema), await context({})), async ([{ Records }, ctx]) => {
         ctx.mockClear()
 
         const handler = vi.fn().mockRejectedValue(error)
@@ -197,7 +197,7 @@ it.each([new Error(), 'foobar'])('promise reject with Error, gives failure', asy
 })
 
 it.each([EventError.badRequest()])('promise reject with client error, gives errors', async (error) => {
-    await asyncForAll(tuple(arbitrary(KinesisStreamEvent), await context({})), async ([{ Records }, ctx]) => {
+    await asyncForAll(tuple(arbitrary(KinesisDataStreamSchema), await context({})), async ([{ Records }, ctx]) => {
         ctx.mockClear()
 
         const handler = vi.fn().mockRejectedValue(error)
@@ -226,7 +226,7 @@ it.each([EventError.badRequest()])('promise reject with client error, gives erro
 })
 
 it.each([new Error(), 'foobar'])('promise throws with Error, gives failure', async (error) => {
-    await asyncForAll(tuple(arbitrary(KinesisStreamEvent), await context({})), async ([{ Records }, ctx]) => {
+    await asyncForAll(tuple(arbitrary(KinesisDataStreamSchema), await context({})), async ([{ Records }, ctx]) => {
         ctx.mockClear()
 
         const handler = vi.fn().mockImplementation(() => {
@@ -257,7 +257,7 @@ it.each([new Error(), 'foobar'])('promise throws with Error, gives failure', asy
 })
 
 it.each([EventError.badRequest()])('promise throws with client error, gives errors', async (error) => {
-    await asyncForAll(tuple(arbitrary(KinesisStreamEvent), await context({})), async ([{ Records }, ctx]) => {
+    await asyncForAll(tuple(arbitrary(KinesisDataStreamSchema), await context({})), async ([{ Records }, ctx]) => {
         ctx.mockClear()
 
         const handler = vi.fn().mockImplementation(() => {

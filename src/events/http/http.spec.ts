@@ -1,21 +1,19 @@
-import { httpApiHandler } from './http.js'
-import type { HTTPRequest } from './types.js'
-
-import { literalSchema, warmerEvent } from '../../../test/schema.js'
-import { APIGatewayProxyEvent } from '../../dev/aws/apigateway/apigateway.type.js'
-import { EventBridgeEvent } from '../../dev/aws/eventbridge/eventbridge.type.js'
-import { FirehoseTransformationEvent } from '../../dev/aws/firehose/firehose.type.js'
-import { KinesisStreamEvent } from '../../dev/aws/kinesis/kinesis.type.js'
-import { S3BatchEvent } from '../../dev/aws/s3-batch/s3.type.js'
-import { S3Event } from '../../dev/aws/s3/s3.type.js'
-import { SecretRotationEvent } from '../../dev/aws/secret-rotation/secret-rotation.type.js'
-import { SNSEvent } from '../../dev/aws/sns/sns.type.js'
-import { SQSEvent } from '../../dev/aws/sqs/sqs.type.js'
-import { context } from '../../test/context/context.js'
-
 import { constants, alpha, asyncForAll, oneOf, random, tuple, unknown } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
 import { expect, expectTypeOf, it, vi } from 'vitest'
+import { literalSchema, warmerEvent } from '../../../test/schema.js'
+import { APIGatewayProxyEventSchema } from '../../dev/aws/apigateway/rest.type.js'
+import { EventBridgeSchema } from '../../dev/aws/eventbridge/eventbridge.type.js'
+import { KinesisFirehoseSchema } from '../../dev/aws/firehose/firehose.type.js'
+import { KinesisDataStreamSchema } from '../../dev/aws/kinesis/kinesis.type.js'
+import { S3BatchEvent } from '../../dev/aws/s3-batch/s3.type.js'
+import { S3Schema } from '../../dev/aws/s3/s3.type.js'
+import { SecretRotationEvent } from '../../dev/aws/secret-rotation/secret-rotation.type.js'
+import { SnsSchema } from '../../dev/aws/sns/sns.type.js'
+import { SqsSchema } from '../../dev/aws/sqs/sqs.type.js'
+import { context } from '../../test/context/context.js'
+import { httpApiHandler } from './http.js'
+import type { HTTPRequest } from './types.js'
 
 const method = random(constants('get', 'put'))
 const path = `/${random(alpha())}` as const
@@ -32,16 +30,20 @@ it('handles http events', async () => {
                 handler: vi.fn(),
             },
         },
-        { kernel: http },
+        { _kernel: http },
     )
-    await asyncForAll(tuple(arbitrary(APIGatewayProxyEvent), unknown(), await context(handler)), async ([event, ret, ctx]) => {
-        http.mockClear()
-        http.mockReturnValue(ret)
 
-        const response = await handler._options.handler(event, ctx)
-        expect(response).toBe(ret)
-        expect(http).toHaveBeenCalledWith(expect.anything(), event, ctx)
-    })
+    await asyncForAll(
+        tuple(arbitrary(APIGatewayProxyEventSchema), unknown(), await context(handler)),
+        async ([event, ret, ctx]) => {
+            http.mockClear()
+            http.mockReturnValue(ret)
+
+            const response = await handler._options.handler(event, ctx)
+            expect(response).toBe(ret)
+            expect(http).toHaveBeenCalledWith(expect.anything(), event, ctx)
+        },
+    )
 })
 
 it('handles schema types', () => {
@@ -58,7 +60,7 @@ it('handles schema types', () => {
             },
             bodyType: 'plaintext' as const,
             handler: (request) => {
-                expectTypeOf(request).toEqualTypeOf<HTTPRequest<'body', 'path', 'query', 'headers'>>()
+                expectTypeOf(request).toEqualTypeOf<HTTPRequest<'body', 'path', 'query', 'headers', 'http'>>()
 
                 return {
                     statusCode: 200,
@@ -68,7 +70,7 @@ it('handles schema types', () => {
         },
     })
     expectTypeOf(handler.http.handler).toEqualTypeOf<
-        (request: HTTPRequest<'body', 'path', 'query', 'headers'>) => {
+        (request: HTTPRequest<'body', 'path', 'query', 'headers', 'http'>) => {
             statusCode: number
             body: '200-response'
         }
@@ -106,20 +108,20 @@ it('does not handle non http events', async () => {
                 handler: vi.fn(),
             },
         },
-        { kernel: http },
+        { _kernel: http },
     )
     await asyncForAll(
         tuple(
             oneOf(
-                arbitrary(EventBridgeEvent),
-                arbitrary(FirehoseTransformationEvent),
+                arbitrary(EventBridgeSchema),
+                arbitrary(KinesisFirehoseSchema),
                 // arbitrary(APIGatewayProxyEvent),
-                arbitrary(KinesisStreamEvent),
-                arbitrary(S3Event),
+                arbitrary(KinesisDataStreamSchema),
+                arbitrary(S3Schema),
                 arbitrary(S3BatchEvent),
                 arbitrary(SecretRotationEvent),
-                arbitrary(SNSEvent),
-                arbitrary(SQSEvent),
+                arbitrary(SnsSchema),
+                arbitrary(SqsSchema),
             ),
             unknown(),
             await context(handler),
@@ -146,7 +148,7 @@ it('warmup should early exit', async () => {
                 handler: http,
             },
         },
-        { kernel: http },
+        { _kernel: http },
     )
 
     await expect(handler(warmerEvent, random(await context()).raw)).resolves.toBe(undefined)

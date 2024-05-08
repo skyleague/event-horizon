@@ -1,17 +1,14 @@
+import { isString } from '@skyleague/axioms'
+import type { FirehoseTransformationResultRecord } from 'aws-lambda'
+import type { KinesisFirehoseRecord } from '../../../dev/aws/firehose/firehose.type.js'
 import type { FirehoseTransformationResult } from '../types.js'
 
-import { isString } from '@skyleague/axioms'
-import type { FirehoseTransformationEventRecord, FirehoseTransformationResultRecord } from 'aws-lambda'
-
 export function firehoseSerializeTransformation(): {
-    onAfter: (
-        original: FirehoseTransformationEventRecord,
-        response: FirehoseTransformationResult,
-    ) => FirehoseTransformationResultRecord
+    onAfter: (original: KinesisFirehoseRecord, response: FirehoseTransformationResult) => FirehoseTransformationResultRecord
 } {
     return {
         onAfter: (
-            original: FirehoseTransformationEventRecord,
+            original: KinesisFirehoseRecord,
             response: FirehoseTransformationResult,
         ): FirehoseTransformationResultRecord => {
             const payload = isString(response.payload) ? response.payload : JSON.stringify(response.payload)

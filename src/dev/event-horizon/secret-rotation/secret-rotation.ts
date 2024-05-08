@@ -8,11 +8,14 @@ import { arbitrary } from '@skyleague/therefore'
 
 export function secretRotationEvent<Configuration, Service extends SetRequired<DefaultServices, 'secretsManager'>, Profile>(
     _?: Pick<SecretRotationHandler<Configuration, Service, Profile>, 'services' | 'config'>,
+    { generation = 'fast' }: { generation?: 'full' | 'fast' } = {},
 ): Dependent<SecretRotationRequest> {
-    return arbitrary(SecretRotationEvent).map((e) => ({
-        raw: e,
-        step: e.Step,
-        secretId: e.SecretId,
-        clientRequestToken: e.ClientRequestToken,
-    }))
+    return arbitrary(SecretRotationEvent)
+        .constant(generation === 'fast')
+        .map((e) => ({
+            raw: e,
+            step: e.Step,
+            secretId: e.SecretId,
+            clientRequestToken: e.ClientRequestToken,
+        }))
 }

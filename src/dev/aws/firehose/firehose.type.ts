@@ -6,62 +6,64 @@
 
 import type { DefinedError, ValidateFunction } from 'ajv'
 
-import { validate as FirehoseTransformationEventRecordValidator } from './schemas/firehose-transformation-event-record.schema.js'
-import { validate as FirehoseTransformationEventValidator } from './schemas/firehose-transformation-event.schema.js'
+import { validate as KinesisFirehoseRecordValidator } from './schemas/kinesis-firehose-record.schema.js'
+import { validate as KinesisFirehoseSchemaValidator } from './schemas/kinesis-firehose-schema.schema.js'
 
-export interface FirehoseRecordMetadata {
-    shardId: string
-    partitionKey: string
-    approximateArrivalTimestamp: number
-    sequenceNumber: string
-    subsequenceNumber: string
-}
-
-export interface FirehoseTransformationEvent {
-    invocationId: string
-    deliveryStreamArn: string
-    sourceKinesisStreamArn?: string | undefined
-    region: string
-    records: FirehoseTransformationEventRecord[]
-}
-
-export const FirehoseTransformationEvent = {
-    validate: FirehoseTransformationEventValidator as ValidateFunction<FirehoseTransformationEvent>,
-    get schema() {
-        return FirehoseTransformationEvent.validate.schema
-    },
-    get errors() {
-        return FirehoseTransformationEvent.validate.errors ?? undefined
-    },
-    is: (o: unknown): o is FirehoseTransformationEvent => FirehoseTransformationEvent.validate(o) === true,
-    parse: (o: unknown): { right: FirehoseTransformationEvent } | { left: DefinedError[] } => {
-        if (FirehoseTransformationEvent.is(o)) {
-            return { right: o }
-        }
-        return { left: (FirehoseTransformationEvent.errors ?? []) as DefinedError[] }
-    },
-} as const
-
-export interface FirehoseTransformationEventRecord {
+export interface KinesisFirehoseRecord {
     recordId: string
     approximateArrivalTimestamp: number
+    kinesisRecordMetaData?: KinesisRecordMetaData | null | undefined
     data: string
-    kinesisRecordMetadata?: FirehoseRecordMetadata | undefined
 }
 
-export const FirehoseTransformationEventRecord = {
-    validate: FirehoseTransformationEventRecordValidator as ValidateFunction<FirehoseTransformationEventRecord>,
+export const KinesisFirehoseRecord = {
+    validate: KinesisFirehoseRecordValidator as ValidateFunction<KinesisFirehoseRecord>,
     get schema() {
-        return FirehoseTransformationEventRecord.validate.schema
+        return KinesisFirehoseRecord.validate.schema
     },
     get errors() {
-        return FirehoseTransformationEventRecord.validate.errors ?? undefined
+        return KinesisFirehoseRecord.validate.errors ?? undefined
     },
-    is: (o: unknown): o is FirehoseTransformationEventRecord => FirehoseTransformationEventRecord.validate(o) === true,
-    parse: (o: unknown): { right: FirehoseTransformationEventRecord } | { left: DefinedError[] } => {
-        if (FirehoseTransformationEventRecord.is(o)) {
+    is: (o: unknown): o is KinesisFirehoseRecord => KinesisFirehoseRecord.validate(o) === true,
+    parse: (o: unknown): { right: KinesisFirehoseRecord } | { left: DefinedError[] } => {
+        if (KinesisFirehoseRecord.is(o)) {
             return { right: o }
         }
-        return { left: (FirehoseTransformationEventRecord.errors ?? []) as DefinedError[] }
+        return { left: (KinesisFirehoseRecord.errors ?? []) as DefinedError[] }
     },
 } as const
+
+export interface KinesisFirehoseSchema {
+    invocationId: string
+    deliveryStreamArn: string
+    region: string
+    sourceKinesisStreamArn?: string | undefined
+    records: KinesisFirehoseRecord[]
+}
+
+export const KinesisFirehoseSchema = {
+    validate: KinesisFirehoseSchemaValidator as ValidateFunction<KinesisFirehoseSchema>,
+    get schema() {
+        return KinesisFirehoseSchema.validate.schema
+    },
+    get errors() {
+        return KinesisFirehoseSchema.validate.errors ?? undefined
+    },
+    is: (o: unknown): o is KinesisFirehoseSchema => KinesisFirehoseSchema.validate(o) === true,
+    parse: (o: unknown): { right: KinesisFirehoseSchema } | { left: DefinedError[] } => {
+        if (KinesisFirehoseSchema.is(o)) {
+            return { right: o }
+        }
+        return { left: (KinesisFirehoseSchema.errors ?? []) as DefinedError[] }
+    },
+} as const
+
+export type KinesisRecordMetaData =
+    | {
+          shardId: string
+          partitionKey: string
+          approximateArrivalTimestamp: number
+          sequenceNumber: string
+          subsequenceNumber: number
+      }
+    | undefined
