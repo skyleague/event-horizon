@@ -204,12 +204,20 @@ export class EventError extends Error {
     }
 
     public static validation(
-        options: EventOptions & {
-            errors?: ErrorObject[] | null | undefined
-            location?: string
-        } = {},
+        options: EventOptions &
+            (
+                | {
+                      errors?: ErrorObject[] | null | undefined
+                      location?: string
+                  }
+                | {
+                      left?: ErrorObject[] | null | undefined
+                      location?: string
+                  }
+            ) = {},
     ): EventError {
-        const { errors, location, statusCode = 400 } = options
+        const { location, statusCode = 400 } = options
+        const errors = 'left' in options ? options.left : 'errors' in options ? options.errors : []
         const message =
             location !== undefined ? `${errors?.[0]?.message ?? 'validation failed'} in ${location}` : errors?.[0]?.message
         return new EventError(message, {
