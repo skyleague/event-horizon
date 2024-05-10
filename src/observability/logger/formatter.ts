@@ -1,9 +1,9 @@
 import { EventError } from '../../errors/event-error/event-error.js'
 
-import { LogFormatter, LogItem } from '@aws-lambda-powertools/logger'
+import { LogFormatter as AWSLogFormatter, LogItem } from '@aws-lambda-powertools/logger'
 import type { LogAttributes, UnformattedAttributes } from '@aws-lambda-powertools/logger/types'
 
-export class ExtendedLogFormatter extends LogFormatter {
+export class LogFormatter extends AWSLogFormatter {
     public formatAttributes(attributes: UnformattedAttributes, additionalLogAttributes: LogAttributes): LogItem {
         // same as default https://github.com/aws-powertools/powertools-lambda-typescript/blob/main/packages/logger/src/formatter/PowertoolsLogFormatter.ts#L25
         const baseAttributes = {

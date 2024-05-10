@@ -77,6 +77,48 @@ it('handles schema types', () => {
     >()
 })
 
+it('handles distributed schema types', () => {
+    const handler = httpApiHandler({
+        http: {
+            method,
+            path,
+            schema: {
+                body: literalSchema<'body'>(),
+                path: literalSchema<'path'>(),
+                query: literalSchema<'query'>(),
+                headers: literalSchema<'headers'>(),
+                responses: { 200: literalSchema<'200-response'>(), 400: literalSchema<'400-response'>() },
+            },
+            bodyType: 'plaintext' as const,
+            handler: (request) => {
+                expectTypeOf(request).toEqualTypeOf<HTTPRequest<'body', 'path', 'query', 'headers', 'http'>>()
+
+                if (request.body.length === 0) {
+                    return {
+                        statusCode: 400,
+                        body: '400-response',
+                    }
+                }
+                return {
+                    statusCode: 200,
+                    body: '200-response',
+                }
+            },
+        },
+    })
+    expectTypeOf(handler.http.handler).toEqualTypeOf<
+        (request: HTTPRequest<'body', 'path', 'query', 'headers', 'http'>) =>
+            | {
+                  statusCode: number
+                  body: '400-response'
+              }
+            | {
+                  statusCode: number
+                  body: '200-response'
+              }
+    >()
+})
+
 it('handles schema types and gives errors', () => {
     httpApiHandler({
         http: {
