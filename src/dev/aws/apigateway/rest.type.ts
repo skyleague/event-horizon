@@ -9,19 +9,16 @@ import type { DefinedError, ValidateFunction } from 'ajv'
 import { validate as APIGatewayEventRequestContextValidator } from './schemas/api-gateway-event-request-context.schema.js'
 import { validate as APIGatewayProxyEventSchemaValidator } from './schemas/api-gateway-proxy-event-schema.schema.js'
 
-export type APIGatewayCert =
-    | {
-          clientCertPem: string
-          subjectDN: string
-          issuerDN: string
-          serialNumber: string
-          validity: {
-              notBefore: string
-              notAfter: string
-          }
-      }
-    | null
-    | undefined
+export interface APIGatewayCert {
+    clientCertPem: string
+    subjectDN: string
+    issuerDN: string
+    serialNumber: string
+    validity: {
+        notBefore: string
+        notAfter: string
+    }
+}
 
 export interface APIGatewayEventIdentity {
     accessKey?: string | null | undefined
@@ -109,21 +106,17 @@ export interface APIGatewayProxyEventSchema {
               [k: string]: string | undefined
           }
         | undefined
-    queryStringParameters?:
-        | {
-              [k: string]: string | undefined
-          }
-        | undefined
+    queryStringParameters: {
+        [k: string]: string | undefined
+    } | null
     multiValueHeaders?:
         | {
               [k: string]: string[] | undefined
           }
         | undefined
-    multiValueQueryStringParameters?:
-        | {
-              [k: string]: string[] | undefined
-          }
-        | undefined
+    multiValueQueryStringParameters: {
+        [k: string]: string[] | undefined
+    } | null
     requestContext: APIGatewayEventRequestContext
     pathParameters?:
         | {
@@ -138,7 +131,7 @@ export interface APIGatewayProxyEventSchema {
         | null
         | undefined
     isBase64Encoded?: boolean | undefined
-    body?: string | undefined
+    body: string | null
 }
 
 export const APIGatewayProxyEventSchema = {

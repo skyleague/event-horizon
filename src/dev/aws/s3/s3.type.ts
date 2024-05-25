@@ -9,14 +9,12 @@ import type { DefinedError, ValidateFunction } from 'ajv'
 import { validate as S3RecordSchemaValidator } from './schemas/s3-record-schema.schema.js'
 import { validate as S3SchemaValidator } from './schemas/s3-schema.schema.js'
 
-export type S3EventRecordGlacierEventData =
-    | {
-          restoreEventData: {
-              lifecycleRestorationExpiryTime: string
-              lifecycleRestoreStorageClass: string
-          }
-      }
-    | undefined
+export interface S3EventRecordGlacierEventData {
+    restoreEventData: {
+        lifecycleRestorationExpiryTime: string
+        lifecycleRestoreStorageClass: string
+    }
+}
 
 export interface S3Identity {
     principalId: string
@@ -50,7 +48,7 @@ export interface S3RecordSchema {
     requestParameters: S3RequestParameters
     responseElements: S3ResponseElements
     s3: S3Message
-    glacierEventData?: S3EventRecordGlacierEventData | null | undefined
+    glacierEventData?: S3EventRecordGlacierEventData | undefined
 }
 
 export const S3RecordSchema = {

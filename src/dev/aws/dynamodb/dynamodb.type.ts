@@ -41,7 +41,7 @@ export interface DynamoDBStreamRecord {
     awsRegion: string
     eventSourceARN: string
     dynamodb: DynamoDBStreamChangeRecord
-    userIdentity?: UserIdentity | null | undefined
+    userIdentity?: UserIdentity | undefined
 }
 
 export const DynamoDBStreamRecord = {
@@ -82,9 +82,7 @@ export const DynamoDBStreamSchema = {
     },
 } as const
 
-export type UserIdentity =
-    | {
-          type: 'Service'
-          principalId: 'dynamodb.amazonaws.com'
-      }
-    | undefined
+export interface UserIdentity {
+    type: 'Service'
+    principalId: 'dynamodb.amazonaws.com'
+}

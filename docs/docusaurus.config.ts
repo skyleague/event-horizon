@@ -2,7 +2,7 @@ import path from 'node:path'
 import type * as Preset from '@docusaurus/preset-classic'
 import type { Config } from '@docusaurus/types'
 import { themes } from 'prism-react-renderer'
-import packageJSON from '../package.json' with { type: 'json' }
+import packageJSON from '../package.json'
 
 const { description, homepage, name, repository } = packageJSON
 

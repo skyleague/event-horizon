@@ -4,32 +4,21 @@
  */
 /* eslint-disable */
 
-import type { DefinedError, ValidateFunction } from 'ajv'
-
+import type { APIGatewayCert } from './rest.type.js'
 import { validate as APIGatewayEventRequestContextV2Validator } from './schemas/api-gateway-event-request-context-v2.schema.js'
 import { validate as APIGatewayProxyEventV2SchemaValidator } from './schemas/api-gateway-proxy-event-v2-schema.schema.js'
 
-export type APIGatewayCert =
-    | {
-          clientCertPem: string
-          subjectDN: string
-          issuerDN: string
-          serialNumber: string
-          validity: {
-              notBefore: string
-              notAfter: string
-          }
-      }
-    | undefined
+import type { DefinedError, ValidateFunction } from 'ajv'
 
 export interface APIGatewayEventRequestContextV2 {
     accountId: string
     apiId: string
-    authorizer?: RequestContextV2Authorizer | null | undefined
+    authorizer?: RequestContextV2Authorizer
     authentication?:
         | {
-              clientCert?: APIGatewayCert | null | undefined
+              clientCert?: APIGatewayCert | undefined
           }
+        | null
         | undefined
     domainName: string
     domainPrefix: string
@@ -121,14 +110,17 @@ export type RequestContextV2Authorizer =
                     accessKey?: string | undefined
                     accountId?: string | undefined
                     callerId?: string | undefined
-                    principalOrgId?: string | undefined
+                    principalOrgId?: string | null | undefined
                     userArn?: string | undefined
                     userId?: string | undefined
-                    cognitoIdentity: {
-                        amr: string[]
-                        identityId: string
-                        identityPoolId: string
-                    }
+                    cognitoIdentity?:
+                        | {
+                              amr: string[]
+                              identityId: string
+                              identityPoolId: string
+                          }
+                        | null
+                        | undefined
                 }
               | undefined
           lambda?:
