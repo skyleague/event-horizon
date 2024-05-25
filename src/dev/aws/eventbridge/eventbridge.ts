@@ -1,6 +1,6 @@
-import { $string, $unknown } from '@skyleague/therefore'
+import { $ref, $string, $unknown } from '@skyleague/therefore'
 import type { ThereforeSchema } from '@skyleague/therefore/src/lib/primitives/types.js'
-import { eventBridgeSchema } from './eventbridge.schema.js'
+import { EventBridgeSchema } from './eventbridge.type.js'
 
 export function $eventBridge({
     detailType = $string(),
@@ -9,7 +9,7 @@ export function $eventBridge({
     detailType?: ThereforeSchema
     detail?: ThereforeSchema
 } = {}) {
-    return eventBridgeSchema
+    return $ref(EventBridgeSchema)
         .extend({
             'detail-type': detailType,
             detail: detail,
