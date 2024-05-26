@@ -1,7 +1,7 @@
 import { handleHTTPEvent } from './handler.js'
 import type { HTTPHandler } from './types.js'
 
-import { constants } from '../../constants.js'
+import { eventConstants } from '../../constants.js'
 import { EventError } from '../../errors/event-error/event-error.js'
 import type { EventHandlerFn } from '../common/event.js'
 import { eventHandler } from '../common/event.js'
@@ -36,8 +36,8 @@ export function restApiHandler<
             }
             throw EventError.unexpectedEventType()
         },
-        requestId: findHeader(constants.requestIdHeader),
-        traceId: findHeader(constants.traceIdHeader),
+        requestId: findHeader(eventConstants.requestIdHeader),
+        traceId: findHeader(eventConstants.traceIdHeader),
     }) as D & EventHandlerFn<Configuration, Service, Profile, Result>
 }
 
@@ -62,7 +62,7 @@ export function httpApiHandler<
             }
             throw EventError.unexpectedEventType()
         },
-        requestId: findHeader(constants.requestIdHeader),
-        traceId: findHeader(constants.traceIdHeader),
+        requestId: findHeader(eventConstants.requestIdHeader),
+        traceId: findHeader(eventConstants.traceIdHeader),
     }) as D & EventHandlerFn<Configuration, Service, Profile, Result>
 }

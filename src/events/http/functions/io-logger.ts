@@ -1,11 +1,10 @@
-import type { HttpError } from './http-error.type.js'
-
-import { constants } from '../../../constants.js'
 import type { LambdaContext } from '../../types.js'
 import type { GatewayVersion, HTTPEventHandler, HTTPRequest, HTTPResponse } from '../types.js'
+import type { HttpError } from './http-error.type.js'
 
 import type { Try } from '@skyleague/axioms'
 import { isSuccess, pick } from '@skyleague/axioms'
+import { loggingConstants } from '../../../constants.js'
 
 export function httpIOLogger<
     Configuration,
@@ -27,7 +26,7 @@ export function httpIOLogger<
                 logger.info(
                     `[http] ${path} start`,
                     isSuccess(request)
-                        ? constants.logEventPayload
+                        ? loggingConstants.logEventPayload
                             ? { request: pick(request, ['path', 'query']) }
                             : {}
                         : { error: request },
@@ -39,7 +38,7 @@ export function httpIOLogger<
                 if (isSuccess(response)) {
                     logger.info(
                         `[http] ${path} sent ${response.statusCode.toString()}`,
-                        constants.logResultPayload ? { response: pick(response, ['statusCode']) } : {},
+                        loggingConstants.logResultPayload ? { response: pick(response, ['statusCode']) } : {},
                     )
                 } else {
                     logger.info(`[http] ${path} sent`, { error: response })

@@ -1,6 +1,6 @@
 import type { HttpError } from './http-error.type.js'
 
-import { constants } from '../../../constants.js'
+import { serviceConstants } from '../../../constants.js'
 import { EventError } from '../../../errors/event-error/event-error.js'
 import type { LambdaContext } from '../../types.js'
 import type { HTTPResponse } from '../types.js'
@@ -12,7 +12,9 @@ export function httpErrorHandler<HttpErrorType = HttpError>(
             statusCode: eventError.statusCode,
             message: eventError.expose && !isSensitive ? eventError.message : eventError.name,
             stack:
-                constants.isDebug && eventError.expose && eventError.isServerError && !isSensitive ? eventError.stack : undefined,
+                serviceConstants.isDebug && eventError.expose && eventError.isServerError && !isSensitive
+                    ? eventError.stack
+                    : undefined,
         } as HttpErrorType,
     }),
 ): { onError: (error: Error | unknown) => HTTPResponse<HttpErrorType> } {

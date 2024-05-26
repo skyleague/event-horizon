@@ -1,6 +1,6 @@
 import type { LambdaHandler, RawRequest, RawResponse } from './raw-aws.js'
 
-import { constants } from '../../constants.js'
+import { eventConstants, initConstants } from '../../constants.js'
 import { errorHandler } from '../../events/common/functions/error-handler.js'
 import { loggerContext } from '../../events/common/functions/logger-context.js'
 import { metricsContext } from '../../events/common/functions/metrics-context.js'
@@ -29,8 +29,8 @@ export async function createLambdaContext<Configuration, Service, Profile>({
     config,
     traceId,
     requestId,
-    traceIdGenerator = constants.traceIdGenerator,
-    requestIdGenerator = constants.requestIdGenerator,
+    traceIdGenerator = eventConstants.traceIdGenerator,
+    requestIdGenerator = eventConstants.requestIdGenerator,
     logger = globalLogger,
     metrics = globalMetrics,
     tracer = globalTracer,
@@ -82,7 +82,7 @@ export function eventHandler<R, Configuration, Service extends DefaultServices |
     definition: EventHandlerDefinition<Configuration, Service, Profile>,
     options: EventHandlerOptions<R, Configuration, Service, Profile>,
 ): EventHandlerFn<Configuration, Service, Profile, R> {
-    const { handler: kernel, eagerHandlerInitialization = constants.eagerHandlerInitialization } = options
+    const { handler: kernel, eagerHandlerInitialization = initConstants.eagerHandlerInitialization } = options
     const { logger = globalLogger, metrics = globalMetrics, tracer = globalTracer, services: servicesFn } = definition
 
     const traceServicesFn = traceServices({ tracer })
