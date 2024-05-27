@@ -1,4 +1,4 @@
-import { constants } from '../../constants.js'
+import { serviceConstants } from '../../constants.js'
 
 import { Tracer as AWSTracer } from '@aws-lambda-powertools/tracer'
 
@@ -8,7 +8,7 @@ export interface Tracer {
     captureAWSv3Client: <T>(service: T) => T
 }
 
-export function createTracer(instance: AWSTracer = new AWSTracer({ serviceName: constants.serviceName })): Tracer {
+export function createTracer(instance: AWSTracer = new AWSTracer({ serviceName: serviceConstants.serviceName })): Tracer {
     function trace<R>(segmentName: string, fn: () => Promise<R>): Promise<R> {
         if (!instance.isTracingEnabled()) {
             return fn()

@@ -1,4 +1,4 @@
-import { constants } from '../../constants.js'
+import { loggingConstants } from '../../constants.js'
 import type { LambdaContext } from '../types.js'
 
 export interface IOLoggerOptions {
@@ -9,12 +9,12 @@ export function ioLogger<C extends LambdaContext>({ type }: IOLoggerOptions, { l
     return {
         before: (event: unknown, meta?: Record<string, unknown>) => {
             if (!isSensitive) {
-                logger.info(`[${type}] start`, constants.logEventPayload ? { event, ...meta } : {})
+                logger.info(`[${type}] start`, loggingConstants.logEventPayload ? { event, ...meta } : {})
             }
         },
         after: (response?: unknown, meta?: Record<string, unknown>) => {
             if (!isSensitive) {
-                logger.info(`[${type}] sent`, constants.logResultPayload ? { response, ...meta } : {})
+                logger.info(`[${type}] sent`, loggingConstants.logResultPayload ? { response, ...meta } : {})
             }
         },
     }

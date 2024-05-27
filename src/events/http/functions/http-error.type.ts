@@ -1,5 +1,5 @@
 import type { Schema } from '@skyleague/therefore/src/types/openapi.type.js'
-import { constants } from '../../../constants.js'
+import { serviceConstants } from '../../../constants.js'
 
 
 export interface HttpError {
@@ -17,7 +17,7 @@ export const HttpError = {
             properties: {
                 statusCode: { type: 'integer', description: 'The status code of the response.' },
                 message: { type: 'string', description: 'A detailed message of the error.' },
-                ...(constants.isDebug
+                ...(serviceConstants.isDebug
                     ? { stack: { type: 'string', description: 'When debugging is enabled, a stack trace is exposed.' } }
                     : {}),
             },

@@ -1,6 +1,6 @@
 import { LogFormatter } from './formatter.js'
 
-import { constants } from '../../constants.js'
+import { serviceConstants } from '../../constants.js'
 
 import { Logger as AwsLogger } from '@aws-lambda-powertools/logger'
 
@@ -24,7 +24,7 @@ export interface Logger {
 
 export function createLogger(
     options: ConstructorParameters<typeof AwsLogger>[0] | { instance: AwsLogger } = {
-        serviceName: constants.serviceName,
+        serviceName: serviceConstants.serviceName,
         logFormatter: new LogFormatter(),
     },
 ): Logger {
