@@ -4,7 +4,7 @@ import { serviceConstants } from '../../constants.js'
 
 import { Logger as AwsLogger } from '@aws-lambda-powertools/logger'
 
-export interface LogItemObject {
+export type LogItemObject = {
     [key: string]: unknown
     message: string
 }
@@ -55,7 +55,7 @@ export function createLogger(
     }
 
     function setBindings(bindings: Record<string, unknown>): void {
-        instance.setPersistentLogAttributes(bindings)
+        instance.addPersistentLogAttributes(bindings)
     }
 
     return {
