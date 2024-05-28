@@ -11,26 +11,26 @@ import type { Schema } from '@skyleague/therefore'
 
 export interface ProfileSchema<T> {
     schema: Schema<T>
+    application?: string | undefined
+    environment?: string | undefined
+    name?: string | undefined
     maxAge?: number
 }
 
 export interface ProfileOptions<T> {
     profile?: ProfileSchema<T>
-    application?: string
-    environment?: string
-    name?: string
 }
 
 export function profileHandler<T, Services extends DefaultServices | undefined>(
-    options: ProfileOptions<T>,
+    definition: ProfileOptions<T>,
     services: () => Promise<Services> | Services,
 ): { before: () => Promise<Try<T>> } {
+    const { profile } = definition
     const {
         application = appConfigConstants.application,
         environment = appConfigConstants.environment,
         name = appConfigConstants.name,
-        profile,
-    } = options
+    } = profile ?? {}
 
     // do not load appconfig when there is no profile defined
     if (profile?.schema === undefined) {
@@ -41,9 +41,16 @@ export function profileHandler<T, Services extends DefaultServices | undefined>(
         }
     }
 
-    if (application === undefined || environment === undefined || name === undefined) {
+    if (
+        application === undefined ||
+        environment === undefined ||
+        name === undefined ||
+        application.trim().length === 0 ||
+        environment.trim().length === 0 ||
+        name.trim().length === 0
+    ) {
         throw EventError.preconditionFailed(
-            'Did not provide configuration parameters to load the AppConfig profile; needed application, environment, and name - but none are found',
+            'Did not provide configuration parameters to load the AppConfig profile; needed application, environment, and name - to be non empty strings but none are found',
             { statusCode: 500 },
         )
     }

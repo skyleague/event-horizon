@@ -4,7 +4,7 @@ import {
     GetLatestConfigurationCommand,
     StartConfigurationSessionCommand,
 } from '@aws-sdk/client-appconfigdata'
-import { asyncForAll, failure, forAll, json, record, sleep, string, tuple, unknown } from '@skyleague/axioms'
+import { asyncForAll, failure, forAll, json, object, record, sleep, string, tuple, unknown } from '@skyleague/axioms'
 import { mockClient } from 'aws-sdk-client-mock'
 import { describe, expect, it, vi } from 'vitest'
 import { alwaysTrueSchema, neverTrueSchema } from '../../../test/schema.js'
@@ -104,6 +104,12 @@ describe('createLambdaContext', () => {
             },
         )
     })
+})
+
+const profileConfiguration = object({
+    application: string({ minLength: 1, format: 'alpha-numeric' }),
+    name: string({ minLength: 1, format: 'alpha-numeric' }),
+    environment: string({ minLength: 1, format: 'alpha-numeric' }),
 })
 
 describe('eventHandler', () => {
@@ -249,8 +255,8 @@ describe('eventHandler', () => {
         const appConfigData = new AppConfigData({})
         const s = { appConfigData }
         await asyncForAll(
-            tuple(unknown(), unknown(), unknown(), await context(), tokenArbitrary, record(json())),
-            async ([request, c, ret, ctx, token, profile]) => {
+            tuple(profileConfiguration, unknown(), unknown(), unknown(), await context(), tokenArbitrary, record(json())),
+            async ([application, request, c, ret, ctx, token, profile]) => {
                 vi.clearAllMocks()
                 appConfigDataMock.reset()
                 appConfigDataMock.on(StartConfigurationSessionCommand).resolvesOnce({ InitialConfigurationToken: token })
@@ -283,7 +289,7 @@ describe('eventHandler', () => {
                     {
                         config,
                         services,
-                        profile: { schema: alwaysTrueSchema },
+                        profile: { ...application, schema: alwaysTrueSchema },
                         logger: ctx.logger,
                         metrics: ctx.metrics,
                         tracer: ctx.tracer,
@@ -320,8 +326,8 @@ describe('eventHandler', () => {
         const appConfigData = new AppConfigData({})
         const s = { appConfigData }
         await asyncForAll(
-            tuple(unknown(), unknown(), unknown(), await context(), tokenArbitrary, record(json())),
-            async ([request, c, ret, ctx, token, profile]) => {
+            tuple(profileConfiguration, unknown(), unknown(), unknown(), await context(), tokenArbitrary, record(json())),
+            async ([application, request, c, ret, ctx, token, profile]) => {
                 vi.clearAllMocks()
 
                 appConfigDataMock.reset()
@@ -353,7 +359,7 @@ describe('eventHandler', () => {
                     {
                         config,
                         services,
-                        profile: { schema: neverTrueSchema },
+                        profile: { ...application, schema: neverTrueSchema },
                         logger: ctx.logger,
                         metrics: ctx.metrics,
                         tracer: ctx.tracer,

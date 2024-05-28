@@ -1,4 +1,4 @@
-import { serviceConstants } from '../../constants.js'
+import { metricsConstants, serviceConstants } from '../../constants.js'
 
 import type { MetricUnit } from '@aws-lambda-powertools/metrics'
 import { Metrics as AWSMetrics } from '@aws-lambda-powertools/metrics'
@@ -13,7 +13,7 @@ export interface Metrics {
 
 export function createMetrics(
     instance: AWSMetrics = new AWSMetrics({
-        namespace: serviceConstants.namespace,
+        namespace: metricsConstants.namespace,
         serviceName: serviceConstants.serviceName,
     }),
 ): Metrics {

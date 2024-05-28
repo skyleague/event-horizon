@@ -4,17 +4,20 @@ const logResultPayload = process.env.EH_LOG_RESULT_PAYLOAD ?? process.env.LOG_RE
 
 export interface ServiceConstants {
     serviceName: string
-    namespace: string
-    environment: string
     isDebug: boolean
 }
 
 export const serviceConstants: ServiceConstants = {
     serviceName: process.env.EH_SERVICE_NAME ?? process.env.SERVICE_NAME ?? 'unknown-service',
-    namespace: process.env.EH_SERVICE_NAMESPACE ?? process.env.SERVICE_NAMESPACE ?? 'unknown-service',
-    environment: process.env.EH_ENVIRONMENT ?? process.env.ENVIRONMENT ?? 'dev',
 
     isDebug,
+}
+
+export interface MetricsConstants {
+    namespace: string
+}
+export const metricsConstants = {
+    namespace: process.env.EH_METRICS_NAMESPACE ?? process.env.METRICS_NAMESPACE ?? serviceConstants.serviceName,
 }
 
 export interface EventConstants {
@@ -50,13 +53,27 @@ export const initConstants: InitConstants = {
 }
 
 export interface AppConfigConstants {
-    application?: string
-    environment?: string
-    name?: string
+    application: string | undefined
+    environment: string | undefined
+    name: string | undefined
 }
 
 export const appConfigConstants: AppConfigConstants = {
-    application: process.env.EH_APPCONFIG_APPLICATION ?? process.env.APPCONFIG_APPLICATION ?? serviceConstants.namespace,
-    environment: process.env.EH_APPCONFIG_ENVIRONMENT ?? process.env.APPCONFIG_ENVIRONMENT ?? serviceConstants.environment,
-    name: process.env.EH_APPCONFIG_NAME ?? process.env.APPCONFIG_NAME ?? serviceConstants.serviceName,
+    application:
+        process.env.EH_APPCONFIG_APPLICATION ??
+        // deprecated these
+        process.env.APPCONFIG_APPLICATION ??
+        process.env.EH_SERVICE_NAMESPACE ??
+        process.env.SERVICE_NAMESPACE,
+    environment:
+        process.env.EH_APPCONFIG_ENVIRONMENT ??
+        // deprecated these
+        process.env.APPCONFIG_ENVIRONMENT ??
+        process.env.EH_ENVIRONMENT ??
+        process.env.ENVIRONMENT,
+    name:
+        process.env.EH_APPCONFIG_NAME ??
+        // deprecated these
+        process.env.APPCONFIG_NAME ??
+        serviceConstants.serviceName,
 }
