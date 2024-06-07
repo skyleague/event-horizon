@@ -316,8 +316,8 @@ describe('eventHandler', () => {
                 expect(ctx.metrics.instance.captureColdStartMetric).toHaveBeenCalled()
 
                 expect(getSegmentVal.addNewSubsegment).toHaveBeenLastCalledWith('## ')
-                expect(getSegmentVal.close).toHaveBeenCalled()
-                expect(getSegmentVal.flush).toHaveBeenCalled()
+                expect(getSegmentVal.close).not.toHaveBeenCalled()
+                expect(getSegmentVal.flush).not.toHaveBeenCalled()
             },
         )
     })
@@ -380,8 +380,8 @@ describe('eventHandler', () => {
                 expect(ctx.metrics.instance.captureColdStartMetric).toHaveBeenCalled()
 
                 expect(getSegmentVal.addNewSubsegment).toHaveBeenLastCalledWith('## ')
-                expect(getSegmentVal.close).toHaveBeenCalled()
-                expect(getSegmentVal.flush).toHaveBeenCalled()
+                expect(getSegmentVal.close).not.toHaveBeenCalled()
+                expect(getSegmentVal.flush).not.toHaveBeenCalled()
             },
         )
     })
@@ -440,8 +440,8 @@ describe('eventHandler', () => {
                 expect(ctx.metrics.instance.captureColdStartMetric).toHaveBeenCalled()
 
                 expect(getSegmentVal.addNewSubsegment).toHaveBeenLastCalledWith('## ')
-                expect(getSegmentVal.close).toHaveBeenCalled()
-                expect(getSegmentVal.flush).toHaveBeenCalled()
+                expect(getSegmentVal.close).not.toHaveBeenCalled()
+                expect(getSegmentVal.flush).not.toHaveBeenCalled()
             },
         )
     })
@@ -501,8 +501,8 @@ describe('eventHandler', () => {
                 expect(ctx.metrics.instance.captureColdStartMetric).toHaveBeenCalled()
 
                 expect(getSegmentVal.addNewSubsegment).toHaveBeenLastCalledWith('## ')
-                expect(getSegmentVal.close).toHaveBeenCalled()
-                expect(getSegmentVal.flush).toHaveBeenCalled()
+                expect(getSegmentVal.close).not.toHaveBeenCalled()
+                expect(getSegmentVal.flush).not.toHaveBeenCalled()
             },
         )
     })
@@ -566,8 +566,8 @@ describe('eventHandler', () => {
                 expect(ctx.metrics.instance.captureColdStartMetric).toHaveBeenCalled()
 
                 expect(getSegmentVal.addNewSubsegment).toHaveBeenLastCalledWith('## ')
-                expect(getSegmentVal.close).toHaveBeenCalled()
-                expect(getSegmentVal.flush).toHaveBeenCalled()
+                expect(getSegmentVal.close).not.toHaveBeenCalled()
+                expect(getSegmentVal.flush).not.toHaveBeenCalled()
             },
         )
     })

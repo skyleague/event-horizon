@@ -19,7 +19,6 @@ import { tracer as globalTracer } from '../../observability/tracer/tracer.js'
 import type { Try } from '@skyleague/axioms'
 import { isFunction, mapTry, memoize, transformTry, tryToError } from '@skyleague/axioms'
 import type { Context } from 'aws-lambda'
-import AWSXRay from 'aws-xray-sdk-core'
 
 import { randomUUID } from 'node:crypto'
 
@@ -74,9 +73,6 @@ export interface EventHandlerOptions<R, Configuration, Service, Profile> {
     eagerHandlerInitialization?: boolean
 }
 
-AWSXRay.setContextMissingStrategy(() => {
-    // do not log errors on the cold start
-})
 export type EventHandlerFn<Configuration, Service extends DefaultServices | undefined, Profile, R = unknown> = LambdaHandler &
     EventHandlerDefinition<Configuration, Service, Profile> & {
         _options: EventHandlerOptions<R, Configuration, Service, Profile>
