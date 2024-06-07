@@ -64,7 +64,7 @@ it('handles schema types', () => {
 
                 return {
                     statusCode: 200,
-                    body: '200-response',
+                    body: '200-response' as const,
                 }
             },
         },
@@ -96,12 +96,12 @@ it('handles distributed schema types', () => {
                 if (request.body.length === 0) {
                     return {
                         statusCode: 400,
-                        body: '400-response',
+                        body: '400-response' as const,
                     }
                 }
                 return {
                     statusCode: 200,
-                    body: '200-response',
+                    body: '200-response' as const,
                 }
             },
         },
