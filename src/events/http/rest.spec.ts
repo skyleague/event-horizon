@@ -64,7 +64,7 @@ it('handles schema types', () => {
 
                 return {
                     statusCode: 200,
-                    body: '200-response',
+                    body: '200-response' as const,
                 }
             },
         },
