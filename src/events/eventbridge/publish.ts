@@ -1,36 +1,39 @@
 import type { PutEventsCommandInput } from '@aws-sdk/client-eventbridge'
 import { omitUndefined } from '@skyleague/axioms'
+import type { Simplify } from '@skyleague/axioms/types'
 import type { EventBridgeSchema } from '../../dev/aws/eventbridge/eventbridge.type.js'
 
 export type PutEventsRequestEntry = {
     time?: Date
     source: string
     resources?: string[]
-    'detail-type': string
-    detail: string
     eventBusName?: string
     traceHeader?: string
 }
-export type EventBridgePutEvent<T extends EventBridgeSchema = EventBridgeSchema> = Omit<
-    Partial<PutEventsRequestEntry>,
-    'detail-type' | 'detail'
-> &
-    Pick<T, 'detail-type' | 'detail'>
 
-type EventEntriesParams<Events extends EventBridgePutEvent[]> = {
-    events: Events
-} & (Events extends Array<infer U>
-    ? U extends { source: string }
-        ? { source?: string }
-        : { source: string }
-    : { source: string }) &
-    (Events extends Array<infer U>
-        ? U extends { eventBusName: string }
-            ? { eventBusName?: string }
-            : { eventBusName: string }
-        : { eventBusName: string })
+type OutputToInput<T extends Partial<EventBridgeSchema>> = Simplify<
+    Partial<PutEventsRequestEntry> & Pick<T, 'detail' | 'detail-type'>
+>
 
-export function eventEntries<Events extends EventBridgePutEvent[]>({
+type EventBridgeEventInput = Partial<PutEventsRequestEntry> & { detail: unknown; 'detail-type': string }
+type EventEntriesParams<Events> = Events extends (infer U)[]
+    ? {
+          events: Events
+      } & (U extends { source: string } ? { source?: string } : { source: string }) &
+          (U extends { eventBusName: string } ? { eventBusName?: string } : { eventBusName: string })
+    : never
+
+export function eventEntries<Events extends EventBridgeSchema[]>({
+    eventBusName,
+    events,
+    source,
+}: EventEntriesParams<OutputToInput<Events[number]>[]>): PutEventsCommandInput
+export function eventEntries<Events extends EventBridgeEventInput[]>({
+    eventBusName,
+    events,
+    source,
+}: EventEntriesParams<Events>): PutEventsCommandInput
+export function eventEntries<Events extends EventBridgeEventInput[]>({
     eventBusName,
     events,
     source,
