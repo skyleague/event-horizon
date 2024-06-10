@@ -266,10 +266,12 @@ describe('eventHandler', () => {
 
                 const setbinding = vi.spyOn(ctx.logger, 'setBindings')
 
-                const getSegmentVal = {
-                    addNewSubsegment: vi.fn(),
+                const handlerSegment = {
                     close: vi.fn(),
                     flush: vi.fn(),
+                }
+                const getSegmentVal = {
+                    addNewSubsegment: vi.fn().mockReturnValue(handlerSegment),
                 }
                 ;(ctx.metrics.instance as unknown as { storedMetrics: any }).storedMetrics.foo = true
                 vi.spyOn(ctx.metrics.instance, 'publishStoredMetrics').mockImplementation(() => {
@@ -316,8 +318,8 @@ describe('eventHandler', () => {
                 expect(ctx.metrics.instance.captureColdStartMetric).toHaveBeenCalled()
 
                 expect(getSegmentVal.addNewSubsegment).toHaveBeenLastCalledWith('## ')
-                expect(getSegmentVal.close).not.toHaveBeenCalled()
-                expect(getSegmentVal.flush).not.toHaveBeenCalled()
+                expect(handlerSegment.close).toHaveBeenCalled()
+                expect(handlerSegment.flush).toHaveBeenCalled()
             },
         )
     })
@@ -336,10 +338,12 @@ describe('eventHandler', () => {
                     .on(GetLatestConfigurationCommand)
                     .resolvesOnce({ Configuration: JSON.stringify(profile) as any })
 
-                const getSegmentVal = {
-                    addNewSubsegment: vi.fn(),
+                const handlerSegment = {
                     close: vi.fn(),
                     flush: vi.fn(),
+                }
+                const getSegmentVal = {
+                    addNewSubsegment: vi.fn().mockReturnValue(handlerSegment),
                 }
                 ;(ctx.metrics.instance as unknown as { storedMetrics: any }).storedMetrics.foo = true
                 vi.spyOn(ctx.metrics.instance, 'publishStoredMetrics').mockImplementation(() => {
@@ -380,8 +384,8 @@ describe('eventHandler', () => {
                 expect(ctx.metrics.instance.captureColdStartMetric).toHaveBeenCalled()
 
                 expect(getSegmentVal.addNewSubsegment).toHaveBeenLastCalledWith('## ')
-                expect(getSegmentVal.close).not.toHaveBeenCalled()
-                expect(getSegmentVal.flush).not.toHaveBeenCalled()
+                expect(handlerSegment.close).toHaveBeenCalled()
+                expect(handlerSegment.flush).toHaveBeenCalled()
             },
         )
     })
@@ -392,10 +396,12 @@ describe('eventHandler', () => {
             async ([request, c, s, ret, ctx]) => {
                 const setbinding = vi.spyOn(ctx.logger, 'setBindings')
 
-                const getSegmentVal = {
-                    addNewSubsegment: vi.fn(),
+                const handlerSegment = {
                     close: vi.fn(),
                     flush: vi.fn(),
+                }
+                const getSegmentVal = {
+                    addNewSubsegment: vi.fn().mockReturnValue(handlerSegment),
                 }
                 ;(ctx.metrics.instance as unknown as { storedMetrics: any }).storedMetrics.foo = true
                 vi.spyOn(ctx.metrics.instance, 'publishStoredMetrics').mockImplementation(() => {
@@ -440,8 +446,8 @@ describe('eventHandler', () => {
                 expect(ctx.metrics.instance.captureColdStartMetric).toHaveBeenCalled()
 
                 expect(getSegmentVal.addNewSubsegment).toHaveBeenLastCalledWith('## ')
-                expect(getSegmentVal.close).not.toHaveBeenCalled()
-                expect(getSegmentVal.flush).not.toHaveBeenCalled()
+                expect(handlerSegment.close).toHaveBeenCalled()
+                expect(handlerSegment.flush).toHaveBeenCalled()
             },
         )
     })
@@ -460,10 +466,12 @@ describe('eventHandler', () => {
                 const tracerInstance = tracerInstanceMock()
                 ctx.tracer.instance = tracerInstance as any
 
-                const getSegmentVal = {
-                    addNewSubsegment: vi.fn(),
+                const handlerSegment = {
                     close: vi.fn(),
                     flush: vi.fn(),
+                }
+                const getSegmentVal = {
+                    addNewSubsegment: vi.fn().mockReturnValue(handlerSegment),
                 }
                 tracerInstance.isTracingEnabled.mockReturnValue(true)
                 tracerInstance.getSegment.mockReturnValue(getSegmentVal)
@@ -501,8 +509,8 @@ describe('eventHandler', () => {
                 expect(ctx.metrics.instance.captureColdStartMetric).toHaveBeenCalled()
 
                 expect(getSegmentVal.addNewSubsegment).toHaveBeenLastCalledWith('## ')
-                expect(getSegmentVal.close).not.toHaveBeenCalled()
-                expect(getSegmentVal.flush).not.toHaveBeenCalled()
+                expect(handlerSegment.close).toHaveBeenCalled()
+                expect(handlerSegment.flush).toHaveBeenCalled()
             },
         )
     })
@@ -519,10 +527,12 @@ describe('eventHandler', () => {
             async ([request, c, s, ret, ctx]) => {
                 const setbinding = vi.spyOn(ctx.logger, 'setBindings')
 
-                const getSegmentVal = {
-                    addNewSubsegment: vi.fn(),
+                const handlerSegment = {
                     close: vi.fn(),
                     flush: vi.fn(),
+                }
+                const getSegmentVal = {
+                    addNewSubsegment: vi.fn().mockReturnValue(handlerSegment),
                 }
                 ;(ctx.metrics.instance as unknown as { storedMetrics: any }).storedMetrics.foo = true
                 vi.spyOn(ctx.metrics.instance, 'publishStoredMetrics').mockImplementation(() => {
@@ -566,8 +576,8 @@ describe('eventHandler', () => {
                 expect(ctx.metrics.instance.captureColdStartMetric).toHaveBeenCalled()
 
                 expect(getSegmentVal.addNewSubsegment).toHaveBeenLastCalledWith('## ')
-                expect(getSegmentVal.close).not.toHaveBeenCalled()
-                expect(getSegmentVal.flush).not.toHaveBeenCalled()
+                expect(handlerSegment.close).toHaveBeenCalled()
+                expect(handlerSegment.flush).toHaveBeenCalled()
             },
         )
     })
