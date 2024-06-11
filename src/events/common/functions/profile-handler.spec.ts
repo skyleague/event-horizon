@@ -40,12 +40,13 @@ it('fails precondition when expected', async () => {
             record(json()),
         ],
         async ([application, x]) => {
-            await expect(async () =>
-                profileHandler(
-                    { profile: { ...application, schema: { schema: { type: 'object' }, is: () => true } } } as any,
-                    async () => x,
-                ),
-            ).rejects.toThrowError(/Did not provide configuration parameters to load the AppConfig profile.*/)
+            const handler = profileHandler(
+                { profile: { ...application, schema: { schema: { type: 'object' }, is: () => true } } } as any,
+                async () => x,
+            )
+            await expect(async () => handler.before()).rejects.toThrowError(
+                /Did not provide configuration parameters to load the AppConfig profile.*/,
+            )
         },
     )
 })
