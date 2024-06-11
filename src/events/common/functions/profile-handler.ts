@@ -41,34 +41,34 @@ export function profileHandler<T, Services extends DefaultServices | undefined>(
         }
     }
 
-    if (
-        application === undefined ||
-        environment === undefined ||
-        name === undefined ||
-        application.trim().length === 0 ||
-        environment.trim().length === 0 ||
-        name.trim().length === 0
-    ) {
-        throw EventError.preconditionFailed(
-            'Did not provide configuration parameters to load the AppConfig profile; needed application, environment, and name - to be non empty strings but none are found',
-            { statusCode: 500 },
-        )
-    }
-
     const maxAge = profile?.maxAge ?? 5
     const appConfigDataClient = memoize(async () => {
         const s = await services()
         return s?.appConfigData ?? createAppConfigData()
     })
 
-    const appConfig = new AppConfigProvider({
-        application,
-        environment,
-    })
+    let appConfig: AppConfigProvider
 
     return {
         before: async (): Promise<Try<T>> => {
-            appConfig.client = await appConfigDataClient()
+            if (
+                application === undefined ||
+                environment === undefined ||
+                name === undefined ||
+                application.trim().length === 0 ||
+                environment.trim().length === 0 ||
+                name.trim().length === 0
+            ) {
+                throw EventError.preconditionFailed(
+                    'Did not provide configuration parameters to load the AppConfig profile; needed application, environment, and name - to be non empty strings but none are found',
+                    { statusCode: 500 },
+                )
+            }
+            appConfig ??= new AppConfigProvider({
+                application,
+                environment,
+                awsSdkV3Client: await appConfigDataClient(),
+            })
 
             const json = Buffer.from((await appConfig.get<string>(name, { maxAge })) ?? '{}').toString()
             const parsed: unknown = parseJSON(json)
