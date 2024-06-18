@@ -31,7 +31,7 @@ export interface APIGatewayEventIdentity {
     cognitoIdentityId?: string | null | undefined
     cognitoIdentityPoolId?: string | null | undefined
     principalOrgId?: string | null | undefined
-    sourceIp?: string | undefined
+    sourceIp?: (string | 'test-invoke-source-ip') | undefined
     user?: string | null | undefined
     userAgent?: string | null | undefined
     userArn?: string | null | undefined

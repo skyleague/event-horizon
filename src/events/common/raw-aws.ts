@@ -5,6 +5,7 @@ import type {
     APIGatewayProxyHandlerV2,
     CloudFrontRequestHandler,
     Context,
+    DynamoDBStreamEvent,
     DynamoDBStreamHandler,
     EventBridgeEvent,
     EventBridgeHandler,
@@ -23,6 +24,7 @@ import type {
 } from 'aws-lambda'
 import type { APIGatewayProxyEventV2Schema } from '../../dev/aws/apigateway/http.type.js'
 import type { APIGatewayProxyEventSchema } from '../../dev/aws/apigateway/rest.type.js'
+import type { DynamoDBStreamSchema } from '../../dev/aws/dynamodb/dynamodb.type.js'
 import type { EventBridgeSchema } from '../../dev/aws/eventbridge/eventbridge.type.js'
 import type { KinesisDataStreamSchema } from '../../dev/aws/kinesis/kinesis.type.js'
 import type { S3Schema } from '../../dev/aws/s3/s3.type.js'
@@ -57,6 +59,7 @@ export type RawRequest =
           | APIGatewayProxyEventV2
           | S3Event
           | SNSEvent
+          | DynamoDBStreamEvent
       >
     | EventBridgeSchema
     | SqsSchema
@@ -65,5 +68,6 @@ export type RawRequest =
     | APIGatewayProxyEventV2Schema
     | S3Schema
     | SnsSchema
+    | DynamoDBStreamSchema
     | string
 export type RawResponse = ReturnType<AWSLambdaHandler> | unknown

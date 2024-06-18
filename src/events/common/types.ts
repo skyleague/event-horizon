@@ -1,4 +1,5 @@
 import type { SetRequired } from '@skyleague/axioms/types'
+import type { DynamoDBStreamHandler } from '../dynamodb/types.js'
 import type { EventBridgeHandler } from '../eventbridge/types.js'
 import type { FirehoseTransformationHandler } from '../firehose/types.js'
 import type { HTTPHandler } from '../http/types.js'
@@ -21,4 +22,5 @@ export type EventHandler<Service = unknown> =
     | S3Handler
     | SNSHandler
     | SQSHandler
+    | DynamoDBStreamHandler
     | (Service extends SetRequired<DefaultServices, 'secretsManager'> ? SecretRotationHandler<unknown, Service> : never)
