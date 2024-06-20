@@ -1,2 +1,9 @@
-export type { SQSEvent, SQSMessageGroup, SQSPayload, SQSResult, SQSEventHandler, SQSHandler } from './types.js'
-export { sqsHandler } from './sqs.js'
+export type {
+    SQSEvent,
+    SQSEventHandler,
+    SQSMessageGroup,
+    SQSBatchEventHandler,
+    SQSBatchHandler,
+    SQSHandler,
+} from './types.js'
+export { sqsHandler, sqsBatchHandler } from './sqs.js'

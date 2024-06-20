@@ -9,7 +9,7 @@ import { ioValidate } from '../functions/io-validate.js'
 import type { DefaultServices, LambdaContext } from '../types.js'
 
 import type { Try } from '@skyleague/axioms'
-import { enumerate, isSuccess, mapTry, transformTry } from '@skyleague/axioms'
+import { isSuccess, mapTry, transformTry } from '@skyleague/axioms'
 import type {
     FirehoseTransformationResult as AWSFirehoseTransformationResult,
     FirehoseTransformationResultRecord,
@@ -36,7 +36,7 @@ export async function handleFirehoseTransformation<
     const ioLoggerFn = ioLogger({ type: 'firehose' }, context)
 
     const responses: FirehoseTransformationResultRecord[] = []
-    for (const [i, event] of enumerate(events)) {
+    for (const [i, event] of events.entries()) {
         const item = { item: i }
 
         const firehoseEvent = mapTry(event, (e) => {

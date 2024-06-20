@@ -1,10 +1,9 @@
-import { handleS3Event } from './handler.js'
-import type { S3Handler } from './types.js'
-
 import type { S3RecordSchema } from '../../dev/aws/s3/s3.type.js'
 import { EventError } from '../../errors/event-error/event-error.js'
 import { type EventHandlerFn, eventHandler } from '../common/event.js'
 import type { DefaultServices } from '../types.js'
+import { handleS3Event } from './handler.js'
+import type { S3Handler } from './types.js'
 
 export function s3Handler<Configuration, Service extends DefaultServices | undefined, Profile, D>(
     definition: D & S3Handler<Configuration, Service, Profile>,
@@ -29,5 +28,5 @@ export function s3Handler<Configuration, Service extends DefaultServices | undef
             }
             throw EventError.unexpectedEventType()
         },
-    }) as D & EventHandlerFn<Configuration, Service, Profile>
+    })
 }

@@ -1,5 +1,5 @@
 import type { Try } from '@skyleague/axioms'
-import { enumerate, isFailure, mapTry } from '@skyleague/axioms'
+import { isFailure, mapTry } from '@skyleague/axioms'
 import type { SnsRecordSchema } from '../../dev/aws/sns/sns.type.js'
 import { ioLoggerChild } from '../functions/io-logger-child.js'
 import { ioLogger } from '../functions/io-logger.js'
@@ -19,14 +19,14 @@ export async function handleSNSEvent<Configuration, Service, Profile, Payload>(
     const ioLoggerFn = ioLogger({ type: 'sns' }, context)
     const ioLoggerChildFn = ioLoggerChild(context, context.logger)
 
-    for (const [i, event] of enumerate(events)) {
+    for (const [i, event] of events.entries()) {
         const item = { item: i }
 
         const snsEvent = mapTry(event, (e) => {
             const unvalidatedSnsEvent = parseEventFn.before(e)
 
             ioLoggerChildFn.before({
-                messageId: unvalidatedSnsEvent.raw.Sns.MessageId,
+                messageId: unvalidatedSnsEvent.raw.MessageId,
             })
 
             return ioValidateFn.before(sns.schema.payload, unvalidatedSnsEvent, 'payload')

@@ -4,7 +4,7 @@ import { S3BatchEvent } from '../../dev/aws/s3-batch/s3.type.js'
 import { EventError } from '../../errors/event-error/event-error.js'
 import { context } from '../../test/context/context.js'
 
-import { array, asyncForAll, enumerate, isString, json, omit, random, tuple } from '@skyleague/axioms'
+import { array, asyncForAll, isString, json, omit, random, tuple } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
 import { expect, it, vi } from 'vitest'
 
@@ -38,7 +38,7 @@ it('events do not give failures', async () => {
                 treatMissingKeysAs: 'TemporaryFailure',
             })
 
-            for (const [i, task] of enumerate(event.tasks)) {
+            for (const [i, task] of event.tasks.entries()) {
                 expect(handler).toHaveBeenNthCalledWith(
                     i + 1,
                     expect.objectContaining({
@@ -93,7 +93,7 @@ it.each([new Error(), 'foobar'])('promise reject with Error, gives failure', asy
             treatMissingKeysAs: 'TemporaryFailure',
         })
 
-        for (const [i, task] of enumerate(event.tasks)) {
+        for (const [i, task] of event.tasks.entries()) {
             expect(handler).toHaveBeenNthCalledWith(
                 i + 1,
                 expect.objectContaining({
@@ -148,7 +148,7 @@ it.each([EventError.badRequest()])('promise reject with client error, gives erro
             treatMissingKeysAs: 'TemporaryFailure',
         })
 
-        for (const [i, task] of enumerate(event.tasks)) {
+        for (const [i, task] of event.tasks.entries()) {
             expect(handler).toHaveBeenNthCalledWith(
                 i + 1,
                 expect.objectContaining({
@@ -205,7 +205,7 @@ it.each([new Error(), 'foobar'])('promise throws with Error, gives failure', asy
             treatMissingKeysAs: 'TemporaryFailure',
         })
 
-        for (const [i, task] of enumerate(event.tasks)) {
+        for (const [i, task] of event.tasks.entries()) {
             expect(handler).toHaveBeenNthCalledWith(
                 i + 1,
                 expect.objectContaining({
@@ -262,7 +262,7 @@ it.each([EventError.badRequest()])('promise throws with client error, gives erro
             treatMissingKeysAs: 'TemporaryFailure',
         })
 
-        for (const [i, task] of enumerate(event.tasks)) {
+        for (const [i, task] of event.tasks.entries()) {
             expect(handler).toHaveBeenNthCalledWith(
                 i + 1,
                 expect.objectContaining({

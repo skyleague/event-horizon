@@ -1,5 +1,5 @@
 import type { Try } from '@skyleague/axioms'
-import { enumerate, isFailure, mapTry } from '@skyleague/axioms'
+import { isFailure, mapTry } from '@skyleague/axioms'
 import type { S3RecordSchema } from '../../dev/aws/s3/s3.type.js'
 import { ioLogger } from '../functions/io-logger.js'
 import type { LambdaContext } from '../types.js'
@@ -15,7 +15,7 @@ export async function handleS3Event<Configuration, Service, Profile>(
     const parseEventFn = s3ParseEvent()
     const ioLoggerFn = ioLogger({ type: 's3' }, context)
 
-    for (const [i, event] of enumerate(events)) {
+    for (const [i, event] of events.entries()) {
         const item = { item: i }
 
         const s3Event = parseEventFn.before(event)

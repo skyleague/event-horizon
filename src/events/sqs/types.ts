@@ -1,9 +1,10 @@
-import type { EventHandlerDefinition, LambdaContext } from '../types.js'
+import type { DefaultServices, EventHandlerDefinition, LambdaContext } from '../types.js'
 
 import type { Promisable, Try } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
 import type { SQSBatchItemFailure } from 'aws-lambda'
 import type { SqsRecordSchema } from '../../dev/aws/sqs/sqs.type.js'
+import type { EventHandlerFn } from '../common/event.js'
 
 export interface SQSEvent<Payload = unknown> {
     messageGroupId: string
@@ -12,13 +13,45 @@ export interface SQSEvent<Payload = unknown> {
     readonly raw: SqsRecordSchema
 }
 
+export interface SQSEventHandler<Configuration = unknown, Service = unknown, Profile = unknown, Payload = unknown> {
+    schema: {
+        payload?: Schema<Payload>
+    }
+    handler: (
+        payload: SQSEvent<Payload>,
+        context: LambdaContext<Configuration, Service, Profile>,
+    ) => Promisable<Try<NoInfer<void>>>
+    payloadType?: 'json' | 'plaintext'
+}
+
+export interface SQSHandler<Configuration = unknown, Service = unknown, Profile = unknown, Payload = unknown>
+    extends EventHandlerDefinition<Configuration, Service, Profile> {
+    sqs: SQSEventHandler<Configuration, Service, Profile, Payload>
+}
+
+export interface SQSEnvelopeHandler<
+    Configuration = unknown,
+    Service extends DefaultServices | undefined = DefaultServices,
+    Profile = unknown,
+> {
+    envelope: EventHandlerFn<Configuration, Service, Profile>
+}
+
 export interface SQSMessageGroup<Payload = unknown> {
     messageGroupId: string
     records: SQSEvent<Try<Payload>>[]
 }
 
-export interface SQSMessageGrouping {
-    by?: 'message-group-id'
+export interface SQSBatchEventHandler<Configuration = unknown, Service = unknown, Profile = unknown, Payload = unknown> {
+    schema: {
+        payload?: Schema<Payload>
+    }
+    handler: (
+        payload: SQSMessageGroup<Payload>,
+        context: LambdaContext<Configuration, Service, Profile>,
+        // biome-ignore lint/suspicious/noConfusingVoidType: <explanation>
+    ) => Promisable<Try<NoInfer<SQSBatchItemFailure[] | void>>>
+    payloadType?: 'json' | 'plaintext'
 
     /**
      * The number of message groups to process in parallel.
@@ -28,39 +61,7 @@ export interface SQSMessageGrouping {
     parallelism?: number
 }
 
-export type SQSPayload<MessageGrouping, Payload> = MessageGrouping extends { by: 'message-group-id' }
-    ? SQSMessageGroup<Payload>
-    : SQSEvent<Payload>
-
-// biome-ignore lint/suspicious/noConfusingVoidType: this is the real type we want here
-export type SQSResult<MessageGrouping> = MessageGrouping extends { by: 'message-group-id' } ? SQSBatchItemFailure[] | void : void
-
-export interface SQSEventHandler<
-    Configuration = unknown,
-    Service = unknown,
-    Profile = unknown,
-    Payload = unknown,
-    // biome-ignore lint/complexity/noBannedTypes: this is the real type we want here
-    MessageGrouping extends SQSMessageGrouping = {},
-> {
-    schema: {
-        payload?: Schema<Payload>
-    }
-    handler: (
-        payload: SQSPayload<MessageGrouping, Payload>,
-        context: LambdaContext<Configuration, Service, Profile>,
-    ) => Promisable<Try<NoInfer<SQSResult<MessageGrouping>>>>
-    payloadType?: 'json' | 'plaintext'
-    messageGrouping?: MessageGrouping
-}
-
-export interface SQSHandler<
-    Configuration = unknown,
-    Service = unknown,
-    Profile = unknown,
-    Payload = unknown,
-    // biome-ignore lint/complexity/noBannedTypes: this is the real type we want here
-    MessageGrouping extends SQSMessageGrouping = {},
-> extends EventHandlerDefinition<Configuration, Service, Profile> {
-    sqs: SQSEventHandler<Configuration, Service, Profile, Payload, MessageGrouping>
+export interface SQSBatchHandler<Configuration = unknown, Service = unknown, Profile = unknown, Payload = unknown>
+    extends EventHandlerDefinition<Configuration, Service, Profile> {
+    sqs: SQSBatchEventHandler<Configuration, Service, Profile, Payload>
 }

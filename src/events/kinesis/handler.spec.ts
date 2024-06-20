@@ -4,7 +4,7 @@ import { KinesisDataStreamSchema } from '../../dev/aws/kinesis/kinesis.type.js'
 import { EventError } from '../../errors/event-error/event-error.js'
 import { context } from '../../test/context/context.js'
 
-import { asyncForAll, enumerate, json, random, tuple } from '@skyleague/axioms'
+import { asyncForAll, json, random, tuple } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
 import { arbitrary } from '@skyleague/therefore'
 import { expect, it, vi } from 'vitest'
@@ -18,7 +18,7 @@ it('binary events does not give failures', async () => {
 
         expect(response).toEqual(undefined)
 
-        for (const [i, record] of enumerate(Records)) {
+        for (const [i, record] of Records.entries()) {
             expect(handler).toHaveBeenNthCalledWith(i + 1, expect.objectContaining({ raw: record }), ctx)
 
             expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[kinesis] start', {
@@ -43,7 +43,7 @@ it('plaintext events does not give failures', async () => {
 
         expect(response).toEqual(undefined)
 
-        for (const [i, record] of enumerate(Records)) {
+        for (const [i, record] of Records.entries()) {
             expect(handler).toHaveBeenNthCalledWith(i + 1, expect.objectContaining({ raw: record }), ctx)
 
             expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[kinesis] start', {
@@ -75,7 +75,7 @@ it('json events does not give failures', async () => {
 
             expect(response).toEqual(undefined)
 
-            for (const [i, record] of enumerate(Records)) {
+            for (const [i, record] of Records.entries()) {
                 expect(handler).toHaveBeenNthCalledWith(i + 1, expect.objectContaining({ raw: record }), ctx)
 
                 expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[kinesis] start', {
@@ -112,7 +112,7 @@ it('json parse failure, gives failure', async () => {
 
             expect(handler).not.toHaveBeenCalled()
 
-            for (const [i, record] of enumerate(Records)) {
+            for (const [i, record] of Records.entries()) {
                 expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[kinesis] start', {
                     event: undefined,
                     item: i,
@@ -151,7 +151,7 @@ it('schema validation, gives failure', async () => {
 
             expect(handler).not.toHaveBeenCalled()
 
-            for (const [i, record] of enumerate(Records)) {
+            for (const [i, record] of Records.entries()) {
                 expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[kinesis] start', {
                     event: undefined,
                     item: i,
@@ -178,7 +178,7 @@ it.each([new Error(), 'foobar'])('promise reject with Error, gives failure', asy
             expect(response).toEqual({ batchItemFailures: Records.map((r) => ({ itemIdentifier: r.eventID })) })
         }
 
-        for (const [i, record] of enumerate(Records)) {
+        for (const [i, record] of Records.entries()) {
             expect(handler).toHaveBeenNthCalledWith(i + 1, expect.objectContaining({ raw: record }), ctx)
 
             expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[kinesis] start', {
@@ -207,7 +207,7 @@ it.each([EventError.badRequest()])('promise reject with client error, gives erro
             expect(response).toEqual({ batchItemFailures: Records.map((r) => ({ itemIdentifier: r.eventID })) })
         }
 
-        for (const [i, record] of enumerate(Records)) {
+        for (const [i, record] of Records.entries()) {
             expect(handler).toHaveBeenNthCalledWith(i + 1, expect.objectContaining({ raw: record }), ctx)
 
             expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[kinesis] start', {
@@ -238,7 +238,7 @@ it.each([new Error(), 'foobar'])('promise throws with Error, gives failure', asy
             expect(response).toEqual({ batchItemFailures: Records.map((r) => ({ itemIdentifier: r.eventID })) })
         }
 
-        for (const [i, record] of enumerate(Records)) {
+        for (const [i, record] of Records.entries()) {
             expect(handler).toHaveBeenNthCalledWith(i + 1, expect.objectContaining({ raw: record }), ctx)
 
             expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[kinesis] start', {
@@ -269,7 +269,7 @@ it.each([EventError.badRequest()])('promise throws with client error, gives erro
             expect(response).toEqual({ batchItemFailures: Records.map((r) => ({ itemIdentifier: r.eventID })) })
         }
 
-        for (const [i, record] of enumerate(Records)) {
+        for (const [i, record] of Records.entries()) {
             expect(handler).toHaveBeenNthCalledWith(i + 1, expect.objectContaining({ raw: record }), ctx)
 
             expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[kinesis] start', {

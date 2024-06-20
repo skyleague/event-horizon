@@ -28,5 +28,5 @@ export function snsHandler<Configuration, Service extends DefaultServices | unde
             }
             throw EventError.unexpectedEventType()
         },
-    }) as D & EventHandlerFn<Configuration, Service, Profile, Payload>
+    })
 }

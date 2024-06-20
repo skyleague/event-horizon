@@ -1,5 +1,5 @@
 import type { Try } from '@skyleague/axioms'
-import { enumerate, isLeft, mapLeft, mapTry, tryAsValue, tryToEither } from '@skyleague/axioms'
+import { isLeft, mapLeft, mapTry, tryAsValue, tryToEither } from '@skyleague/axioms'
 import type { KinesisStreamBatchItemFailure, KinesisStreamBatchResponse } from 'aws-lambda'
 import type { KinesisDataStreamRecord } from '../../dev/aws/kinesis/kinesis.type.js'
 import { ioLoggerChild } from '../functions/io-logger-child.js'
@@ -26,7 +26,7 @@ export async function handleKinesisEvent<Configuration, Service, Profile, Payloa
 
     let failures: KinesisStreamBatchItemFailure[] | undefined = undefined
 
-    for (const [i, event] of enumerate(events)) {
+    for (const [i, event] of events.entries()) {
         const item = { item: i }
 
         const kinesisEvent = mapTry(event, (e) => {

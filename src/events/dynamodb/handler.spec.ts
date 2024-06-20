@@ -1,4 +1,4 @@
-import { asyncForAll, enumerate, failure, tuple } from '@skyleague/axioms'
+import { asyncForAll, tuple } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
 import { expect, it, vi } from 'vitest'
 import { DynamoDBStreamSchema } from '../../dev/aws/dynamodb/dynamodb.type.js'
@@ -15,7 +15,7 @@ it('events does not give failures', async () => {
 
         expect(response).toEqual(undefined)
 
-        for (const [i, record] of enumerate(Records)) {
+        for (const [i, record] of Records.entries()) {
             expect(handler).toHaveBeenNthCalledWith(i + 1, expect.objectContaining({ raw: record }), ctx)
 
             expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[dynamodb] start', {
@@ -39,10 +39,10 @@ it.each([new Error(), EventError.badRequest(), 'foobar'])('promise reject with E
         const response = await handleDynamoDBStreamEvent({ dynamodb: { handler } }, Records, ctx)
 
         if (Records.length > 0) {
-            expect(response).toEqual(failure(error))
+            expect(response).toEqual({ batchItemFailures: Records.map((r) => ({ itemIdentifier: r.eventID })) })
         }
 
-        for (const [i, record] of enumerate(Records)) {
+        for (const [i, record] of Records.entries()) {
             expect(handler).toHaveBeenNthCalledWith(i + 1, expect.objectContaining({ raw: record }), ctx)
 
             expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[dynamodb] start', {
@@ -56,10 +56,7 @@ it.each([new Error(), EventError.badRequest(), 'foobar'])('promise reject with E
                 response: undefined,
             })
 
-            expect(ctx.logger.error).not.toHaveBeenCalled()
-
-            // it stops on the first error found
-            break
+            expect(ctx.logger.error).toHaveBeenNthCalledWith(i + 1, expect.any(String), expect.any(EventError))
         }
     })
 })
@@ -74,10 +71,10 @@ it.each([new Error(), EventError.badRequest(), 'foobar'])('promise throws with E
         const response = await handleDynamoDBStreamEvent({ dynamodb: { handler } }, Records, ctx)
 
         if (Records.length > 0) {
-            expect(response).toEqual(failure(error))
+            expect(response).toEqual({ batchItemFailures: Records.map((r) => ({ itemIdentifier: r.eventID })) })
         }
 
-        for (const [i, record] of enumerate(Records)) {
+        for (const [i, record] of Records.entries()) {
             expect(handler).toHaveBeenNthCalledWith(i + 1, expect.objectContaining({ raw: record }), ctx)
 
             expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[dynamodb] start', {
@@ -91,10 +88,7 @@ it.each([new Error(), EventError.badRequest(), 'foobar'])('promise throws with E
                 response: undefined,
             })
 
-            expect(ctx.logger.error).not.toHaveBeenCalled()
-
-            // it stops on the first error found
-            break
+            expect(ctx.logger.error).toHaveBeenNthCalledWith(i + 1, expect.any(String), expect.any(EventError))
         }
     })
 })

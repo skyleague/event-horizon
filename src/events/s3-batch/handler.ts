@@ -1,5 +1,5 @@
 import type { Try } from '@skyleague/axioms'
-import { enumerate, isSuccess, mapTry, transformTry } from '@skyleague/axioms'
+import { isSuccess, mapTry, transformTry } from '@skyleague/axioms'
 import type { S3BatchEvent, S3BatchResult, S3BatchResultResult } from 'aws-lambda'
 import { ioLoggerChild } from '../functions/io-logger-child.js'
 import { ioLogger } from '../functions/io-logger.js'
@@ -25,7 +25,7 @@ export async function handleS3Batch<Configuration, Service, Profile, Result>(
     const ioLoggerChildFn = ioLoggerChild(context, context.logger)
 
     const results: S3BatchResultResult[] = []
-    for (const [i, task] of enumerate(event.tasks)) {
+    for (const [i, task] of event.tasks.entries()) {
         const item = { item: i }
 
         const s3BatchTask = parseEventFn.before(event, task)
