@@ -1,4 +1,4 @@
-import type { SQSEvent, SQSHandler, SQSMessageGroup } from '../../../events/sqs/types.js'
+import type { SQSEvent, SQSGroupHandler, SQSHandler, SQSMessageGroup } from '../../../events/sqs/types.js'
 
 import type { Dependent } from '@skyleague/axioms'
 import { alphaNumeric, array, constant, integer, object, tuple, unknown } from '@skyleague/axioms'
@@ -19,7 +19,7 @@ export function sqsEvent<Configuration, Service, Profile, Payload>(
 }
 
 export function sqsGroupEvent<Configuration, Service, Profile, Payload>(
-    definition: SQSHandler<Configuration, Service, Profile, Payload>,
+    definition: SQSGroupHandler<Configuration, Service, Profile, Payload>,
     { generation = 'fast' }: { generation?: 'full' | 'fast' } = {},
 ): Dependent<SQSMessageGroup<Payload>> {
     const { sqs } = definition
