@@ -2,7 +2,7 @@ import { asyncForAll, enumerate, failure, json, random, tuple } from '@skyleague
 import type { Schema } from '@skyleague/therefore'
 import { arbitrary } from '@skyleague/therefore'
 import { expect, it, vi } from 'vitest'
-import { type SnsRecordSchema, SnsSchema } from '../../dev/aws/sns/sns.type.js'
+import { SnsSchema } from '../../dev/aws/sns/sns.type.js'
 import { EventError } from '../../errors/event-error/event-error.js'
 import { context } from '../../test/context/context.js'
 import { handleSNSEvent } from './handler.js'
@@ -13,11 +13,7 @@ it('binary events does not give failures', async () => {
 
         const handler = vi.fn()
 
-        const response = await handleSNSEvent(
-            { sns: { schema: {}, handler, payloadType: 'binary' } },
-            Records as SnsRecordSchema[],
-            ctx,
-        )
+        const response = await handleSNSEvent({ sns: { schema: {}, handler, payloadType: 'binary' } }, Records, ctx)
 
         expect(response).toEqual(undefined)
 
@@ -42,11 +38,7 @@ it('plaintext events does not give failures', async () => {
         ctx.mockClear()
 
         const handler = vi.fn()
-        const response = await handleSNSEvent(
-            { sns: { schema: {}, handler, payloadType: 'plaintext' } },
-            Records as SnsRecordSchema[],
-            ctx,
-        )
+        const response = await handleSNSEvent({ sns: { schema: {}, handler, payloadType: 'plaintext' } }, Records, ctx)
 
         expect(response).toEqual(undefined)
 
@@ -78,7 +70,7 @@ it('json events does not give failures', async () => {
             ctx.mockClear()
 
             const handler = vi.fn()
-            const response = await handleSNSEvent({ sns: { schema: {}, handler } }, Records as SnsRecordSchema[], ctx)
+            const response = await handleSNSEvent({ sns: { schema: {}, handler } }, Records, ctx)
 
             expect(response).toEqual(undefined)
 
@@ -111,7 +103,7 @@ it('json parse failure, gives failure', async () => {
             ctx.mockClear()
 
             const handler = vi.fn()
-            const response = await handleSNSEvent({ sns: { schema: {}, handler } }, Records as SnsRecordSchema[], ctx)
+            const response = await handleSNSEvent({ sns: { schema: {}, handler } }, Records, ctx)
 
             if (Records.length > 0) {
                 expect(response).toEqual(expect.any(SyntaxError))
@@ -153,11 +145,7 @@ it('schema validation, gives failure', async () => {
             ctx.mockClear()
 
             const handler = vi.fn()
-            const response = await handleSNSEvent(
-                { sns: { schema: { payload: neverTrue }, handler } },
-                Records as SnsRecordSchema[],
-                ctx,
-            )
+            const response = await handleSNSEvent({ sns: { schema: { payload: neverTrue }, handler } }, Records, ctx)
 
             if (Records.length > 0) {
                 expect(response).toEqual(expect.any(EventError))
@@ -189,11 +177,7 @@ it.each([new Error(), EventError.badRequest(), 'foobar'])('promise reject with E
         ctx.mockClear()
 
         const handler = vi.fn().mockRejectedValue(error)
-        const response = await handleSNSEvent(
-            { sns: { schema: {}, handler, payloadType: 'binary' } },
-            Records as SnsRecordSchema[],
-            ctx,
-        )
+        const response = await handleSNSEvent({ sns: { schema: {}, handler, payloadType: 'binary' } }, Records, ctx)
 
         if (Records.length > 0) {
             expect(response).toEqual(failure(error))
@@ -228,11 +212,7 @@ it.each([new Error(), EventError.badRequest(), 'foobar'])('promise throws with E
         const handler = vi.fn().mockImplementation(() => {
             throw error
         })
-        const response = await handleSNSEvent(
-            { sns: { schema: {}, handler, payloadType: 'binary' } },
-            Records as SnsRecordSchema[],
-            ctx,
-        )
+        const response = await handleSNSEvent({ sns: { schema: {}, handler, payloadType: 'binary' } }, Records, ctx)
 
         if (Records.length > 0) {
             expect(response).toEqual(failure(error))

@@ -4,6 +4,7 @@ import { expect, expectTypeOf, it, vi } from 'vitest'
 import { literalSchema, warmerEvent } from '../../../test/schema.js'
 import { APIGatewayProxyEventV2Schema } from '../../dev/aws/apigateway/http.type.js'
 import { APIGatewayProxyEventSchema } from '../../dev/aws/apigateway/rest.type.js'
+import { DynamoDBStreamSchema } from '../../dev/aws/dynamodb/dynamodb.type.js'
 import { EventBridgeSchema } from '../../dev/aws/eventbridge/eventbridge.type.js'
 import { KinesisFirehoseSchema } from '../../dev/aws/firehose/firehose.type.js'
 import { KinesisDataStreamSchema } from '../../dev/aws/kinesis/kinesis.type.js'
@@ -67,6 +68,7 @@ it('does not handle non kinesis events', async () => {
                 arbitrary(SecretRotationEvent),
                 arbitrary(SnsSchema),
                 arbitrary(SqsSchema),
+                arbitrary(DynamoDBStreamSchema),
             ).filter((e) => !('Records' in e) || e.Records.length > 0),
             unknown(),
             await context(handler),
