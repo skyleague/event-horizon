@@ -4,8 +4,8 @@ import type { EventHandlerDefinition, LambdaContext } from '../types.js'
 
 import type { Promisable, Try } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
-import type { APIGatewayProxyEventV2Schema } from '../../dev/aws/apigateway/http.type.js'
-import type { APIGatewayProxyEventSchema } from '../../dev/aws/apigateway/rest.type.js'
+import type { APIGatewayProxyEventV2Schema } from '../../aws/apigateway/http.type.js'
+import type { APIGatewayProxyEventSchema } from '../../aws/apigateway/rest.type.js'
 
 export type HTTPMethod = 'delete' | 'get' | 'head' | 'options' | 'patch' | 'post' | 'put' | 'trace'
 export type HTTPHeaders = Record<string, string | undefined>

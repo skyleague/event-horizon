@@ -3,7 +3,7 @@ import type { SNSEvent, SNSHandler } from '../../../events/sns/types.js'
 import type { Dependent } from '@skyleague/axioms'
 import { object, unknown } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
-import { SnsRecordSchema } from '../../aws/sns/sns.type.js'
+import { SnsRecordSchema } from '../../../aws/sns/sns.type.js'
 
 export function snsEvent<Configuration, Service, Profile, Payload>(
     definition: SNSHandler<Configuration, Service, Profile, Payload>,

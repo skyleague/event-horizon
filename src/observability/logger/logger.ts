@@ -23,7 +23,7 @@ export interface Logger {
 }
 
 export function createLogger(
-    options: ConstructorParameters<typeof AwsLogger>[0] | { instance: AwsLogger } = {
+    options: ConstructorParameters<typeof AwsLogger>[0] & { instance?: AwsLogger } = {
         serviceName: serviceConstants.serviceName,
         logFormatter: new LogFormatter(),
     },
@@ -55,7 +55,7 @@ export function createLogger(
     }
 
     function setBindings(bindings: Record<string, unknown>): void {
-        instance.addPersistentLogAttributes(bindings)
+        instance.appendPersistentKeys(bindings)
     }
 
     return {

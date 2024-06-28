@@ -1,4 +1,4 @@
-import type { KinesisDataStreamRecord } from '../../../dev/aws/kinesis/kinesis.type.js'
+import type { KinesisDataStreamRecord } from '../../../aws/kinesis/kinesis.type.js'
 import { parseJSON } from '../../../parsers/json/json.js'
 import type { KinesisEvent, KinesisEventHandler } from '../types.js'
 

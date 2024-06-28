@@ -22,14 +22,14 @@ import type {
     ScheduledHandler,
     SecretsManagerRotationHandler,
 } from 'aws-lambda'
-import type { APIGatewayProxyEventV2Schema } from '../../dev/aws/apigateway/http.type.js'
-import type { APIGatewayProxyEventSchema } from '../../dev/aws/apigateway/rest.type.js'
-import type { DynamoDBStreamSchema } from '../../dev/aws/dynamodb/dynamodb.type.js'
-import type { EventBridgeSchema } from '../../dev/aws/eventbridge/eventbridge.type.js'
-import type { KinesisDataStreamSchema } from '../../dev/aws/kinesis/kinesis.type.js'
-import type { S3Schema } from '../../dev/aws/s3/s3.type.js'
-import type { SnsSchema } from '../../dev/aws/sns/sns.type.js'
-import type { SqsSchema } from '../../dev/aws/sqs/sqs.type.js'
+import type { APIGatewayProxyEventV2Schema } from '../../aws/apigateway/http.type.js'
+import type { APIGatewayProxyEventSchema } from '../../aws/apigateway/rest.type.js'
+import type { DynamoDBStreamSchema } from '../../aws/dynamodb/dynamodb.type.js'
+import type { EventBridgeSchema } from '../../aws/eventbridge/eventbridge.type.js'
+import type { KinesisDataStreamSchema } from '../../aws/kinesis/kinesis.type.js'
+import type { S3Schema } from '../../aws/s3/s3.type.js'
+import type { SnsSchema } from '../../aws/sns/sns.type.js'
+import type { SqsSchema } from '../../aws/sqs/sqs.type.js'
 
 export type AWSLambdaHandler =
     | APIGatewayProxyHandler

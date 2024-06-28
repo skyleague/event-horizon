@@ -1,4 +1,4 @@
-import type { SqsRecordSchema } from '../../../dev/aws/sqs/sqs.type.js'
+import type { SqsRecordSchema } from '../../../aws/sqs/sqs.type.js'
 import { EventError } from '../../../errors/event-error/event-error.js'
 import type { LambdaContext } from '../../types.js'
 

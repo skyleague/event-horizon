@@ -1,5 +1,5 @@
+import { S3BatchEvent, S3BatchEventTask } from '../../../aws/s3-batch/s3.type.js'
 import type { S3BatchHandler, S3BatchTask } from '../../../events/s3-batch/types.js'
-import { S3BatchEvent, S3BatchEventTask } from '../../aws/s3-batch/s3.type.js'
 
 import type { Dependent } from '@skyleague/axioms'
 import { omit, tuple } from '@skyleague/axioms'

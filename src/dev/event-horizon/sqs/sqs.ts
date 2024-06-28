@@ -3,7 +3,7 @@ import type { SQSEvent, SQSHandler, SQSMessageGroup } from '../../../events/sqs/
 import type { Dependent } from '@skyleague/axioms'
 import { alphaNumeric, array, constant, integer, object, tuple, unknown } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
-import { SqsRecordSchema } from '../../aws/sqs/sqs.type.js'
+import { SqsRecordSchema } from '../../../aws/sqs/sqs.type.js'
 
 export function sqsEvent<Configuration, Service, Profile, Payload>(
     definition: SQSHandler<Configuration, Service, Profile, Payload>,

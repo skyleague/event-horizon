@@ -1,5 +1,5 @@
-import type { APIGatewayProxyEventV2Schema } from '../../../dev/aws/apigateway/http.type.js'
-import type { APIGatewayProxyEventSchema } from '../../../dev/aws/apigateway/rest.type.js'
+import type { APIGatewayProxyEventV2Schema } from '../../../aws/apigateway/http.type.js'
+import type { APIGatewayProxyEventSchema } from '../../../aws/apigateway/rest.type.js'
 import { parseJSON } from '../../../parsers/json/json.js'
 import type { GatewayVersion, HTTPEventHandler, HTTPRequest } from '../types.js'
 

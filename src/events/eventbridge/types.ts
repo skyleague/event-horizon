@@ -1,6 +1,6 @@
 import type { Promisable, Try } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
-import type { EventBridgeSchema } from '../../dev/aws/eventbridge/eventbridge.type.js'
+import type { EventBridgeSchema } from '../../aws/eventbridge/eventbridge.type.js'
 import type { EventHandlerDefinition, LambdaContext } from '../types.js'
 
 export interface EventBridgeEvent<Payload = unknown> {

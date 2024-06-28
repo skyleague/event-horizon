@@ -1,5 +1,5 @@
 import type { KinesisStreamBatchItemFailure } from 'aws-lambda'
-import type { KinesisDataStreamRecord } from '../../../dev/aws/kinesis/kinesis.type.js'
+import type { KinesisDataStreamRecord } from '../../../aws/kinesis/kinesis.type.js'
 import { EventError } from '../../../errors/event-error/event-error.js'
 import type { LambdaContext } from '../../types.js'
 

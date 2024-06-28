@@ -1,6 +1,6 @@
 import type { Try } from '@skyleague/axioms'
 import { isFailure, mapTry } from '@skyleague/axioms'
-import type { S3RecordSchema } from '../../dev/aws/s3/s3.type.js'
+import type { S3RecordSchema } from '../../aws/s3/s3.type.js'
 import { ioLogger } from '../functions/io-logger.js'
 import type { LambdaContext } from '../types.js'
 import { s3ParseEvent } from './functions/parse-event.js'

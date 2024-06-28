@@ -1,7 +1,7 @@
 import type { PutEventsCommandInput } from '@aws-sdk/client-eventbridge'
 import { omitUndefined } from '@skyleague/axioms'
 import type { Simplify } from '@skyleague/axioms/types'
-import type { EventBridgeSchema } from '../../dev/aws/eventbridge/eventbridge.type.js'
+import type { EventBridgeSchema } from '../../aws/eventbridge/eventbridge.type.js'
 
 export type PutEventsRequestEntry = {
     time?: Date

@@ -1,8 +1,8 @@
 import type { Dependent } from '@skyleague/axioms'
 import { constant, object } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
+import { APIGatewayProxyEventV2Schema } from '../../../aws/apigateway/http.type.js'
 import type { HTTPHandler, HTTPRequest } from '../../../events/http/types.js'
-import { APIGatewayProxyEventV2Schema } from '../../aws/apigateway/http.type.js'
 
 export function httpApiEvent<Configuration, Service, Profile, Body, Path, Query, Headers, Result>(
     { http }: HTTPHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, 'http'>,

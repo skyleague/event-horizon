@@ -1,4 +1,4 @@
-import type { DynamoDBStreamRecord } from '../../dev/aws/dynamodb/dynamodb.type.js'
+import type { DynamoDBStreamRecord } from '../../aws/dynamodb/dynamodb.type.js'
 import { EventError } from '../../errors/event-error/event-error.js'
 import { type EventHandlerFn, eventHandler } from '../common/event.js'
 import type { DefaultServices } from '../types.js'

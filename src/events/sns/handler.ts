@@ -1,6 +1,6 @@
 import type { Try } from '@skyleague/axioms'
 import { isFailure, mapTry } from '@skyleague/axioms'
-import type { SnsRecordSchema } from '../../dev/aws/sns/sns.type.js'
+import type { SnsRecordSchema } from '../../aws/sns/sns.type.js'
 import { ioLoggerChild } from '../functions/io-logger-child.js'
 import { ioLogger } from '../functions/io-logger.js'
 import { ioValidate } from '../functions/io-validate.js'

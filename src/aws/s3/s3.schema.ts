@@ -1,4 +1,4 @@
-import { S3Schema } from '@aws-lambda-powertools/parser/schemas'
+import { S3EventNotificationEventBridgeSchema, S3Schema } from '@aws-lambda-powertools/parser/schemas'
 import { $ref } from '@skyleague/therefore'
 
 export const s3Schema = $ref(S3Schema).validator()
@@ -9,8 +9,8 @@ export const s3RequestParameters = s3RecordSchema.shape.requestParameters
 export const s3ResponseElements = s3RecordSchema.shape.responseElements
 export const s3EventRecordGlacierEventData = s3RecordSchema.shape.glacierEventData.unwrap()
 
-// export const s3EventNotificationEventBridgeSchema = S3EventNotificationEventBridgeSchema
-// export const s3EventNotificationEventBridgeDetailSchema = s3EventNotificationEventBridgeSchema.shape.detail
+export const s3EventNotificationEventBridgeSchema = $ref(S3EventNotificationEventBridgeSchema)
+export const s3EventNotificationEventBridgeDetailSchema = s3EventNotificationEventBridgeSchema.shape.detail.validator()
 
 // export const s3SqsEventNotificationSchema = $ref(S3SqsEventNotificationSchema).validator()
 // export const s3SqsEventNotificationRecordSchema = s3SqsEventNotificationSchema.shape.Records.element
