@@ -1,4 +1,4 @@
-import type { KinesisFirehoseRecord } from '../../dev/aws/firehose/firehose.type.js'
+import type { KinesisFirehoseRecord } from '../../aws/firehose/firehose.type.js'
 import { EventError } from '../../errors/event-error/event-error.js'
 import type { EventHandlerFn } from '../common/event.js'
 import { eventHandler } from '../common/event.js'

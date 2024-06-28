@@ -1,6 +1,6 @@
 import type { Try } from '@skyleague/axioms'
 import { mapTry } from '@skyleague/axioms'
-import type { EventBridgeSchema } from '../../dev/aws/eventbridge/eventbridge.type.js'
+import type { EventBridgeSchema } from '../../aws/eventbridge/eventbridge.type.js'
 import { ioLogger } from '../functions/io-logger.js'
 import { ioValidate } from '../functions/io-validate.js'
 import type { DefaultServices, LambdaContext } from '../types.js'

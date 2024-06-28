@@ -1,6 +1,6 @@
 import { secretRotationEvent } from './secret-rotation.js'
 
-import { SecretRotationEvent } from '../../aws/secret-rotation/secret-rotation.type.js'
+import { SecretRotationEvent } from '../../../aws/secret-rotation/secret-rotation.type.js'
 
 import { forAll } from '@skyleague/axioms'
 import { it } from 'vitest'

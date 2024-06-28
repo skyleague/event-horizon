@@ -3,7 +3,7 @@ import type { DefaultServices, EventHandlerDefinition, LambdaContext } from '../
 import type { Promisable, Try } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
 import type { SQSBatchItemFailure } from 'aws-lambda'
-import type { SqsRecordSchema } from '../../dev/aws/sqs/sqs.type.js'
+import type { SqsRecordSchema } from '../../aws/sqs/sqs.type.js'
 import type { EventHandlerFn } from '../common/event.js'
 
 export interface SQSEvent<Payload = unknown> {

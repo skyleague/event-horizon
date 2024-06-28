@@ -1,6 +1,6 @@
 import { isString } from '@skyleague/axioms'
 import type { FirehoseTransformationResultRecord } from 'aws-lambda'
-import type { KinesisFirehoseRecord } from '../../../dev/aws/firehose/firehose.type.js'
+import type { KinesisFirehoseRecord } from '../../../aws/firehose/firehose.type.js'
 import type { FirehoseTransformationResult } from '../types.js'
 
 export function firehoseSerializeTransformation(): {

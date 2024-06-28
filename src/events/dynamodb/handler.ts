@@ -1,7 +1,7 @@
 import type { Try } from '@skyleague/axioms'
 import { isLeft, mapLeft, mapTry, tryToEither } from '@skyleague/axioms'
 import type { DynamoDBBatchItemFailure, DynamoDBBatchResponse } from 'aws-lambda/trigger/dynamodb-stream.js'
-import type { DynamoDBStreamRecord } from '../../dev/aws/dynamodb/dynamodb.type.js'
+import type { DynamoDBStreamRecord } from '../../aws/dynamodb/dynamodb.type.js'
 import { ioLoggerChild } from '../functions/io-logger-child.js'
 import { ioLogger } from '../functions/io-logger.js'
 import type { LambdaContext } from '../types.js'

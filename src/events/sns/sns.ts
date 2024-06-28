@@ -1,4 +1,4 @@
-import type { SnsRecordSchema } from '../../dev/aws/sns/sns.type.js'
+import type { SnsRecordSchema } from '../../aws/sns/sns.type.js'
 import { EventError } from '../../errors/event-error/event-error.js'
 import { type EventHandlerFn, eventHandler } from '../common/event.js'
 import type { DefaultServices } from '../types.js'

@@ -1,4 +1,4 @@
-import type { KinesisDataStreamRecord } from '../../dev/aws/kinesis/kinesis.type.js'
+import type { KinesisDataStreamRecord } from '../../aws/kinesis/kinesis.type.js'
 import { EventError } from '../../errors/event-error/event-error.js'
 import { type EventHandlerFn, eventHandler } from '../common/event.js'
 import type { DefaultServices } from '../types.js'

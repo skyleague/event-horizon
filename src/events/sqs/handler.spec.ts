@@ -1,7 +1,7 @@
 import { handleSQSEvent, handleSQSMessageGroup } from './handler.js'
 import type { SQSMessageGroup } from './types.js'
 
-import { type SqsRecordSchema, SqsSchema } from '../../dev/aws/sqs/sqs.type.js'
+import { type SqsRecordSchema, SqsSchema } from '../../aws/sqs/sqs.type.js'
 import { EventError } from '../../errors/event-error/event-error.js'
 import type { Logger } from '../../observability/logger/logger.js'
 import { context } from '../../test/context/context.js'

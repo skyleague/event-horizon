@@ -1,8 +1,8 @@
 import type { Dependent } from '@skyleague/axioms'
 import { tuple, unknown } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
+import { KinesisDataStreamRecord } from '../../../aws/kinesis/kinesis.type.js'
 import type { KinesisEvent, KinesisHandler } from '../../../events/kinesis/types.js'
-import { KinesisDataStreamRecord } from '../../aws/kinesis/kinesis.type.js'
 
 export function kinesisEvent<Configuration, Service, Profile, Payload>(
     { kinesis }: KinesisHandler<Configuration, Service, Profile, Payload>,

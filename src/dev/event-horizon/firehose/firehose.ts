@@ -3,7 +3,7 @@ import type { FirehoseTransformationEvent, FirehoseTransformationHandler } from 
 import type { Dependent } from '@skyleague/axioms'
 import { tuple, unknown } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
-import { KinesisFirehoseRecord } from '../../aws/firehose/firehose.type.js'
+import { KinesisFirehoseRecord } from '../../../aws/firehose/firehose.type.js'
 
 /**
  * @experimental

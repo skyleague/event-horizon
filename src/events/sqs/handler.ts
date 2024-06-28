@@ -19,7 +19,7 @@ import {
     tryToEither,
 } from '@skyleague/axioms'
 import type { SQSBatchItemFailure, SQSBatchResponse } from 'aws-lambda'
-import type { SqsRecordSchema } from '../../dev/aws/sqs/sqs.type.js'
+import type { SqsRecordSchema } from '../../aws/sqs/sqs.type.js'
 
 export async function handleSQSEvent<Configuration, Service, Profile, Payload>(
     handler: SQSHandler<Configuration, Service, Profile, Payload>,

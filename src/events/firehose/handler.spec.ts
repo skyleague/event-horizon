@@ -6,7 +6,7 @@ import { arbitrary } from '@skyleague/therefore'
 import type { FirehoseTransformationEventRecord } from 'aws-lambda/trigger/kinesis-firehose-transformation.js'
 import { expect, it, vi } from 'vitest'
 import { alwaysTrueSchema, neverTrueSchema } from '../../../test/schema.js'
-import { KinesisFirehoseSchema } from '../../dev/aws/firehose/firehose.type.js'
+import { KinesisFirehoseSchema } from '../../aws/firehose/firehose.type.js'
 import { EventError } from '../../errors/event-error/event-error.js'
 import { context } from '../../test/context/context.js'
 

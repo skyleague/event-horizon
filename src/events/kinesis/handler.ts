@@ -1,7 +1,7 @@
 import type { Try } from '@skyleague/axioms'
 import { isLeft, mapLeft, mapTry, tryAsValue, tryToEither } from '@skyleague/axioms'
 import type { KinesisStreamBatchItemFailure, KinesisStreamBatchResponse } from 'aws-lambda'
-import type { KinesisDataStreamRecord } from '../../dev/aws/kinesis/kinesis.type.js'
+import type { KinesisDataStreamRecord } from '../../aws/kinesis/kinesis.type.js'
 import { ioLoggerChild } from '../functions/io-logger-child.js'
 import { ioLogger } from '../functions/io-logger.js'
 import { ioValidate } from '../functions/io-validate.js'

@@ -11,8 +11,8 @@ import type { LambdaContext } from '../types.js'
 import type { Try } from '@skyleague/axioms'
 import { mapTry, recoverTry } from '@skyleague/axioms'
 import type { APIGatewayProxyResult, APIGatewayProxyResultV2 } from 'aws-lambda'
-import type { APIGatewayProxyEventV2Schema } from '../../dev/aws/apigateway/http.type.js'
-import type { APIGatewayProxyEventSchema } from '../../dev/aws/apigateway/rest.type.js'
+import type { APIGatewayProxyEventV2Schema } from '../../aws/apigateway/http.type.js'
+import type { APIGatewayProxyEventSchema } from '../../aws/apigateway/rest.type.js'
 
 export async function handleHTTPEvent<
     Configuration,

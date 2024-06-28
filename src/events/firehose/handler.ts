@@ -14,7 +14,7 @@ import type {
     FirehoseTransformationResult as AWSFirehoseTransformationResult,
     FirehoseTransformationResultRecord,
 } from 'aws-lambda'
-import type { KinesisFirehoseRecord } from '../../dev/aws/firehose/firehose.type.js'
+import type { KinesisFirehoseRecord } from '../../aws/firehose/firehose.type.js'
 
 export async function handleFirehoseTransformation<
     const Configuration,

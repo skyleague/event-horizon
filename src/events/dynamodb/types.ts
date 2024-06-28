@@ -1,5 +1,5 @@
 import type { Promisable, Try } from '@skyleague/axioms'
-import type { DynamoDBStreamRecord } from '../../dev/aws/dynamodb/dynamodb.type.js'
+import type { DynamoDBStreamRecord } from '../../aws/dynamodb/dynamodb.type.js'
 import type { EventHandlerDefinition, LambdaContext } from '../types.js'
 
 export interface DynamoDBStreamEvent {

@@ -1,4 +1,4 @@
-import { Context } from '../../dev/aws/lambda/context.type.js'
+import { Context } from '../../aws/lambda/context.type.js'
 import type { ProfileSchema } from '../../events/common/functions/profile-handler.js'
 import type { Config, EventHandlerDefinition, LambdaContext, Services } from '../../events/types.js'
 import { mockLogger, mockMetrics, mockTracer } from '../mock/mock.js'

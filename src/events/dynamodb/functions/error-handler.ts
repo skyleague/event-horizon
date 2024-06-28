@@ -1,5 +1,5 @@
 import type { DynamoDBBatchItemFailure } from 'aws-lambda'
-import type { DynamoDBStreamRecord } from '../../../dev/aws/dynamodb/dynamodb.type.js'
+import type { DynamoDBStreamRecord } from '../../../aws/dynamodb/dynamodb.type.js'
 import { EventError } from '../../../errors/event-error/event-error.js'
 import type { LambdaContext } from '../../types.js'
 

@@ -1,6 +1,6 @@
 import { handleKinesisEvent } from './handler.js'
 
-import { KinesisDataStreamSchema } from '../../dev/aws/kinesis/kinesis.type.js'
+import { KinesisDataStreamSchema } from '../../aws/kinesis/kinesis.type.js'
 import { EventError } from '../../errors/event-error/event-error.js'
 import { context } from '../../test/context/context.js'
 

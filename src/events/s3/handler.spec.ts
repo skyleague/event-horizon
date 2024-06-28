@@ -1,6 +1,6 @@
 import { handleS3Event } from './handler.js'
 
-import { S3Schema } from '../../dev/aws/s3/s3.type.js'
+import { S3Schema } from '../../aws/s3/s3.type.js'
 import { EventError } from '../../errors/event-error/event-error.js'
 import { context } from '../../test/context/context.js'
 
