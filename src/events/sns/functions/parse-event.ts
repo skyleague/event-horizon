@@ -11,7 +11,7 @@ export function snsParseEvent({ payloadType = 'json' }: Pick<SNSEventHandler, 'p
             }
             return {
                 payload: payload,
-                raw: event,
+                raw: event.Sns,
             }
         },
     }

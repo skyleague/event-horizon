@@ -4,12 +4,11 @@ import { ioValidate } from '../functions/io-validate.js'
 import type { LambdaContext } from '../types.js'
 import { sqsErrorHandler } from './functions/error-handler.js'
 import { sqsParseEvent } from './functions/parse-event.js'
-import type { SQSEvent, SQSHandler, SQSMessageGroup, SQSMessageGrouping, SQSPayload } from './types.js'
+import type { SQSEvent, SQSGroupHandler, SQSHandler, SQSMessageGroup } from './types.js'
 
 import {
     type Try,
     eitherAsValue,
-    enumerate,
     groupBy,
     isLeft,
     map,
@@ -37,7 +36,7 @@ export async function handleSQSEvent<Configuration, Service, Profile, Payload>(
     const ioLoggerChildFn = ioLoggerChild(context, context.logger)
 
     let failures: SQSBatchItemFailure[] | undefined = undefined
-    for (const [i, event] of enumerate(events)) {
+    for (const [i, event] of events.entries()) {
         const item = { item: i }
 
         const sqsEvent = mapTry(event, (e) => {
@@ -52,7 +51,7 @@ export async function handleSQSEvent<Configuration, Service, Profile, Payload>(
 
         ioLoggerFn.before(sqsEvent, item)
 
-        const transformed = await mapTry(sqsEvent, (success) => sqs.handler(success as SQSPayload<never, Payload>, context))
+        const transformed = await mapTry(sqsEvent, (success) => sqs.handler(success, context))
 
         const eitherTransformed = tryToEither(transformed)
         const response = mapLeft(eitherTransformed, (e) => errorHandlerFn.onError(event, e))
@@ -70,20 +69,21 @@ export async function handleSQSEvent<Configuration, Service, Profile, Payload>(
     }
 }
 
-export async function handleSQSMessageGroup<Configuration, Service, Profile, Payload, MessageGrouping extends SQSMessageGrouping>(
-    handler: SQSHandler<Configuration, Service, Profile, Payload, MessageGrouping>,
+export async function handleSQSMessageGroup<Configuration, Service, Profile, Payload>(
+    handler: SQSGroupHandler<Configuration, Service, Profile, Payload>,
     events: SqsRecordSchema[],
     context: LambdaContext<Configuration, Service, Profile>,
     // biome-ignore lint/suspicious/noConfusingVoidType: this is the real type we want here
 ): Promise<SQSBatchResponse | void> {
     const { sqs } = handler
+    const { parallelism = 1 } = sqs
 
     const parseEventFn = sqsParseEvent(sqs)
     const ioValidateFn = ioValidate<SQSEvent>()
 
     let failures: SQSBatchItemFailure[] | undefined = undefined
     const messageGroups: Record<string, SQSMessageGroup<Payload>['records']> = groupBy(
-        map(enumerate(events), ([i, event]) => {
+        map(events.entries(), ([i, event]) => {
             const sqsEvent = mapTry(event, (e) => {
                 const unvalidatedSQSEvent = parseEventFn.before(e, i)
 
@@ -100,7 +100,7 @@ export async function handleSQSMessageGroup<Configuration, Service, Profile, Pay
         ({ messageGroupId }) => messageGroupId,
     )
 
-    const pLimit = parallelLimit(sqs.messageGrouping?.parallelism ?? 1)
+    const pLimit = parallelLimit(parallelism)
     await Promise.all(
         Object.entries(messageGroups).map(([messageGroupId, records]) =>
             pLimit(async () => {
@@ -118,11 +118,7 @@ export async function handleSQSMessageGroup<Configuration, Service, Profile, Pay
 
                 ioLoggerFn.before(messageGroup, { messageGroupId })
 
-                const transformed = (await mapTry(
-                    messageGroup,
-                    (success) => sqs.handler(success as SQSPayload<MessageGrouping, Payload>, ctx),
-                    // biome-ignore lint/suspicious/noConfusingVoidType: this is the real type we want here
-                )) as Try<SQSBatchItemFailure[] | void>
+                const transformed = await mapTry(messageGroup, (success) => sqs.handler(success, ctx))
 
                 const eitherTransformed = tryToEither(transformed)
                 const response = mapLeft(eitherTransformed, (e) => records.map((r) => errorHandlerFn.onError(r.raw, e)))
@@ -132,7 +128,7 @@ export async function handleSQSMessageGroup<Configuration, Service, Profile, Pay
 
                 const messageGroupFailures = eitherAsValue(mapRight(response, (r) => r ?? []))
 
-                if (messageGroupFailures.length > 0) {
+                if (Array.isArray(messageGroupFailures) && messageGroupFailures.length > 0) {
                     failures ??= []
                     failures.push(...messageGroupFailures)
                 }

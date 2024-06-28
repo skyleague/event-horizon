@@ -6,7 +6,7 @@ import { EventError } from '../../errors/event-error/event-error.js'
 import type { Logger } from '../../observability/logger/logger.js'
 import { context } from '../../test/context/context.js'
 
-import { asyncForAll, enumerate, groupBy, isFailure, json, map, random, tuple } from '@skyleague/axioms'
+import { asyncForAll, groupBy, isFailure, json, map, random, tuple } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
 import { arbitrary } from '@skyleague/therefore'
 import type { SQSBatchItemFailure, SQSBatchResponse } from 'aws-lambda/trigger/sqs.js'
@@ -42,7 +42,7 @@ describe('plaintext events does not give failures', () => {
 
             expect(response).toEqual(undefined)
 
-            for (const [i, record] of enumerate(Records)) {
+            for (const [i, record] of Records.entries()) {
                 expect(handler).toHaveBeenNthCalledWith(
                     i + 1,
                     expect.objectContaining({ raw: record, payload: expect.any(String) }),
@@ -74,10 +74,10 @@ describe('plaintext events does not give failures', () => {
             expect(response).toEqual(undefined)
 
             const groups = groupBy(
-                map(enumerate(Records), ([item, record]) => ({ item, record })),
+                map(Records.entries(), ([item, record]) => ({ item, record })),
                 (x) => x.record.attributes.MessageGroupId ?? 'unknown',
             )
-            for (const [i, [messageGroupId, records]] of enumerate(Object.entries(groups))) {
+            for (const [i, [messageGroupId, records]] of Object.entries(groups).entries()) {
                 expect(handler).toHaveBeenNthCalledWith(
                     i + 1,
                     {
@@ -123,7 +123,7 @@ describe('json events does not give failures', () => {
 
                 expect(response).toEqual(undefined)
 
-                for (const [i, record] of enumerate(Records)) {
+                for (const [i, record] of Records.entries()) {
                     expect(handler).toHaveBeenNthCalledWith(
                         i + 1,
                         expect.objectContaining({ raw: record, payload: expect.any(Object) }),
@@ -159,10 +159,10 @@ describe('json events does not give failures', () => {
                 expect(response).toEqual(undefined)
 
                 const groups = groupBy(
-                    map(enumerate(Records), ([item, record]) => ({ item, record })),
+                    map(Records.entries(), ([item, record]) => ({ item, record })),
                     (x) => x.record.attributes.MessageGroupId ?? 'unknown',
                 )
-                for (const [i, [messageGroupId, records]] of enumerate(Object.entries(groups))) {
+                for (const [i, [messageGroupId, records]] of Object.entries(groups).entries()) {
                     expect(handler).toHaveBeenNthCalledWith(
                         i + 1,
                         {
@@ -217,7 +217,7 @@ describe('json parse failure, gives failure', () => {
                 expect(handler).not.toHaveBeenCalled()
 
                 expect(ctx.logger.error).toHaveBeenCalledTimes(Records.length)
-                for (const [i, record] of enumerate(Records)) {
+                for (const [i, record] of Records.entries()) {
                     expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[sqs] start', {
                         event: expect.any(SyntaxError),
                         item: i,
@@ -246,7 +246,7 @@ describe('json parse failure, gives failure', () => {
                 const response = await handleSQSMessageGroup({ sqs: { schema: {}, handler } }, Records as SqsRecordSchema[], ctx)
 
                 const groups = groupBy(
-                    map(enumerate(Records), ([item, record]) => ({ item, record })),
+                    map(Records.entries(), ([item, record]) => ({ item, record })),
                     (x) => x.record.attributes.MessageGroupId ?? 'unknown',
                 )
 
@@ -258,7 +258,7 @@ describe('json parse failure, gives failure', () => {
                     })
                 }
 
-                for (const [i, [messageGroupId, records]] of enumerate(Object.entries(groups))) {
+                for (const [i, [messageGroupId, records]] of Object.entries(groups).entries()) {
                     expect(handler).toHaveBeenNthCalledWith(
                         i + 1,
                         {
@@ -286,7 +286,7 @@ describe('json parse failure, gives failure', () => {
                 }
 
                 expect(ctx.logger.error).toHaveBeenCalledTimes(Records.length)
-                for (const [i, _] of enumerate(Records)) {
+                for (const [i, _] of Records.entries()) {
                     expect(ctx.logger.error).toHaveBeenNthCalledWith(i + 1, expect.any(String), expect.any(EventError))
                 }
             },
@@ -323,7 +323,7 @@ describe('schema validation, gives failure', () => {
 
                 expect(handler).not.toHaveBeenCalled()
 
-                for (const [i, record] of enumerate(Records)) {
+                for (const [i, record] of Records.entries()) {
                     expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[sqs] start', {
                         event: expect.any(EventError),
                         item: i,
@@ -361,7 +361,7 @@ describe('schema validation, gives failure', () => {
                 )
 
                 const groups = groupBy(
-                    map(enumerate(Records), ([item, record]) => ({ item, record })),
+                    map(Records.entries(), ([item, record]) => ({ item, record })),
                     (x) => x.record.attributes.MessageGroupId ?? 'unknown',
                 )
 
@@ -373,7 +373,7 @@ describe('schema validation, gives failure', () => {
                     })
                 }
 
-                for (const [i, [messageGroupId, records]] of enumerate(Object.entries(groups))) {
+                for (const [i, [messageGroupId, records]] of Object.entries(groups).entries()) {
                     expect(handler).toHaveBeenNthCalledWith(
                         i + 1,
                         {
@@ -401,7 +401,7 @@ describe('schema validation, gives failure', () => {
                 }
 
                 expect(ctx.logger.error).toHaveBeenCalledTimes(Records.length)
-                for (const [i, _] of enumerate(Records)) {
+                for (const [i, _] of Records.entries()) {
                     expect(ctx.logger.error).toHaveBeenNthCalledWith(i + 1, expect.any(String), EventError.validation())
                 }
             },
@@ -426,7 +426,7 @@ describe.each([new Error(), 'foobar'])('promise reject with Error, gives failure
             }
 
             expect(ctx.logger.error).toHaveBeenCalledTimes(Records.length)
-            for (const [i, record] of enumerate(Records)) {
+            for (const [i, record] of Records.entries()) {
                 expect(handler).toHaveBeenNthCalledWith(i + 1, expect.objectContaining({ raw: record }), ctx)
 
                 expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[sqs] start', {
@@ -455,7 +455,7 @@ describe.each([new Error(), 'foobar'])('promise reject with Error, gives failure
             )
 
             const groups = groupBy(
-                map(enumerate(Records), ([item, record]) => ({ item, record })),
+                map(Records.entries(), ([item, record]) => ({ item, record })),
                 (x) => x.record.attributes.MessageGroupId ?? 'unknown',
             )
 
@@ -467,7 +467,7 @@ describe.each([new Error(), 'foobar'])('promise reject with Error, gives failure
                 })
             }
 
-            for (const [i, [messageGroupId, records]] of enumerate(Object.entries(groups))) {
+            for (const [i, [messageGroupId, records]] of Object.entries(groups).entries()) {
                 expect(handler).toHaveBeenNthCalledWith(
                     i + 1,
                     {
@@ -491,7 +491,7 @@ describe.each([new Error(), 'foobar'])('promise reject with Error, gives failure
             }
 
             expect(ctx.logger.error).toHaveBeenCalledTimes(Records.length)
-            for (const [i, _] of enumerate(Records)) {
+            for (const [i, _] of Records.entries()) {
                 expect(ctx.logger.error).toHaveBeenNthCalledWith(i + 1, expect.any(String), expect.any(EventError))
             }
         })
@@ -515,7 +515,7 @@ describe.each([EventError.badRequest()])('promise reject with error error, gives
             }
 
             expect(ctx.logger.error).toHaveBeenCalledTimes(Records.length)
-            for (const [i, record] of enumerate(Records)) {
+            for (const [i, record] of Records.entries()) {
                 expect(handler).toHaveBeenNthCalledWith(i + 1, expect.objectContaining({ raw: record }), ctx)
 
                 expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[sqs] start', {
@@ -544,7 +544,7 @@ describe.each([EventError.badRequest()])('promise reject with error error, gives
             )
 
             const groups = groupBy(
-                map(enumerate(Records), ([item, record]) => ({ item, record })),
+                map(Records.entries(), ([item, record]) => ({ item, record })),
                 (x) => x.record.attributes.MessageGroupId ?? 'unknown',
             )
 
@@ -556,7 +556,7 @@ describe.each([EventError.badRequest()])('promise reject with error error, gives
                 })
             }
 
-            for (const [i, [messageGroupId, records]] of enumerate(Object.entries(groups))) {
+            for (const [i, [messageGroupId, records]] of Object.entries(groups).entries()) {
                 expect(handler).toHaveBeenNthCalledWith(
                     i + 1,
                     {
@@ -580,7 +580,7 @@ describe.each([EventError.badRequest()])('promise reject with error error, gives
             }
 
             expect(ctx.logger.error).toHaveBeenCalledTimes(Records.length)
-            for (const [i, _] of enumerate(Records)) {
+            for (const [i, _] of Records.entries()) {
                 expect(ctx.logger.error).toHaveBeenNthCalledWith(i + 1, expect.any(String), expect.any(EventError))
             }
         })
@@ -606,7 +606,7 @@ describe.each([new Error(), 'foobar'])('promise throws with Error, gives failure
             }
 
             expect(ctx.logger.error).toHaveBeenCalledTimes(Records.length)
-            for (const [i, record] of enumerate(Records)) {
+            for (const [i, record] of Records.entries()) {
                 expect(handler).toHaveBeenNthCalledWith(i + 1, expect.objectContaining({ raw: record }), ctx)
 
                 expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[sqs] start', {
@@ -637,7 +637,7 @@ describe.each([new Error(), 'foobar'])('promise throws with Error, gives failure
             )
 
             const groups = groupBy(
-                map(enumerate(Records), ([item, record]) => ({ item, record })),
+                map(Records.entries(), ([item, record]) => ({ item, record })),
                 (x) => x.record.attributes.MessageGroupId ?? 'unknown',
             )
 
@@ -649,7 +649,7 @@ describe.each([new Error(), 'foobar'])('promise throws with Error, gives failure
                 })
             }
 
-            for (const [i, [messageGroupId, records]] of enumerate(Object.entries(groups))) {
+            for (const [i, [messageGroupId, records]] of Object.entries(groups).entries()) {
                 expect(handler).toHaveBeenNthCalledWith(
                     i + 1,
                     {
@@ -673,7 +673,7 @@ describe.each([new Error(), 'foobar'])('promise throws with Error, gives failure
             }
 
             expect(ctx.logger.error).toHaveBeenCalledTimes(Records.length)
-            for (const [i, _] of enumerate(Records)) {
+            for (const [i, _] of Records.entries()) {
                 expect(ctx.logger.error).toHaveBeenNthCalledWith(i + 1, expect.any(String), expect.any(EventError))
             }
         })
@@ -699,7 +699,7 @@ describe.each([EventError.badRequest()])('promise throws with client error, give
             }
 
             expect(ctx.logger.error).toHaveBeenCalledTimes(Records.length)
-            for (const [i, record] of enumerate(Records)) {
+            for (const [i, record] of Records.entries()) {
                 expect(handler).toHaveBeenNthCalledWith(i + 1, expect.objectContaining({ raw: record }), ctx)
 
                 expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[sqs] start', {
@@ -716,6 +716,7 @@ describe.each([EventError.badRequest()])('promise throws with client error, give
             }
         })
     })
+
     it('handleSQSMessageGroup', async () => {
         await asyncForAll(tuple(arbitrary(SqsSchema), await context({})), async ([{ Records }, ctx]) => {
             ctx.mockClear()
@@ -730,7 +731,7 @@ describe.each([EventError.badRequest()])('promise throws with client error, give
             )
 
             const groups = groupBy(
-                map(enumerate(Records), ([item, record]) => ({ item, record })),
+                map(Records.entries(), ([item, record]) => ({ item, record })),
                 (x) => x.record.attributes.MessageGroupId ?? 'unknown',
             )
 
@@ -742,7 +743,7 @@ describe.each([EventError.badRequest()])('promise throws with client error, give
                 })
             }
 
-            for (const [i, [messageGroupId, records]] of enumerate(Object.entries(groups))) {
+            for (const [i, [messageGroupId, records]] of Object.entries(groups).entries()) {
                 expect(handler).toHaveBeenNthCalledWith(
                     i + 1,
                     {
@@ -766,7 +767,7 @@ describe.each([EventError.badRequest()])('promise throws with client error, give
             }
 
             expect(ctx.logger.error).toHaveBeenCalledTimes(Records.length)
-            for (const [i, _] of enumerate(Records)) {
+            for (const [i, _] of Records.entries()) {
                 expect(ctx.logger.error).toHaveBeenNthCalledWith(i + 1, EventError.from(error).message, expect.any(EventError))
             }
         })

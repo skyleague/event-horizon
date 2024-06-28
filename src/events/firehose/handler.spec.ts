@@ -1,6 +1,6 @@
 import { handleFirehoseTransformation } from './handler.js'
 
-import { asyncForAll, enumerate, isString, json, random, tuple } from '@skyleague/axioms'
+import { asyncForAll, isString, json, random, tuple } from '@skyleague/axioms'
 import type { JsonValue } from '@skyleague/axioms/types'
 import { arbitrary } from '@skyleague/therefore'
 import type { FirehoseTransformationEventRecord } from 'aws-lambda/trigger/kinesis-firehose-transformation.js'
@@ -45,7 +45,7 @@ it('binary events does not give failures', async () => {
                 })),
             })
 
-            for (const [i, record] of enumerate(records)) {
+            for (const [i, record] of records.entries()) {
                 expect(handler).toHaveBeenNthCalledWith(i + 1, expect.objectContaining({ raw: record }), ctx)
 
                 expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[firehose] start', {
@@ -99,7 +99,7 @@ it('plaintext events does not give failures', async () => {
                 })),
             })
 
-            for (const [i, record] of enumerate(records)) {
+            for (const [i, record] of records.entries()) {
                 expect(handler).toHaveBeenNthCalledWith(i + 1, expect.objectContaining({ raw: record }), ctx)
 
                 expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[firehose] start', {
@@ -153,7 +153,7 @@ it('json events does not give failures', async () => {
                 })),
             })
 
-            for (const [i, record] of enumerate(records)) {
+            for (const [i, record] of records.entries()) {
                 expect(handler).toHaveBeenNthCalledWith(i + 1, expect.objectContaining({ raw: record }), ctx)
 
                 expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[firehose] start', {
@@ -209,7 +209,7 @@ it('json parse failure, gives failure', async () => {
 
             expect(handler).not.toHaveBeenCalled()
 
-            for (const [i, _] of enumerate(records)) {
+            for (const [i, _] of records.entries()) {
                 expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[firehose] start', {
                     event: expect.any(SyntaxError),
                     item: i,
@@ -260,7 +260,7 @@ it('payload schema validation, gives failure', async () => {
 
             expect(handler).not.toHaveBeenCalled()
 
-            for (const [i, _] of enumerate(records)) {
+            for (const [i, _] of records.entries()) {
                 expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[firehose] start', {
                     event: expect.any(EventError),
                     item: i,
@@ -310,7 +310,7 @@ it('result schema validation, gives failure', async () => {
                 })),
             })
 
-            for (const [i, record] of enumerate(records)) {
+            for (const [i, record] of records.entries()) {
                 expect(handler).toHaveBeenNthCalledWith(i + 1, expect.objectContaining({ raw: record }), ctx)
 
                 expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[firehose] start', {
@@ -347,7 +347,7 @@ it.each([new Error(), 'foobar'])('promise reject with Error, gives failure', asy
             })),
         })
 
-        for (const [i, record] of enumerate(records)) {
+        for (const [i, record] of records.entries()) {
             expect(handler).toHaveBeenNthCalledWith(i + 1, expect.objectContaining({ raw: record }), ctx)
 
             expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[firehose] start', {
@@ -384,7 +384,7 @@ it.each([EventError.badRequest()])('promise reject with client error, gives erro
             })),
         })
 
-        for (const [i, record] of enumerate(records)) {
+        for (const [i, record] of records.entries()) {
             expect(handler).toHaveBeenNthCalledWith(i + 1, expect.objectContaining({ raw: record }), ctx)
 
             expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[firehose] start', {
@@ -423,7 +423,7 @@ it.each([new Error(), 'foobar'])('promise throws with Error, gives failure', asy
             })),
         })
 
-        for (const [i, record] of enumerate(records)) {
+        for (const [i, record] of records.entries()) {
             expect(handler).toHaveBeenNthCalledWith(i + 1, expect.objectContaining({ raw: record }), ctx)
 
             expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[firehose] start', {
@@ -462,7 +462,7 @@ it.each([EventError.badRequest()])('promise throws with client error, gives erro
             })),
         })
 
-        for (const [i, record] of enumerate(records)) {
+        for (const [i, record] of records.entries()) {
             expect(handler).toHaveBeenNthCalledWith(i + 1, expect.objectContaining({ raw: record }), ctx)
 
             expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[firehose] start', {

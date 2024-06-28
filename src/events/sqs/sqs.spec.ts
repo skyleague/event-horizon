@@ -1,7 +1,7 @@
 import { asyncForAll, oneOf, random, tuple, unknown } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
 import type { SQSBatchItemFailure } from 'aws-lambda'
-import { expect, expectTypeOf, it, vi } from 'vitest'
+import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { literalSchema, warmerEvent } from '../../../test/schema.js'
 import { APIGatewayProxyEventV2Schema } from '../../dev/aws/apigateway/http.type.js'
 import { APIGatewayProxyEventSchema } from '../../dev/aws/apigateway/rest.type.js'
@@ -15,116 +15,168 @@ import { SecretRotationEvent } from '../../dev/aws/secret-rotation/secret-rotati
 import { SnsSchema } from '../../dev/aws/sns/sns.type.js'
 import { SqsSchema } from '../../dev/aws/sqs/sqs.type.js'
 import { context } from '../../test/context/context.js'
-import { sqsHandler } from './sqs.js'
+import { sqsGroupHandler, sqsHandler } from './sqs.js'
 import type { SQSEvent, SQSMessageGroup } from './types.js'
 
-it('handles sqs events', async () => {
-    const sqs = vi.fn()
-    const handler = sqsHandler(
-        {
-            sqs: { handler: vi.fn(), schema: {} },
-        },
-        { kernel: sqs },
-    )
-    await asyncForAll(tuple(arbitrary(SqsSchema), unknown(), await context(handler)), async ([event, ret, ctx]) => {
-        sqs.mockClear()
-        sqs.mockReturnValue(ret)
-
-        const response = await handler._options.handler(event, ctx)
-        expect(response).toBe(ret)
-        expect(sqs).toHaveBeenCalledWith(expect.anything(), event.Records, ctx)
-    })
-})
-
-it('handles schema types', () => {
-    const handler = sqsHandler({
-        sqs: {
-            schema: { payload: literalSchema<'payload'>() },
-            handler: (request) => {
-                expectTypeOf(request).toEqualTypeOf<SQSEvent<'payload'>>()
+describe('sqsHandler', () => {
+    it('handles sqs events', async () => {
+        const sqs = vi.fn()
+        const handler = sqsHandler(
+            {
+                sqs: { handler: vi.fn(), schema: {} },
             },
-        },
-    })
-    expectTypeOf(handler.sqs.handler).toEqualTypeOf<(request: SQSEvent<'payload'>) => void>()
-})
-
-it('handles sqs events - message grouping', async () => {
-    const sqs = vi.fn()
-    const handler = sqsHandler(
-        {
-            sqs: { handler: vi.fn(), schema: {}, messageGrouping: { by: 'message-group-id' } },
-        },
-        { kernel: sqs },
-    )
-    await asyncForAll(tuple(arbitrary(SqsSchema), unknown(), await context(handler)), async ([event, ret, ctx]) => {
-        sqs.mockClear()
-        sqs.mockReturnValue(ret)
-
-        const response = await handler._options.handler(event, ctx)
-        expect(response).toBe(ret)
-        expect(sqs).toHaveBeenCalledWith(expect.anything(), event.Records, ctx)
-    })
-})
-
-it('handles schema types - message grouping', () => {
-    const handler = sqsHandler({
-        sqs: {
-            messageGrouping: { by: 'message-group-id' },
-            schema: { payload: literalSchema<'payload'>() },
-            handler: (request) => {
-                expectTypeOf(request).toEqualTypeOf<SQSMessageGroup<'payload'>>()
-                return [{ itemIdentifier: 'sdf' }]
-            },
-        },
-    })
-    expectTypeOf(handler.sqs.handler).toEqualTypeOf<(request: SQSMessageGroup<'payload'>) => SQSBatchItemFailure[]>()
-})
-
-it('does not handle non sqs events', async () => {
-    const sqs = vi.fn()
-    const handler = sqsHandler(
-        {
-            sqs: { handler: vi.fn(), schema: {} },
-        },
-        { kernel: sqs },
-    )
-    await asyncForAll(
-        tuple(
-            oneOf(
-                arbitrary(EventBridgeSchema),
-                arbitrary(KinesisFirehoseSchema),
-                arbitrary(APIGatewayProxyEventSchema),
-                arbitrary(APIGatewayProxyEventV2Schema),
-                arbitrary(KinesisDataStreamSchema),
-                arbitrary(S3Schema),
-                arbitrary(S3BatchEvent),
-                arbitrary(SecretRotationEvent),
-                arbitrary(SnsSchema),
-                // arbitrary(SQSEvent),
-                arbitrary(DynamoDBStreamSchema),
-            ).filter((e) => !('Records' in e) || e.Records.length > 0),
-            unknown(),
-            await context(handler),
-        ),
-        async ([event, ret, ctx]) => {
+            { _kernel: sqs },
+        )
+        await asyncForAll(tuple(arbitrary(SqsSchema), unknown(), await context(handler)), async ([event, ret, ctx]) => {
             sqs.mockClear()
             sqs.mockReturnValue(ret)
-            await expect(async () => handler._options.handler(event as any, ctx)).rejects.toThrowError(
-                /Lambda was invoked with an unexpected event type/,
-            )
-        },
-    )
+
+            const response = await handler._options.handler(event, ctx)
+            expect(response).toBe(ret)
+            expect(sqs).toHaveBeenCalledWith(expect.anything(), event.Records, ctx)
+        })
+    })
+
+    it('handles schema types', () => {
+        const handler = sqsHandler({
+            sqs: {
+                schema: { payload: literalSchema<'payload'>() },
+                handler: (request) => {
+                    expectTypeOf(request).toEqualTypeOf<SQSEvent<'payload'>>()
+                },
+            },
+        })
+        expectTypeOf(handler.sqs.handler).toEqualTypeOf<(request: SQSEvent<'payload'>) => void>()
+    })
+
+    it('does not handle non sqs events', async () => {
+        const sqs = vi.fn()
+        const handler = sqsHandler(
+            {
+                sqs: { handler: vi.fn(), schema: {} },
+            },
+            { _kernel: sqs },
+        )
+        await asyncForAll(
+            tuple(
+                oneOf(
+                    arbitrary(EventBridgeSchema),
+                    arbitrary(KinesisFirehoseSchema),
+                    arbitrary(APIGatewayProxyEventSchema),
+                    arbitrary(APIGatewayProxyEventV2Schema),
+                    arbitrary(KinesisDataStreamSchema),
+                    arbitrary(S3Schema),
+                    arbitrary(S3BatchEvent),
+                    arbitrary(SecretRotationEvent),
+                    arbitrary(SnsSchema),
+                    // arbitrary(SQSEvent),
+                    arbitrary(DynamoDBStreamSchema),
+                ).filter((e) => !('Records' in e) || e.Records.length > 0),
+                unknown(),
+                await context(handler),
+            ),
+            async ([event, ret, ctx]) => {
+                sqs.mockClear()
+                sqs.mockReturnValue(ret)
+                await expect(async () => handler._options.handler(event as any, ctx)).rejects.toThrowError(
+                    /Lambda was invoked with an unexpected event type/,
+                )
+            },
+        )
+    })
+
+    it('warmup should early exit', async () => {
+        const sqs = vi.fn()
+        const handler = sqsHandler(
+            {
+                sqs: { handler: sqs, schema: {} },
+            },
+            { _kernel: sqs },
+        )
+
+        await expect(handler(warmerEvent, random(await context()).raw)).resolves.toBe(undefined)
+        expect(sqs).not.toHaveBeenCalled()
+    })
 })
 
-it('warmup should early exit', async () => {
-    const sqs = vi.fn()
-    const handler = sqsHandler(
-        {
-            sqs: { handler: sqs, schema: {} },
-        },
-        { kernel: sqs },
-    )
+describe('sqsGroupHandler', () => {
+    it('handles sqs events', async () => {
+        const sqs = vi.fn()
+        const handler = sqsGroupHandler(
+            {
+                sqs: { handler: vi.fn(), schema: {} },
+            },
+            { _kernel: sqs },
+        )
+        await asyncForAll(tuple(arbitrary(SqsSchema), unknown(), await context(handler)), async ([event, ret, ctx]) => {
+            sqs.mockClear()
+            sqs.mockReturnValue(ret)
 
-    await expect(handler(warmerEvent, random(await context()).raw)).resolves.toBe(undefined)
-    expect(sqs).not.toHaveBeenCalled()
+            const response = await handler._options.handler(event, ctx)
+            expect(response).toBe(ret)
+            expect(sqs).toHaveBeenCalledWith(expect.anything(), event.Records, ctx)
+        })
+    })
+
+    it('handles schema types', () => {
+        const handler = sqsGroupHandler({
+            sqs: {
+                schema: { payload: literalSchema<'payload'>() },
+                handler: (request) => {
+                    expectTypeOf(request).toEqualTypeOf<SQSMessageGroup<'payload'>>()
+                    return [{ itemIdentifier: 'sdf' }]
+                },
+            },
+        })
+        expectTypeOf(handler.sqs.handler).toEqualTypeOf<(request: SQSMessageGroup<'payload'>) => SQSBatchItemFailure[]>()
+    })
+
+    it('does not handle non sqs events', async () => {
+        const sqs = vi.fn()
+        const handler = sqsGroupHandler(
+            {
+                sqs: { handler: vi.fn(), schema: {} },
+            },
+            { _kernel: sqs },
+        )
+        await asyncForAll(
+            tuple(
+                oneOf(
+                    arbitrary(EventBridgeSchema),
+                    arbitrary(KinesisFirehoseSchema),
+                    arbitrary(APIGatewayProxyEventSchema),
+                    arbitrary(APIGatewayProxyEventV2Schema),
+                    arbitrary(KinesisDataStreamSchema),
+                    arbitrary(S3Schema),
+                    arbitrary(S3BatchEvent),
+                    arbitrary(SecretRotationEvent),
+                    arbitrary(SnsSchema),
+                    // arbitrary(SQSEvent),
+                    arbitrary(DynamoDBStreamSchema),
+                ).filter((e) => !('Records' in e) || e.Records.length > 0),
+                unknown(),
+                await context(handler),
+            ),
+            async ([event, ret, ctx]) => {
+                sqs.mockClear()
+                sqs.mockReturnValue(ret)
+                await expect(async () => handler._options.handler(event as any, ctx)).rejects.toThrowError(
+                    /Lambda was invoked with an unexpected event type/,
+                )
+            },
+        )
+    })
+
+    it('warmup should early exit', async () => {
+        const sqs = vi.fn()
+        const handler = sqsGroupHandler(
+            {
+                sqs: { handler: sqs, schema: {} },
+            },
+            { _kernel: sqs },
+        )
+
+        await expect(handler(warmerEvent, random(await context()).raw)).resolves.toBe(undefined)
+        expect(sqs).not.toHaveBeenCalled()
+    })
 })

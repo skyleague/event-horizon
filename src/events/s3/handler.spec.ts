@@ -4,7 +4,7 @@ import { S3Schema } from '../../dev/aws/s3/s3.type.js'
 import { EventError } from '../../errors/event-error/event-error.js'
 import { context } from '../../test/context/context.js'
 
-import { asyncForAll, enumerate, failure, tuple } from '@skyleague/axioms'
+import { asyncForAll, failure, tuple } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
 import { expect, it, vi } from 'vitest'
 
@@ -17,7 +17,7 @@ it('events do not give failures', async () => {
 
         expect(response).toEqual(undefined)
 
-        for (const [i, record] of enumerate(Records)) {
+        for (const [i, record] of Records.entries()) {
             expect(handler).toHaveBeenNthCalledWith(i + 1, expect.objectContaining({ raw: record }), ctx)
 
             expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[s3] start', {
@@ -44,7 +44,7 @@ it.each([new Error(), EventError.badRequest(), 'foobar'])('promise reject with E
             expect(response).toEqual(failure(error))
         }
 
-        for (const [i, record] of enumerate(Records)) {
+        for (const [i, record] of Records.entries()) {
             expect(handler).toHaveBeenNthCalledWith(i + 1, expect.objectContaining({ raw: record }), ctx)
 
             expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[s3] start', {
@@ -77,7 +77,7 @@ it.each([new Error(), EventError.badRequest(), 'foobar'])('promise throws with E
             expect(response).toEqual(failure(error))
         }
 
-        for (const [i, record] of enumerate(Records)) {
+        for (const [i, record] of Records.entries()) {
             expect(handler).toHaveBeenNthCalledWith(i + 1, expect.objectContaining({ raw: record }), ctx)
 
             expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[s3] start', {

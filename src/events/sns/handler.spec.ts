@@ -1,4 +1,4 @@
-import { asyncForAll, enumerate, failure, json, random, tuple } from '@skyleague/axioms'
+import { asyncForAll, failure, json, random, tuple } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
 import { arbitrary } from '@skyleague/therefore'
 import { expect, it, vi } from 'vitest'
@@ -17,12 +17,12 @@ it('binary events does not give failures', async () => {
 
         expect(response).toEqual(undefined)
 
-        for (const [i, record] of enumerate(Records)) {
-            expect(handler).toHaveBeenNthCalledWith(i + 1, expect.objectContaining({ raw: record }), ctx)
+        for (const [i, record] of Records.entries()) {
+            expect(handler).toHaveBeenNthCalledWith(i + 1, expect.objectContaining({ raw: record.Sns }), ctx)
 
             expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[sns] start', {
                 event: expect.objectContaining({
-                    raw: record,
+                    raw: record.Sns,
                 }),
                 item: i,
             })
@@ -42,12 +42,12 @@ it('plaintext events does not give failures', async () => {
 
         expect(response).toEqual(undefined)
 
-        for (const [i, record] of enumerate(Records)) {
-            expect(handler).toHaveBeenNthCalledWith(i + 1, expect.objectContaining({ raw: record }), ctx)
+        for (const [i, record] of Records.entries()) {
+            expect(handler).toHaveBeenNthCalledWith(i + 1, expect.objectContaining({ raw: record.Sns }), ctx)
 
             expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[sns] start', {
                 event: expect.objectContaining({
-                    raw: record,
+                    raw: record.Sns,
                 }),
                 item: i,
             })
@@ -74,12 +74,12 @@ it('json events does not give failures', async () => {
 
             expect(response).toEqual(undefined)
 
-            for (const [i, record] of enumerate(Records)) {
-                expect(handler).toHaveBeenNthCalledWith(i + 1, expect.objectContaining({ raw: record }), ctx)
+            for (const [i, record] of Records.entries()) {
+                expect(handler).toHaveBeenNthCalledWith(i + 1, expect.objectContaining({ raw: record.Sns }), ctx)
 
                 expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[sns] start', {
                     event: expect.objectContaining({
-                        raw: record,
+                        raw: record.Sns,
                     }),
                     item: i,
                 })
@@ -111,7 +111,7 @@ it('json parse failure, gives failure', async () => {
 
             expect(handler).not.toHaveBeenCalled()
 
-            for (const [i, _] of enumerate(Records)) {
+            for (const [i, _] of Records.entries()) {
                 expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[sns] start', {
                     event: expect.any(SyntaxError),
                     item: i,
@@ -153,7 +153,7 @@ it('schema validation, gives failure', async () => {
 
             expect(handler).not.toHaveBeenCalled()
 
-            for (const [i, _] of enumerate(Records)) {
+            for (const [i, _] of Records.entries()) {
                 expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[sns] start', {
                     event: expect.any(EventError),
                     item: i,
@@ -183,12 +183,12 @@ it.each([new Error(), EventError.badRequest(), 'foobar'])('promise reject with E
             expect(response).toEqual(failure(error))
         }
 
-        for (const [i, record] of enumerate(Records)) {
-            expect(handler).toHaveBeenNthCalledWith(i + 1, expect.objectContaining({ raw: record }), ctx)
+        for (const [i, record] of Records.entries()) {
+            expect(handler).toHaveBeenNthCalledWith(i + 1, expect.objectContaining({ raw: record.Sns }), ctx)
 
             expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[sns] start', {
                 event: expect.objectContaining({
-                    raw: record,
+                    raw: record.Sns,
                 }),
                 item: i,
             })
@@ -218,12 +218,13 @@ it.each([new Error(), EventError.badRequest(), 'foobar'])('promise throws with E
             expect(response).toEqual(failure(error))
         }
 
-        for (const [i, record] of enumerate(Records)) {
-            expect(handler).toHaveBeenNthCalledWith(i + 1, expect.objectContaining({ raw: record }), ctx)
+        for (const [i, record] of Records.entries()) {
+            expect(handler).toHaveBeenNthCalledWith(i + 1, expect.objectContaining({ raw: record.Sns }), ctx)
 
             expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[sns] start', {
                 event: expect.objectContaining({
-                    raw: record,
+                    payload: record.Sns.Message,
+                    raw: record.Sns,
                 }),
                 item: i,
             })

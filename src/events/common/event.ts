@@ -1,4 +1,4 @@
-import type { LambdaHandler, RawRequest, RawResponse } from './raw-aws.js'
+import type { RawRequest, RawResponse } from './raw-aws.js'
 
 import { eventConstants, initConstants } from '../../constants.js'
 import { errorHandler } from '../../events/common/functions/error-handler.js'
@@ -73,15 +73,18 @@ export interface EventHandlerOptions<R, Configuration, Service, Profile> {
     eagerHandlerInitialization?: boolean
 }
 
-export type EventHandlerFn<Configuration, Service extends DefaultServices | undefined, Profile, R = unknown> = LambdaHandler &
+export type EventHandlerFn<Configuration, Service extends DefaultServices | undefined, Profile, R = unknown> = ((
+    request: RawRequest | null | undefined,
+    context: Context,
+) => Promise<Try<R>>) &
     EventHandlerDefinition<Configuration, Service, Profile> & {
         _options: EventHandlerOptions<R, Configuration, Service, Profile>
     }
 
-export function eventHandler<R, Configuration, Service extends DefaultServices | undefined, Profile>(
-    definition: EventHandlerDefinition<Configuration, Service, Profile>,
+export function eventHandler<R, Configuration, Service extends DefaultServices | undefined, Profile, D>(
+    definition: EventHandlerDefinition<Configuration, Service, Profile> & D,
     options: EventHandlerOptions<R, Configuration, Service, Profile>,
-): EventHandlerFn<Configuration, Service, Profile, R> {
+): D & EventHandlerFn<Configuration, Service, Profile, R> {
     const { handler: kernel, eagerHandlerInitialization = initConstants.eagerHandlerInitialization } = options
     const { logger = globalLogger, metrics = globalMetrics, tracer = globalTracer, services: servicesFn } = definition
 
@@ -155,5 +158,5 @@ export function eventHandler<R, Configuration, Service extends DefaultServices |
         return tryToError(response)
     }
     Object.assign(handler, definition, { _options: options })
-    return handler as unknown as EventHandlerFn<Configuration, Service, Profile, R>
+    return handler as unknown as EventHandlerFn<Configuration, Service, Profile, R> & D
 }
