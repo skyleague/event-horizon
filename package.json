@@ -47,7 +47,7 @@
     "@aws-sdk/client-secrets-manager": "^3.600.0"
   },
   "devDependencies": {
-    "@aws-lambda-powertools/parser": "^2.2.0-beta",
+    "@aws-lambda-powertools/parser": "^2.3.0-beta",
     "@aws-sdk/client-eventbridge": "^3.600.0",
     "@skyleague/node-standards": "^7.2.1",
     "@skyleague/therefore": "^5.9.1",

@@ -4,11 +4,22 @@
  */
 /* eslint-disable */
 
-import type { APIGatewayCert } from './rest.type.js'
+import type { DefinedError, ValidateFunction } from 'ajv'
+
 import { validate as APIGatewayEventRequestContextV2Validator } from './schemas/api-gateway-event-request-context-v2.schema.js'
 import { validate as APIGatewayProxyEventV2SchemaValidator } from './schemas/api-gateway-proxy-event-v2-schema.schema.js'
+import { validate as APIGatewayRequestAuthorizerEventV2SchemaValidator } from './schemas/api-gateway-request-authorizer-event-v2-schema.schema.js'
 
-import type { DefinedError, ValidateFunction } from 'ajv'
+export interface APIGatewayCert {
+    clientCertPem: string
+    subjectDN: string
+    issuerDN: string
+    serialNumber: string
+    validity: {
+        notBefore: string
+        notAfter: string
+    }
+}
 
 export interface APIGatewayEventRequestContextV2 {
     accountId: string
@@ -61,21 +72,21 @@ export interface APIGatewayProxyEventV2Schema {
               [k: string]: string | undefined
           }
         | undefined
+    requestContext: APIGatewayEventRequestContextV2
+    body?: string | undefined
     pathParameters?:
         | {
               [k: string]: string | undefined
           }
         | null
         | undefined
+    isBase64Encoded: boolean
     stageVariables?:
         | {
               [k: string]: string | undefined
           }
         | null
         | undefined
-    requestContext: APIGatewayEventRequestContextV2
-    body?: string | undefined
-    isBase64Encoded: boolean
 }
 
 export const APIGatewayProxyEventV2Schema = {
@@ -95,6 +106,58 @@ export const APIGatewayProxyEventV2Schema = {
     },
 } as const
 
+export interface APIGatewayRequestAuthorizerEventV2Schema {
+    version: '2.0'
+    type: 'REQUEST'
+    routeArn: string
+    identitySource: string[]
+    routeKey: string
+    rawPath: string
+    rawQueryString: string
+    cookies?: string[] | undefined
+    headers?:
+        | {
+              [k: string]: string | undefined
+          }
+        | undefined
+    queryStringParameters?:
+        | {
+              [k: string]: string | undefined
+          }
+        | undefined
+    requestContext: APIGatewayEventRequestContextV2
+    pathParameters?:
+        | {
+              [k: string]: string | undefined
+          }
+        | null
+        | undefined
+    stageVariables?:
+        | {
+              [k: string]: string | undefined
+          }
+        | null
+        | undefined
+}
+
+export const APIGatewayRequestAuthorizerEventV2Schema = {
+    validate: APIGatewayRequestAuthorizerEventV2SchemaValidator as ValidateFunction<APIGatewayRequestAuthorizerEventV2Schema>,
+    get schema() {
+        return APIGatewayRequestAuthorizerEventV2Schema.validate.schema
+    },
+    get errors() {
+        return APIGatewayRequestAuthorizerEventV2Schema.validate.errors ?? undefined
+    },
+    is: (o: unknown): o is APIGatewayRequestAuthorizerEventV2Schema =>
+        APIGatewayRequestAuthorizerEventV2Schema.validate(o) === true,
+    parse: (o: unknown): { right: APIGatewayRequestAuthorizerEventV2Schema } | { left: DefinedError[] } => {
+        if (APIGatewayRequestAuthorizerEventV2Schema.is(o)) {
+            return { right: o }
+        }
+        return { left: (APIGatewayRequestAuthorizerEventV2Schema.errors ?? []) as DefinedError[] }
+    },
+} as const
+
 export type RequestContextV2Authorizer =
     | {
           jwt?:
@@ -102,7 +165,7 @@ export type RequestContextV2Authorizer =
                     claims: {
                         [k: string]: unknown
                     }
-                    scopes?: string[] | undefined
+                    scopes: string[] | null
                 }
               | undefined
           iam?:
@@ -127,6 +190,7 @@ export type RequestContextV2Authorizer =
               | {
                     [k: string]: unknown
                 }
+              | null
               | undefined
       }
     | undefined
