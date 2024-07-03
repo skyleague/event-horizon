@@ -4,21 +4,13 @@
  */
 /* eslint-disable */
 
-import type { DefinedError, ValidateFunction } from 'ajv'
-
+import type { APIGatewayCert } from './http.type.js'
 import { validate as APIGatewayEventRequestContextValidator } from './schemas/api-gateway-event-request-context.schema.js'
 import { validate as APIGatewayProxyEventSchemaValidator } from './schemas/api-gateway-proxy-event-schema.schema.js'
+import { validate as APIGatewayRequestAuthorizerEventSchemaValidator } from './schemas/api-gateway-request-authorizer-event-schema.schema.js'
+import { validate as APIGatewayTokenAuthorizerEventSchemaValidator } from './schemas/api-gateway-token-authorizer-event-schema.schema.js'
 
-export interface APIGatewayCert {
-    clientCertPem: string
-    subjectDN: string
-    issuerDN: string
-    serialNumber: string
-    validity: {
-        notBefore: string
-        notAfter: string
-    }
-}
+import type { DefinedError, ValidateFunction } from 'ajv'
 
 export interface APIGatewayEventIdentity {
     accessKey?: string | null | undefined
@@ -41,16 +33,20 @@ export interface APIGatewayEventIdentity {
 export interface APIGatewayEventRequestContext {
     accountId: string
     apiId: string
+    deploymentId?: string | null | undefined
     authorizer?:
-        | {
-              claims?:
-                  | {
+        | (
+              | {
+                    integrationLatency: number
+                    principalId: string
+                }
+              | {
+                    claims: {
                         [k: string]: unknown
                     }
-                  | null
-                  | undefined
-              scopes?: string[] | null | undefined
-          }
+                    scopes?: string[] | undefined
+                }
+          )
         | null
         | undefined
     stage: string
@@ -93,11 +89,6 @@ export const APIGatewayEventRequestContext = {
 } as const
 
 export interface APIGatewayProxyEventSchema {
-    version?: string | undefined
-    authorizationToken?: string | undefined
-    identitySource?: string | undefined
-    methodArn?: string | undefined
-    type?: 'TOKEN' | 'REQUEST' | undefined
     resource: string
     path: string
     httpMethod: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS'
@@ -105,19 +96,20 @@ export interface APIGatewayProxyEventSchema {
         | {
               [k: string]: string | undefined
           }
+        | null
         | undefined
-    queryStringParameters: {
-        [k: string]: string | undefined
-    } | null
     multiValueHeaders?:
         | {
               [k: string]: string[] | undefined
           }
+        | null
         | undefined
+    queryStringParameters: {
+        [k: string]: string | undefined
+    } | null
     multiValueQueryStringParameters: {
         [k: string]: string[] | undefined
     } | null
-    requestContext: APIGatewayEventRequestContext
     pathParameters?:
         | {
               [k: string]: string | undefined
@@ -130,8 +122,9 @@ export interface APIGatewayProxyEventSchema {
           }
         | null
         | undefined
-    isBase64Encoded?: boolean | undefined
+    requestContext: APIGatewayEventRequestContext
     body: string | null
+    isBase64Encoded: boolean
 }
 
 export const APIGatewayProxyEventSchema = {
@@ -148,5 +141,75 @@ export const APIGatewayProxyEventSchema = {
             return { right: o }
         }
         return { left: (APIGatewayProxyEventSchema.errors ?? []) as DefinedError[] }
+    },
+} as const
+
+export interface APIGatewayRequestAuthorizerEventSchema {
+    type: 'REQUEST'
+    methodArn: string
+    resource: string
+    path: string
+    httpMethod: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS'
+    headers: {
+        [k: string]: string | undefined
+    }
+    multiValueHeaders: {
+        [k: string]: string[] | undefined
+    }
+    queryStringParameters: {
+        [k: string]: string | undefined
+    }
+    multiValueQueryStringParameters: {
+        [k: string]: string[] | undefined
+    }
+    pathParameters: {
+        [k: string]: string | undefined
+    }
+    stageVariables: {
+        [k: string]: string | undefined
+    }
+    requestContext: APIGatewayEventRequestContext
+    domainName?: string | undefined
+    deploymentId?: string | undefined
+    apiId?: string | undefined
+}
+
+export const APIGatewayRequestAuthorizerEventSchema = {
+    validate: APIGatewayRequestAuthorizerEventSchemaValidator as ValidateFunction<APIGatewayRequestAuthorizerEventSchema>,
+    get schema() {
+        return APIGatewayRequestAuthorizerEventSchema.validate.schema
+    },
+    get errors() {
+        return APIGatewayRequestAuthorizerEventSchema.validate.errors ?? undefined
+    },
+    is: (o: unknown): o is APIGatewayRequestAuthorizerEventSchema => APIGatewayRequestAuthorizerEventSchema.validate(o) === true,
+    parse: (o: unknown): { right: APIGatewayRequestAuthorizerEventSchema } | { left: DefinedError[] } => {
+        if (APIGatewayRequestAuthorizerEventSchema.is(o)) {
+            return { right: o }
+        }
+        return { left: (APIGatewayRequestAuthorizerEventSchema.errors ?? []) as DefinedError[] }
+    },
+} as const
+
+export interface APIGatewayTokenAuthorizerEventSchema {
+    type: 'TOKEN'
+    authorizationToken: string
+    methodArn: string
+}
+
+export const APIGatewayTokenAuthorizerEventSchema = {
+    validate: APIGatewayTokenAuthorizerEventSchemaValidator as ValidateFunction<APIGatewayTokenAuthorizerEventSchema>,
+    get schema() {
+        return APIGatewayTokenAuthorizerEventSchema.validate.schema
+    },
+    get errors() {
+        return APIGatewayTokenAuthorizerEventSchema.validate.errors ?? undefined
+    },
+    is: (o: unknown): o is APIGatewayTokenAuthorizerEventSchema => APIGatewayTokenAuthorizerEventSchema.validate(o) === true,
+    parse: (o: unknown): { right: APIGatewayTokenAuthorizerEventSchema } | { left: DefinedError[] } => {
+        if (APIGatewayTokenAuthorizerEventSchema.is(o)) {
+            return { right: o }
+        }
+        return { left: (APIGatewayTokenAuthorizerEventSchema.errors ?? []) as DefinedError[] }
     },
 } as const
