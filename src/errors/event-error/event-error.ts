@@ -1,6 +1,6 @@
 import { asArray, isError, isThrown } from '@skyleague/axioms'
 import type { ErrorObject } from 'ajv'
-import type { HTTPHeaders, HTTPMethod } from '../../events/http/types.js'
+import type { HTTPHeaders, HTTPMethod } from '../../events/apigateway/types.js'
 import type { Logger } from '../../observability/logger/logger.js'
 
 export const httpStatusCodes: Record<number, string | undefined> = {

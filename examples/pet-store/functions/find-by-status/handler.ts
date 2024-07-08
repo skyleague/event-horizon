@@ -3,7 +3,7 @@ import { Query } from './request.type.js'
 
 import { array, random } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
-import { httpApiHandler } from '../../../../src/events/http/http.js'
+import { httpApiHandler } from '../../../../src/events/apigateway/http.js'
 
 export const handler = httpApiHandler({
     summary: 'Finds Pets by status',

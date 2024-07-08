@@ -10,8 +10,8 @@ import type {
     Responses,
     Schema,
 } from '@skyleague/therefore/src/types/openapi.type.js'
+import { HttpError } from '../../events/apigateway/functions/http-error.type.js'
 import type { EventHandler } from '../../events/common/types.js'
-import { HttpError } from '../../events/http/functions/http-error.type.js'
 
 interface JsonSchemaContext {
     openapi: OpenapiV3
