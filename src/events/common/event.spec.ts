@@ -4,7 +4,20 @@ import {
     GetLatestConfigurationCommand,
     StartConfigurationSessionCommand,
 } from '@aws-sdk/client-appconfigdata'
-import { asyncForAll, failure, forAll, json, object, record, sleep, string, tuple, unknown } from '@skyleague/axioms'
+import {
+    asyncForAll,
+    failure,
+    forAll,
+    isObject,
+    json,
+    object,
+    oneOf,
+    record,
+    sleep,
+    string,
+    tuple,
+    unknown,
+} from '@skyleague/axioms'
 import { mockClient } from 'aws-sdk-client-mock'
 import { describe, expect, it, vi } from 'vitest'
 import { alwaysTrueSchema, neverTrueSchema } from '../../../test/schema.js'
@@ -12,6 +25,7 @@ import { EventError } from '../../errors/index.js'
 import { logger } from '../../observability/logger/logger.js'
 import { context } from '../../test/context/context.js'
 import { mockLogger, mockMetrics, mockTracer } from '../../test/mock/mock.js'
+import { asConfig, configTag } from './config.js'
 import { createLambdaContext, eventHandler } from './event.js'
 import type { LambdaHandler } from './raw-aws.js'
 
@@ -112,6 +126,8 @@ const profileConfiguration = object({
     environment: string({ minLength: 1, format: 'alpha-numeric' }),
 })
 
+const configArbitrary = oneOf(unknown({ object: false }), record(unknown({ undefined: false })))
+
 describe('eventHandler', () => {
     const tracerInstanceMock = () => ({
         isTracingEnabled: vi.fn().mockReturnValue(true),
@@ -139,7 +155,7 @@ describe('eventHandler', () => {
     })
 
     it('eager init calls config and services, sync', async () => {
-        await asyncForAll(tuple(unknown(), unknown()), async ([c, s]) => {
+        await asyncForAll(tuple(configArbitrary, unknown()), async ([c, s]) => {
             const config = vi.fn().mockReturnValue(c)
             const services = vi.fn().mockReturnValue(s)
             eventHandler(
@@ -150,16 +166,68 @@ describe('eventHandler', () => {
                 { eagerHandlerInitialization: true, handler: vi.fn() },
             )
             // force event loop switching
-            await sleep(10)
+            await sleep(1)
             expect(config).toHaveBeenCalledTimes(1)
             expect(config).toHaveBeenCalledWith()
             expect(services).toHaveBeenCalledTimes(1)
-            expect(services).toHaveBeenCalledWith(c)
+            expect(services).toHaveBeenCalledWith(asConfig(c))
+            if (isObject(c)) {
+                expect(services).toHaveBeenCalledWith({ [configTag]: c })
+            }
+        })
+    })
+
+    it('eager init calls config and services, sync - config fails', async () => {
+        await asyncForAll(tuple(configArbitrary, unknown()), async ([c, s]) => {
+            const config = vi.fn().mockImplementation(() => {
+                throw c
+            })
+            const services = vi.fn().mockReturnValue(s)
+            await expect(
+                eventHandler(
+                    {
+                        config,
+                        services,
+                    },
+                    { eagerHandlerInitialization: true, handler: vi.fn() },
+                ),
+            ).rejects.toEqual(c)
+            // force event loop switching
+            await sleep(1)
+            expect(config).toHaveBeenCalledTimes(1)
+            expect(config).toHaveBeenCalledWith()
+            expect(services).not.toHaveBeenCalled()
+        })
+    })
+
+    it('eager init calls config and services, sync - services fails', async () => {
+        await asyncForAll(tuple(configArbitrary, unknown()), async ([c, s]) => {
+            const config = vi.fn().mockReturnValue(c)
+            const services = vi.fn().mockImplementation(() => {
+                throw s
+            })
+            await expect(
+                eventHandler(
+                    {
+                        config,
+                        services,
+                    },
+                    { eagerHandlerInitialization: true, handler: vi.fn() },
+                ),
+            ).rejects.toEqual(s)
+
+            expect(config).toHaveBeenCalledTimes(1)
+            expect(config).toHaveBeenCalledWith()
+            expect(services).toHaveBeenCalledTimes(1)
+            expect(services).toHaveBeenCalledWith(asConfig(c))
+            if (isObject(c)) {
+                expect(services).toHaveBeenCalledWith({ [configTag]: c })
+            }
         })
     })
 
     it('eager init calls config and services, async', async () => {
-        await asyncForAll(tuple(unknown(), unknown()), async ([c, s]) => {
+        await asyncForAll(tuple(configArbitrary, unknown()), async ([c, s]) => {
             const config = vi.fn().mockResolvedValue(c)
             const services = vi.fn().mockResolvedValue(s)
             eventHandler(
@@ -170,16 +238,68 @@ describe('eventHandler', () => {
                 { eagerHandlerInitialization: true, handler: vi.fn() },
             )
             // force event loop switching
-            await sleep(10)
+            await sleep(1)
             expect(config).toHaveBeenCalledTimes(1)
             expect(config).toHaveBeenCalledWith()
             expect(services).toHaveBeenCalledTimes(1)
-            expect(services).toHaveBeenCalledWith(c)
+            expect(services).toHaveBeenCalledWith(asConfig(c))
+            if (isObject(c)) {
+                expect(services).toHaveBeenCalledWith({ [configTag]: c })
+            }
         })
     })
 
+    it('eager init calls config and services, async - config fails', async () => {
+        await asyncForAll(tuple(configArbitrary, unknown()), async ([c, s]) => {
+            const config = vi.fn().mockRejectedValue(c)
+            const services = vi.fn().mockResolvedValue(s)
+            await expect(
+                eventHandler(
+                    {
+                        config,
+                        services,
+                    },
+                    { eagerHandlerInitialization: true, handler: vi.fn() },
+                ),
+            ).rejects.toEqual(c)
+            // force event loop switching
+            await sleep(1)
+            expect(config).toHaveBeenCalledTimes(1)
+            expect(config).toHaveBeenCalledWith()
+            expect(services).not.toHaveBeenCalled()
+        })
+    })
+
+    it('eager init calls config and services, async - services fails', async () => {
+        await asyncForAll(
+            tuple(configArbitrary, unknown()),
+            async ([c, s]) => {
+                const config = vi.fn().mockResolvedValue(c)
+                const services = vi.fn().mockRejectedValue(s)
+                await expect(
+                    eventHandler(
+                        {
+                            config,
+                            services,
+                        },
+                        { eagerHandlerInitialization: true, handler: vi.fn() },
+                    ),
+                ).rejects.toEqual(s)
+
+                expect(config).toHaveBeenCalledTimes(1)
+                expect(config).toHaveBeenCalledWith()
+                expect(services).toHaveBeenCalledTimes(1)
+                expect(services).toHaveBeenCalledWith(asConfig(c))
+                if (isObject(c)) {
+                    expect(services).toHaveBeenCalledWith({ [configTag]: c })
+                }
+            },
+            { counterExample: [0, 0] },
+        )
+    })
+
     it('lazy init calls not config and not services, async', async () => {
-        await asyncForAll(tuple(unknown(), unknown()), async ([c, s]) => {
+        await asyncForAll(tuple(configArbitrary, unknown()), async ([c, s]) => {
             const config = vi.fn().mockResolvedValue(c)
             const services = vi.fn().mockResolvedValue(s)
             eventHandler(
@@ -190,14 +310,14 @@ describe('eventHandler', () => {
                 { eagerHandlerInitialization: false, handler: vi.fn() },
             )
             // force event loop switching
-            await sleep(10)
+            await sleep(1)
             expect(config).not.toHaveBeenCalled()
             expect(services).not.toHaveBeenCalled()
         })
     })
 
     it('default init calls not config and not services, async', async () => {
-        await asyncForAll(tuple(unknown(), unknown()), async ([c, s]) => {
+        await asyncForAll(tuple(configArbitrary, unknown()), async ([c, s]) => {
             const config = vi.fn().mockResolvedValue(c)
             const services = vi.fn().mockResolvedValue(s)
             eventHandler(
@@ -208,14 +328,14 @@ describe('eventHandler', () => {
                 { handler: vi.fn() },
             )
             // force event loop switching
-            await sleep(10)
+            await sleep(1)
             expect(config).not.toHaveBeenCalled()
             expect(services).not.toHaveBeenCalled()
         })
     })
 
     it('default init calls with literals', () => {
-        forAll(tuple(unknown(), unknown()), ([c, s]) => {
+        forAll(tuple(configArbitrary, unknown()), ([c, s]) => {
             eventHandler(
                 {
                     config: c as never,
@@ -228,7 +348,7 @@ describe('eventHandler', () => {
 
     it('early exit fully resolved on warmer', async () => {
         const warmer = '__WARMER__'
-        await asyncForAll(tuple(unknown(), unknown(), await context()), async ([c, s, ctx]) => {
+        await asyncForAll(tuple(configArbitrary, unknown(), await context()), async ([c, s, ctx]) => {
             const handlerImpl = vi.fn()
             const config = vi.fn().mockResolvedValue(c)
             const services = vi.fn().mockResolvedValue(s)
@@ -244,7 +364,10 @@ describe('eventHandler', () => {
             expect(config).toHaveBeenCalledTimes(1)
             expect(config).toHaveBeenCalledWith()
             expect(services).toHaveBeenCalledTimes(1)
-            expect(services).toHaveBeenCalledWith(c)
+            expect(services).toHaveBeenCalledWith(asConfig(c))
+            if (isObject(c)) {
+                expect(services).toHaveBeenCalledWith({ [configTag]: c })
+            }
 
             expect(handlerImpl).not.toHaveBeenCalled()
         })
@@ -255,7 +378,7 @@ describe('eventHandler', () => {
         const appConfigData = new AppConfigData({})
         const s = { appConfigData }
         await asyncForAll(
-            tuple(profileConfiguration, unknown(), unknown(), unknown(), await context(), tokenArbitrary, record(json())),
+            tuple(profileConfiguration, unknown(), configArbitrary, unknown(), await context(), tokenArbitrary, record(json())),
             async ([application, request, c, ret, ctx, token, profile]) => {
                 vi.clearAllMocks()
                 appConfigDataMock.reset()
@@ -305,7 +428,10 @@ describe('eventHandler', () => {
                 expect(config).toHaveBeenCalledTimes(1)
                 expect(config).toHaveBeenCalledWith()
                 expect(services).toHaveBeenCalledTimes(1)
-                expect(services).toHaveBeenCalledWith(c)
+                expect(services).toHaveBeenCalledWith(asConfig(c))
+                if (isObject(c)) {
+                    expect(services).toHaveBeenCalledWith({ [configTag]: c })
+                }
 
                 expect(handlerImpl).toHaveBeenCalledWith(request, expect.objectContaining({ raw: ctx.raw }))
 
@@ -328,7 +454,7 @@ describe('eventHandler', () => {
         const appConfigData = new AppConfigData({})
         const s = { appConfigData }
         await asyncForAll(
-            tuple(profileConfiguration, unknown(), unknown(), unknown(), await context(), tokenArbitrary, record(json())),
+            tuple(profileConfiguration, unknown(), configArbitrary, unknown(), await context(), tokenArbitrary, record(json())),
             async ([application, request, c, ret, ctx, token, profile]) => {
                 vi.clearAllMocks()
 
@@ -377,7 +503,10 @@ describe('eventHandler', () => {
                 expect(config).toHaveBeenCalledTimes(1)
                 expect(config).toHaveBeenCalledWith()
                 expect(services).toHaveBeenCalledTimes(1)
-                expect(services).toHaveBeenCalledWith(c)
+                expect(services).toHaveBeenCalledWith(asConfig(c))
+                if (isObject(c)) {
+                    expect(services).toHaveBeenCalledWith({ [configTag]: c })
+                }
 
                 expect(handlerImpl).not.toHaveBeenCalled()
                 expect(ctx.metrics.instance.publishStoredMetrics).toHaveBeenCalled()
@@ -392,7 +521,7 @@ describe('eventHandler', () => {
 
     it('success resolves to success', async () => {
         await asyncForAll(
-            tuple(unknown(), unknown(), unknown(), unknown(), await context()),
+            tuple(unknown(), configArbitrary, unknown(), unknown(), await context()),
             async ([request, c, s, ret, ctx]) => {
                 const setbinding = vi.spyOn(ctx.logger, 'setBindings')
 
@@ -434,7 +563,10 @@ describe('eventHandler', () => {
                 expect(config).toHaveBeenCalledTimes(1)
                 expect(config).toHaveBeenCalledWith()
                 expect(services).toHaveBeenCalledTimes(1)
-                expect(services).toHaveBeenCalledWith(c)
+                expect(services).toHaveBeenCalledWith(asConfig(c))
+                if (isObject(c)) {
+                    expect(services).toHaveBeenCalledWith({ [configTag]: c })
+                }
 
                 expect(handlerImpl).toHaveBeenCalledWith(request, expect.objectContaining({ raw: ctx.raw }))
 
@@ -454,7 +586,7 @@ describe('eventHandler', () => {
 
     it('failure resolves to failure', async () => {
         await asyncForAll(
-            tuple(unknown(), unknown(), unknown(), unknown().map(failure), await context()),
+            tuple(unknown(), configArbitrary, unknown(), unknown().map(failure), await context()),
             async ([request, c, s, ret, ctx]) => {
                 const setbinding = vi.spyOn(ctx.logger, 'setBindings')
                 ;(ctx.metrics.instance as unknown as { storedMetrics: any }).storedMetrics.foo = true
@@ -497,7 +629,10 @@ describe('eventHandler', () => {
                 expect(config).toHaveBeenCalledTimes(1)
                 expect(config).toHaveBeenCalledWith()
                 expect(services).toHaveBeenCalledTimes(1)
-                expect(services).toHaveBeenCalledWith(c)
+                expect(services).toHaveBeenCalledWith(asConfig(c))
+                if (isObject(c)) {
+                    expect(services).toHaveBeenCalledWith({ [configTag]: c })
+                }
 
                 expect(handlerImpl).toHaveBeenCalledWith(request, expect.objectContaining({ raw: ctx.raw }))
 
@@ -519,7 +654,7 @@ describe('eventHandler', () => {
         await asyncForAll(
             tuple(
                 unknown(),
-                unknown(),
+                configArbitrary,
                 unknown(),
                 string().map((f) => new EventError(f, { errorHandling: 'graceful' })),
                 await context(),
@@ -564,7 +699,10 @@ describe('eventHandler', () => {
                 expect(config).toHaveBeenCalledTimes(1)
                 expect(config).toHaveBeenCalledWith()
                 expect(services).toHaveBeenCalledTimes(1)
-                expect(services).toHaveBeenCalledWith(c)
+                expect(services).toHaveBeenCalledWith(asConfig(c))
+                if (isObject(c)) {
+                    expect(services).toHaveBeenCalledWith({ [configTag]: c })
+                }
 
                 expect(handlerImpl).toHaveBeenCalledWith(request, expect.objectContaining({ raw: ctx.raw }))
 

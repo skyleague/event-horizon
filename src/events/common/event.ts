@@ -1,5 +1,7 @@
-import type { RawRequest, RawResponse } from './raw-aws.js'
-
+import { randomUUID } from 'node:crypto'
+import type { Try } from '@skyleague/axioms'
+import { isFunction, mapTry, memoize, transformTry, tryToError } from '@skyleague/axioms'
+import type { Context } from 'aws-lambda'
 import { eventConstants, initConstants } from '../../constants.js'
 import { errorHandler } from '../../events/common/functions/error-handler.js'
 import { loggerContext } from '../../events/common/functions/logger-context.js'
@@ -15,12 +17,8 @@ import type { Metrics } from '../../observability/metrics/metrics.js'
 import { metrics as globalMetrics } from '../../observability/metrics/metrics.js'
 import type { Tracer } from '../../observability/tracer/tracer.js'
 import { tracer as globalTracer } from '../../observability/tracer/tracer.js'
-
-import type { Try } from '@skyleague/axioms'
-import { isFunction, mapTry, memoize, transformTry, tryToError } from '@skyleague/axioms'
-import type { Context } from 'aws-lambda'
-
-import { randomUUID } from 'node:crypto'
+import { type AsConfig, asConfig } from './config.js'
+import type { RawRequest, RawResponse } from './raw-aws.js'
 
 export async function createLambdaContext<Configuration, Service, Profile>({
     definition,
@@ -90,13 +88,19 @@ export function eventHandler<R, Configuration, Service extends DefaultServices |
 
     const traceServicesFn = traceServices({ tracer })
 
-    const config = memoize((): Configuration | Promise<Configuration> =>
+    const config = memoize(async (): Promise<AsConfig<Configuration>> => {
         // biome-ignore lint/style/noNonNullAssertion: Config is allowed to be undefined
-        isFunction(definition.config) ? definition.config() : definition.config!,
-    )
-    const services = memoize((): Promise<Service> | Service =>
-        // biome-ignore lint/style/noNonNullAssertion:  Services is allowed to be undefined
-        traceServicesFn.before(isFunction(servicesFn) ? Promise.resolve(config()).then((c) => servicesFn(c)) : servicesFn!),
+        return Promise.resolve(isFunction(definition.config) ? definition.config() : definition.config!).then(
+            (c): AsConfig<Configuration> => (c !== undefined ? asConfig(c) : undefined) as AsConfig<Configuration>,
+        )
+    })
+
+    const services = memoize(
+        async (): Promise<Service> =>
+            // biome-ignore lint/style/noNonNullAssertion:  Services is allowed to be undefined
+            Promise.resolve(isFunction(servicesFn) ? config().then((c) => servicesFn(c)) : servicesFn!).then((s) =>
+                traceServicesFn.before(s),
+            ),
     )
     if (eagerHandlerInitialization) {
         void services()
