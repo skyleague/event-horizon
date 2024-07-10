@@ -1,7 +1,7 @@
 import { alpha, array, entriesOf, forAll, json, omit, omitUndefined, random, record, string, tuple } from '@skyleague/axioms'
 import { describe, expect, it, vi } from 'vitest'
-import { HttpError } from '../../events/http/functions/http-error.type.js'
-import { httpApiHandler } from '../../events/http/http.js'
+import { HttpError } from '../../events/apigateway/functions/http-error.type.js'
+import { httpApiHandler } from '../../events/apigateway/http.js'
 import { addComponent, ensureTarget, jsonptrToName, normalizeSchema, openapiFromHandlers } from './openapi.js'
 
 describe('jsonptrToName', () => {
