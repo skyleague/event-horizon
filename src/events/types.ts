@@ -7,6 +7,7 @@ import type { Tracer } from '../observability/tracer/tracer.js'
 import type { AppConfigData } from '@aws-sdk/client-appconfigdata'
 import type { SecretsManager } from '@aws-sdk/client-secrets-manager'
 import type { Context } from 'aws-lambda'
+import type { AsConfig } from './common/config.js'
 
 export interface DefaultServices {
     [k: PropertyKey]: unknown
@@ -24,7 +25,7 @@ export interface LambdaContext<Configuration = unknown, Service = unknown, Profi
     requestId: string
 
     services: Service
-    config: Configuration
+    config: AsConfig<Configuration>
     profile: Profile
 
     getRemainingTimeInMillis(): number
@@ -48,4 +49,4 @@ export interface EventHandlerDefinition<Configuration = unknown, Service = unkno
 }
 
 export type Config<C> = C | (() => C | Promise<C>)
-export type Services<C, S> = S | ((config: C) => Promise<S> | S)
+export type Services<C, S> = S | ((config: AsConfig<C>) => Promise<S> | S)

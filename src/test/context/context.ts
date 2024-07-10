@@ -1,4 +1,5 @@
 import { Context } from '../../aws/lambda/context.type.js'
+import type { AsConfig } from '../../events/common/config.js'
 import type { ProfileSchema } from '../../events/common/functions/profile-handler.js'
 import type { Config, EventHandlerDefinition, LambdaContext, Services } from '../../events/types.js'
 import { mockLogger, mockMetrics, mockTracer } from '../mock/mock.js'
@@ -43,8 +44,10 @@ export async function context<Configuration = never, Service = never, Profile = 
         traceId: string({ minLength: 2 }).constant(),
         isSensitive: constant(isSensitive ?? false),
         raw: ctxArb,
-        config: constant(configObj) as Arbitrary<Configuration>,
-        services: constant(isFunction(services) ? await services(configObj as Configuration) : services) as Arbitrary<Service>,
+        config: constant(configObj) as Arbitrary<AsConfig<Configuration>>,
+        services: constant(
+            isFunction(services) ? await services(configObj as AsConfig<Configuration>) : services,
+        ) as Arbitrary<Service>,
         profile: (profile?.schema !== undefined ? arbitrary(profile.schema) : constant(undefined)) as Arbitrary<Profile>,
 
         getRemainingTimeInMillis: constant(() => 10000),
