@@ -1,4 +1,5 @@
-import { asArray, isError, isThrown } from '@skyleague/axioms'
+import { asArray, isError, isObject, isThrown } from '@skyleague/axioms'
+import type { Exact } from '@skyleague/axioms/types'
 import type { ErrorObject } from 'ajv'
 import type { HTTPHeaders, HTTPMethod } from '../../events/apigateway/types.js'
 import type { Logger } from '../../observability/logger/logger.js'
@@ -85,7 +86,7 @@ export interface EventOptions {
     expose?: boolean | undefined
     headers?: HTTPHeaders | undefined
     statusCode?: number | undefined
-    attributes?: Record<string, unknown> | undefined
+    attributes?: unknown | undefined
     cause?: unknown | undefined
     // biome-ignore lint/complexity/noBannedTypes: ctor is as generic as it gets
     ctor?: Function | undefined
@@ -106,7 +107,7 @@ export class EventError extends Error {
     public headers: HTTPHeaders | undefined
     public override message: string
     public statusCode: number
-    public attributes: Record<string, unknown> | undefined
+    public attributes: unknown | undefined
 
     public constructor(
         message?: ErrorLike,
@@ -222,13 +223,17 @@ export class EventError extends Error {
             location !== undefined ? `${errors?.[0]?.message ?? 'validation failed'} in ${location}` : errors?.[0]?.message
         return new EventError(message, {
             statusCode,
-            attributes: { ...options.attributes, location, errors },
+            attributes: {
+                ...(isObject(options.attributes) ? options.attributes : { value: options.attributes }),
+                location,
+                errors,
+            },
             ctor: EventError.validation,
             ...options,
         })
     }
 
-    public static badRequest(message?: ErrorLike, options: EventOptions = {}): EventError {
+    public static badRequest<T extends Exact<EventOptions, T>>(message?: ErrorLike, options?: T): EventError {
         return new EventError(message, {
             statusCode: 400,
             ctor: EventError.badRequest,
@@ -236,19 +241,19 @@ export class EventError extends Error {
         })
     }
 
-    public static unauthorized(message: ErrorLike, options: EventOptions = {}): EventError {
+    public static unauthorized<T extends Exact<EventOptions, T>>(message: ErrorLike, options?: T): EventError {
         return new EventError(message, { statusCode: 401, ctor: EventError.unauthorized, ...options })
     }
 
-    public static paymentRequired(message?: ErrorLike, options: EventOptions = {}): EventError {
+    public static paymentRequired<T extends Exact<EventOptions, T>>(message?: ErrorLike, options?: T): EventError {
         return new EventError(message, { statusCode: 402, ctor: EventError.paymentRequired, ...options })
     }
 
-    public static forbidden(message?: ErrorLike, options: EventOptions = {}): EventError {
+    public static forbidden<T extends Exact<EventOptions, T>>(message?: ErrorLike, options?: T): EventError {
         return new EventError(message, { statusCode: 403, ctor: EventError.forbidden, ...options })
     }
 
-    public static notFound(message?: ErrorLike, options: EventOptions = {}): EventError {
+    public static notFound<T extends Exact<EventOptions, T>>(message?: ErrorLike, options?: T): EventError {
         return new EventError(message, { statusCode: 404, ctor: EventError.notFound, ...options })
     }
 
@@ -270,107 +275,107 @@ export class EventError extends Error {
         })
     }
 
-    public static notAcceptable(message?: ErrorLike, options: EventOptions = {}): EventError {
+    public static notAcceptable<T extends Exact<EventOptions, T>>(message?: ErrorLike, options?: T): EventError {
         return new EventError(message, { statusCode: 406, ctor: EventError.notAcceptable, ...options })
     }
 
-    public static proxyAuthRequired(message?: ErrorLike, options: EventOptions = {}): EventError {
+    public static proxyAuthRequired<T extends Exact<EventOptions, T>>(message?: ErrorLike, options?: T): EventError {
         return new EventError(message, { statusCode: 407, ctor: EventError.proxyAuthRequired, ...options })
     }
 
-    public static requestTimeout(message?: ErrorLike, options: EventOptions = {}): EventError {
+    public static requestTimeout<T extends Exact<EventOptions, T>>(message?: ErrorLike, options?: T): EventError {
         return new EventError(message, { statusCode: 408, ctor: EventError.requestTimeout, ...options })
     }
 
-    public static conflict(message?: ErrorLike, options: EventOptions = {}): EventError {
+    public static conflict<T extends Exact<EventOptions, T>>(message?: ErrorLike, options?: T): EventError {
         return new EventError(message, { statusCode: 409, ctor: EventError.conflict, ...options })
     }
 
-    public static gone(message?: ErrorLike, options: EventOptions = {}): EventError {
+    public static gone<T extends Exact<EventOptions, T>>(message?: ErrorLike, options?: T): EventError {
         return new EventError(message, { statusCode: 410, ctor: EventError.gone, ...options })
     }
 
-    public static lengthRequired(message?: ErrorLike, options: EventOptions = {}): EventError {
+    public static lengthRequired<T extends Exact<EventOptions, T>>(message?: ErrorLike, options?: T): EventError {
         return new EventError(message, { statusCode: 411, ctor: EventError.lengthRequired, ...options })
     }
 
-    public static preconditionFailed(message?: ErrorLike, options: EventOptions = {}): EventError {
+    public static preconditionFailed<T extends Exact<EventOptions, T>>(message?: ErrorLike, options?: T): EventError {
         return new EventError(message, { statusCode: 412, ctor: EventError.preconditionFailed, ...options })
     }
 
-    public static payloadTooLarge(message?: ErrorLike, options: EventOptions = {}): EventError {
+    public static payloadTooLarge<T extends Exact<EventOptions, T>>(message?: ErrorLike, options?: T): EventError {
         return new EventError(message, { statusCode: 413, ctor: EventError.payloadTooLarge, ...options })
     }
 
-    public static uriTooLong(message?: ErrorLike, options: EventOptions = {}): EventError {
+    public static uriTooLong<T extends Exact<EventOptions, T>>(message?: ErrorLike, options?: T): EventError {
         return new EventError(message, { statusCode: 414, ctor: EventError.uriTooLong, ...options })
     }
 
-    public static unsupportedMediaType(message?: ErrorLike, options: EventOptions = {}): EventError {
+    public static unsupportedMediaType<T extends Exact<EventOptions, T>>(message?: ErrorLike, options?: T): EventError {
         return new EventError(message, { statusCode: 415, ctor: EventError.unsupportedMediaType, ...options })
     }
 
-    public static rangeNotSatisfiable(message?: ErrorLike, options: EventOptions = {}): EventError {
+    public static rangeNotSatisfiable<T extends Exact<EventOptions, T>>(message?: ErrorLike, options?: T): EventError {
         return new EventError(message, { statusCode: 416, ctor: EventError.rangeNotSatisfiable, ...options })
     }
 
-    public static expectationFailed(message?: ErrorLike, options: EventOptions = {}): EventError {
+    public static expectationFailed<T extends Exact<EventOptions, T>>(message?: ErrorLike, options?: T): EventError {
         return new EventError(message, { statusCode: 417, ctor: EventError.expectationFailed, ...options })
     }
 
-    public static teapot(message?: ErrorLike, options: EventOptions = {}): EventError {
+    public static teapot<T extends Exact<EventOptions, T>>(message?: ErrorLike, options?: T): EventError {
         return new EventError(message, { statusCode: 418, ctor: EventError.teapot, ...options })
     }
 
-    public static unprocessableEntity(message?: ErrorLike, options: EventOptions = {}): EventError {
+    public static unprocessableEntity<T extends Exact<EventOptions, T>>(message?: ErrorLike, options?: T): EventError {
         return new EventError(message, { statusCode: 422, ctor: EventError.unprocessableEntity, ...options })
     }
 
-    public static locked(message?: ErrorLike, options: EventOptions = {}): EventError {
+    public static locked<T extends Exact<EventOptions, T>>(message?: ErrorLike, options?: T): EventError {
         return new EventError(message, { statusCode: 423, ctor: EventError.locked, ...options })
     }
 
-    public static failedDependency(message?: ErrorLike, options: EventOptions = {}): EventError {
+    public static failedDependency<T extends Exact<EventOptions, T>>(message?: ErrorLike, options?: T): EventError {
         return new EventError(message, { statusCode: 424, ctor: EventError.failedDependency, ...options })
     }
 
-    public static tooEarly(message?: ErrorLike, options: EventOptions = {}): EventError {
+    public static tooEarly<T extends Exact<EventOptions, T>>(message?: ErrorLike, options?: T): EventError {
         return new EventError(message, { statusCode: 425, ctor: EventError.tooEarly, ...options })
     }
 
-    public static preconditionRequired(message?: ErrorLike, options: EventOptions = {}): EventError {
+    public static preconditionRequired<T extends Exact<EventOptions, T>>(message?: ErrorLike, options?: T): EventError {
         return new EventError(message, { statusCode: 428, ctor: EventError.preconditionRequired, ...options })
     }
 
-    public static tooManyRequests(message?: ErrorLike, options: EventOptions = {}): EventError {
+    public static tooManyRequests<T extends Exact<EventOptions, T>>(message?: ErrorLike, options?: T): EventError {
         return new EventError(message, { statusCode: 429, ctor: EventError.tooManyRequests, ...options })
     }
 
-    public static noResponse(message?: ErrorLike, options: EventOptions = {}): EventError {
+    public static noResponse<T extends Exact<EventOptions, T>>(message?: ErrorLike, options?: T): EventError {
         return new EventError(message, { statusCode: 444, ctor: EventError.noResponse, ...options })
     }
 
-    public static unavailableForLegalReasons(message?: ErrorLike, options: EventOptions = {}): EventError {
+    public static unavailableForLegalReasons<T extends Exact<EventOptions, T>>(message?: ErrorLike, options?: T): EventError {
         return new EventError(message, { statusCode: 451, ctor: EventError.unavailableForLegalReasons, ...options })
     }
 
-    public static retryable(message?: ErrorLike, options: EventOptions = {}): EventError {
+    public static retryable<T extends Exact<EventOptions, T>>(message?: ErrorLike, options?: T): EventError {
         return new EventError(message, { statusCode: 449, ctor: EventError.retryable, ...options })
     }
 
-    public static internal(message?: ErrorLike, options: EventOptions = {}): EventError {
+    public static internal<T extends Exact<EventOptions, T>>(message?: ErrorLike, options?: T): EventError {
         return new EventError(message, { statusCode: 500, ctor: EventError.internal, ...options })
     }
 
-    public static internalServerError(message?: ErrorLike, options: EventOptions = {}): EventError {
+    public static internalServerError<T extends Exact<EventOptions, T>>(message?: ErrorLike, options?: T): EventError {
         return new EventError(message, { statusCode: 500, ctor: EventError.internalServerError, ...options })
     }
 
-    public static notImplemented(message?: ErrorLike, options: EventOptions = {}): EventError {
+    public static notImplemented<T extends Exact<EventOptions, T>>(message?: ErrorLike, options?: T): EventError {
         return new EventError(message, { statusCode: 501, ctor: EventError.notImplemented, ...options })
     }
 
-    public static unexpectedEventType(message?: ErrorLike, options: EventOptions = {}): EventError {
+    public static unexpectedEventType<T extends Exact<EventOptions, T>>(message?: ErrorLike, options?: T): EventError {
         return new EventError(message ?? 'Lambda was invoked with an unexpected event type', {
             statusCode: 501,
             ctor: EventError.unexpectedEventType,
@@ -378,19 +383,19 @@ export class EventError extends Error {
         })
     }
 
-    public static badGateway(message?: ErrorLike, options: EventOptions = {}): EventError {
+    public static badGateway<T extends Exact<EventOptions, T>>(message?: ErrorLike, options?: T): EventError {
         return new EventError(message, { statusCode: 502, ctor: EventError.badGateway, ...options })
     }
 
-    public static serviceUnavailable(message?: ErrorLike, options: EventOptions = {}): EventError {
+    public static serviceUnavailable<T extends Exact<EventOptions, T>>(message?: ErrorLike, options?: T): EventError {
         return new EventError(message, { statusCode: 503, ctor: EventError.serviceUnavailable, ...options })
     }
 
-    public static gatewayTimeout(message?: ErrorLike, options: EventOptions = {}): EventError {
+    public static gatewayTimeout<T extends Exact<EventOptions, T>>(message?: ErrorLike, options?: T): EventError {
         return new EventError(message, { statusCode: 504, ctor: EventError.gatewayTimeout, ...options })
     }
 
-    public static loopDetected(message?: ErrorLike, options: EventOptions = {}): EventError {
+    public static loopDetected<T extends Exact<EventOptions, T>>(message?: ErrorLike, options?: T): EventError {
         return new EventError(message, { statusCode: 508, ctor: EventError.loopDetected, ...options })
     }
 }
