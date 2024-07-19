@@ -27,7 +27,7 @@ it('handles http events', async () => {
                 method,
                 path,
                 schema: { responses: {} },
-                bodyType: 'plaintext' as const,
+                bodyType: 'plaintext',
                 handler: vi.fn(),
             },
         },
@@ -59,7 +59,7 @@ it('handles schema types', () => {
                 headers: literalSchema<'headers'>(),
                 responses: { 200: literalSchema<'200-response'>() },
             },
-            bodyType: 'plaintext' as const,
+            bodyType: 'plaintext',
             handler: (request) => {
                 expectTypeOf(request).toEqualTypeOf<HTTPRequest<'body', 'path', 'query', 'headers', 'http'>>()
 
@@ -72,7 +72,7 @@ it('handles schema types', () => {
     })
     expectTypeOf(handler.http.handler).toEqualTypeOf<
         (request: HTTPRequest<'body', 'path', 'query', 'headers', 'http'>) => {
-            statusCode: number
+            statusCode: 200
             body: '200-response'
         }
     >()
@@ -90,7 +90,7 @@ it('handles distributed schema types', () => {
                 headers: literalSchema<'headers'>(),
                 responses: { 200: literalSchema<'200-response'>(), 400: literalSchema<'400-response'>() },
             },
-            bodyType: 'plaintext' as const,
+            bodyType: 'plaintext',
             handler: (request) => {
                 expectTypeOf(request).toEqualTypeOf<HTTPRequest<'body', 'path', 'query', 'headers', 'http'>>()
 
@@ -110,12 +110,109 @@ it('handles distributed schema types', () => {
     expectTypeOf(handler.http.handler).toEqualTypeOf<
         (request: HTTPRequest<'body', 'path', 'query', 'headers', 'http'>) =>
             | {
-                  statusCode: number
+                  statusCode: 400
                   body: '400-response'
               }
             | {
-                  statusCode: number
+                  statusCode: 200
                   body: '200-response'
+              }
+    >()
+})
+
+it('handles null response types', () => {
+    const handler = httpApiHandler({
+        http: {
+            method,
+            path,
+            schema: {
+                body: literalSchema<'body'>(),
+                path: literalSchema<'path'>(),
+                query: literalSchema<'query'>(),
+                headers: literalSchema<'headers'>(),
+                responses: { 200: null, 400: literalSchema<'400-response'>() },
+            },
+            bodyType: 'plaintext',
+            handler: (request) => {
+                expectTypeOf(request).toEqualTypeOf<HTTPRequest<'body', 'path', 'query', 'headers', 'http'>>()
+
+                if (request.body.length === 0) {
+                    return {
+                        statusCode: 400,
+                        body: '400-response' as const,
+                    }
+                }
+                return {
+                    statusCode: 200,
+                }
+            },
+        },
+    })
+    expectTypeOf(handler.http.handler).toEqualTypeOf<
+        (request: HTTPRequest<'body', 'path', 'query', 'headers', 'http'>) =>
+            | {
+                  statusCode: 400
+                  body: '400-response'
+              }
+            | {
+                  statusCode: 200
+                  body?: never
+              }
+    >()
+})
+
+it('handles full response type', () => {
+    const handler = httpApiHandler({
+        http: {
+            method,
+            path,
+            schema: {
+                body: literalSchema<'body'>(),
+                path: literalSchema<'path'>(),
+                query: literalSchema<'query'>(),
+                headers: literalSchema<'headers'>(),
+                responses: {
+                    200: { body: literalSchema<'200-response'>() },
+                    204: { body: null, headers: literalSchema<{ Location: 'location-response' }>() },
+                    400: literalSchema<'400-response'>(),
+                },
+            },
+            bodyType: 'plaintext',
+            handler: (request) => {
+                expectTypeOf(request).toEqualTypeOf<HTTPRequest<'body', 'path', 'query', 'headers', 'http'>>()
+
+                if (request.body.length === 0) {
+                    return {
+                        statusCode: 400,
+                        body: '400-response' as const,
+                    }
+                }
+                if (request.body.length === 1) {
+                    return {
+                        statusCode: 204,
+                        headers: { Location: 'location-response' as const },
+                    }
+                }
+                return {
+                    statusCode: 200,
+                    body: '200-response' as const,
+                    headers: { foo: 'foo-response' as const },
+                }
+            },
+        },
+    })
+    expectTypeOf(handler.http.handler).toEqualTypeOf<
+        (request: HTTPRequest<'body', 'path', 'query', 'headers', 'http'>) =>
+            | { statusCode: 400; body: '400-response'; headers?: never }
+            | {
+                  statusCode: 200
+                  body: '200-response'
+                  headers: { Location?: never; foo: 'foo-response' }
+              }
+            | {
+                  statusCode: 204
+                  headers: { Location: 'location-response'; foo?: never }
+                  body?: never
               }
     >()
 })
@@ -132,7 +229,120 @@ it('handles schema types and gives errors', () => {
             handler: () => {
                 return {
                     statusCode: 200,
-                    body: 'not-200-response',
+                    body: 'not-200-response' as const,
+                }
+            },
+        },
+    })
+})
+
+it('handles schema types and gives errors on non matching responses', () => {
+    httpApiHandler({
+        http: {
+            method,
+            path,
+            schema: {
+                responses: { 200: literalSchema<'200-response'>(), 202: literalSchema<'202-response'>() },
+            },
+            // @ts-expect-error handler is not a valid return type
+            handler: () => {
+                return {
+                    statusCode: 200,
+                    body: '202-response' as const,
+                }
+            },
+        },
+    })
+    httpApiHandler({
+        http: {
+            method,
+            path,
+            schema: {
+                responses: { 200: literalSchema<'200-response'>(), 202: literalSchema<'202-response'>() },
+            },
+            // @ts-expect-error handler is not a valid return type
+            handler: () => {
+                return {
+                    statusCode: 202,
+                    body: '200-response' as const,
+                }
+            },
+        },
+    })
+    httpApiHandler({
+        http: {
+            method,
+            path,
+            schema: {
+                responses: { 200: literalSchema<'200-response'>(), 202: literalSchema<'202-response'>() },
+            },
+            handler: () => {
+                return {
+                    statusCode: 200,
+                    body: '200-response' as const,
+                }
+            },
+        },
+    })
+    httpApiHandler({
+        http: {
+            method,
+            path,
+            schema: {
+                responses: { 200: literalSchema<'200-response'>(), 202: literalSchema<'202-response'>() },
+            },
+            handler: () => {
+                return {
+                    statusCode: 202,
+                    body: '202-response' as const,
+                }
+            },
+        },
+    })
+})
+
+it('handles no resposne type and gives errors correctly', () => {
+    httpApiHandler({
+        http: {
+            method,
+            path,
+            schema: {
+                responses: { 200: literalSchema<'200-response'>(), 204: null },
+            },
+            handler: () => {
+                return {
+                    statusCode: 200,
+                    body: '200-response' as const,
+                }
+            },
+        },
+    })
+    httpApiHandler({
+        http: {
+            method,
+            path,
+            schema: {
+                responses: { 200: literalSchema<'200-response'>(), 204: null },
+            },
+            handler: () => {
+                return {
+                    statusCode: 204,
+                }
+            },
+        },
+    })
+    httpApiHandler({
+        http: {
+            method,
+            path,
+            schema: {
+                responses: { 200: literalSchema<'200-response'>(), 204: null },
+            },
+            // @ts-expect-error handler is not a valid return type
+            handler: () => {
+                return {
+                    statusCode: 204,
+                    body: '204-response' as const,
                 }
             },
         },
@@ -147,7 +357,7 @@ it('does not handle non http events', async () => {
                 method,
                 path,
                 schema: { responses: {} },
-                bodyType: 'plaintext' as const,
+                bodyType: 'plaintext',
                 handler: vi.fn(),
             },
         },
@@ -188,7 +398,7 @@ it('warmup should early exit', async () => {
                 method,
                 path,
                 schema: { responses: {} },
-                bodyType: 'plaintext' as const,
+                bodyType: 'plaintext',
                 handler: http,
             },
         },

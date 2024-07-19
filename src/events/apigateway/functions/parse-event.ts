@@ -1,13 +1,21 @@
 import type { APIGatewayProxyEventV2Schema } from '../../../aws/apigateway/http.type.js'
 import type { APIGatewayProxyEventSchema } from '../../../aws/apigateway/rest.type.js'
 import { parseJSON } from '../../../parsers/json/json.js'
-import type { GatewayVersion, HTTPEventHandler, HTTPRequest } from '../types.js'
+import type { GatewayVersion, HTTPEventHandler, HTTPRequest, Responses } from '../types.js'
 
 import { isString } from '@skyleague/axioms'
 
-export function httpParseEvent<Configuration, Service, Profile, Body, Path, Query, Headers, Result, GV extends GatewayVersion>({
-    bodyType = 'json',
-}: HTTPEventHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, GV>) {
+export function httpParseEvent<
+    Configuration,
+    Service,
+    Profile,
+    Body,
+    Path,
+    Query,
+    Headers,
+    Result extends Responses,
+    GV extends GatewayVersion,
+>({ bodyType = 'json' }: HTTPEventHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, GV>) {
     return {
         before: (event: APIGatewayProxyEventV2Schema | APIGatewayProxyEventSchema): HTTPRequest => {
             let body: unknown = event.body

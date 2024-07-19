@@ -146,6 +146,7 @@ export interface OpenapiOptions {
 
 export function openapiFromHandlers(handlers: Record<string, unknown>, options: OpenapiOptions) {
     const { defaultError = HttpError.schema } = options
+    const errorDescription = defaultError.description ?? 'An error occurred'
     const openapi: OpenapiV3 = {
         openapi: '3.0.1',
         info: options.info,
@@ -157,7 +158,7 @@ export function openapiFromHandlers(handlers: Record<string, unknown>, options: 
             requestBodies: {},
             responses: {
                 Error: {
-                    description: defaultError.description ?? 'An error occurred',
+                    description: errorDescription,
                     content: {
                         'application/json': {
                             schema: {
@@ -171,7 +172,7 @@ export function openapiFromHandlers(handlers: Record<string, unknown>, options: 
     }
     for (const h of valuesOf(handlers)) {
         const handler = h as EventHandler
-        if ('http' in handler) {
+        if ('http' in handler && handler.http.path !== undefined) {
             openapi.paths[handler.http.path] ??= {}
 
             let requestBody: Reference | RequestBody | undefined = undefined
@@ -185,15 +186,48 @@ export function openapiFromHandlers(handlers: Record<string, unknown>, options: 
             }
             const responses: Responses = {}
             for (const [statusCode, response] of entriesOf(handler.http.schema.responses)) {
-                responses[statusCode.toString()] = normalizeSchema({
-                    ctx: { openapi },
-                    schema: response.schema as Schema,
-                    target: 'responses',
-                }) as Reference
+                if (response === null) {
+                    responses[statusCode.toString()] = {
+                        description: '',
+                        content: undefined,
+                    }
+                } else if ('body' in response) {
+                    if (response.body === null) {
+                        responses[statusCode.toString()] = {
+                            description: '',
+                            content: undefined,
+                        }
+                    } else {
+                        const schema = normalizeSchema({
+                            ctx: { openapi },
+                            schema: response.body.schema as Schema,
+                            target: 'responses',
+                        }) as Reference
+                        responses[statusCode.toString()] = {
+                            description: (response as { description?: string })?.description ?? '',
+                            content: { 'application/json': { schema } },
+                        }
+                    }
+                } else {
+                    const schema = normalizeSchema({
+                        ctx: { openapi },
+                        schema: response?.schema as Schema,
+                        target: 'responses',
+                    }) as Reference
+                    responses[statusCode.toString()] = {
+                        description: (response as { description?: string })?.description ?? '',
+                        content: { 'application/json': { schema } },
+                    }
+                }
             }
             if (responses.default === undefined && Object.keys(responses).filter((s) => s.startsWith('2')).length > 0) {
                 responses.default = {
-                    $ref: '#/components/responses/Error',
+                    description: errorDescription,
+                    content: {
+                        'application/json': {
+                            schema: { $ref: '#/components/responses/Error' },
+                        },
+                    },
                 }
             }
 
@@ -251,17 +285,19 @@ export function openapiFromHandlers(handlers: Record<string, unknown>, options: 
                 )
             }
 
-            // biome-ignore lint/style/noNonNullAssertion: we know it exists
-            openapi.paths[handler.http.path]![handler.http.method] = omitUndefined({
-                operationId: handler.operationId,
-                summary: handler.summary,
-                description: handler.description,
-                deprecated: handler.deprecated,
-                tags: handler.tags,
-                parameters,
-                requestBody,
-                responses,
-            } satisfies Operation)
+            const pathItem = openapi.paths[handler.http.path]
+            if (pathItem !== undefined && handler.http.method !== undefined) {
+                pathItem[handler.http.method] = omitUndefined({
+                    operationId: handler.operationId,
+                    summary: handler.summary,
+                    description: handler.description,
+                    deprecated: handler.deprecated,
+                    tags: handler.tags,
+                    parameters,
+                    requestBody,
+                    responses,
+                } satisfies Operation)
+            }
         }
     }
 

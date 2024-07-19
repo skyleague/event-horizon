@@ -1,5 +1,5 @@
 import type { LambdaContext } from '../../types.js'
-import type { GatewayVersion, HTTPEventHandler, HTTPRequest, HTTPResponse } from '../types.js'
+import type { GatewayVersion, HTTPEmptyResponse, HTTPEventHandler, HTTPRequest, HTTPResponse, Responses } from '../types.js'
 import type { HttpError } from './http-error.type.js'
 
 import type { Try } from '@skyleague/axioms'
@@ -14,7 +14,7 @@ export function httpIOLogger<
     Path,
     Query,
     Headers,
-    Result,
+    Result extends Responses,
     GV extends GatewayVersion = 'http',
 >(
     { path }: HTTPEventHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, GV>,
@@ -33,7 +33,7 @@ export function httpIOLogger<
                 )
             }
         },
-        after: (response: Try<HTTPResponse<HttpError | Result>>) => {
+        after: (response: Try<HTTPResponse<number, HttpError | unknown> | HTTPEmptyResponse<number>>) => {
             if (!isSensitive) {
                 if (isSuccess(response)) {
                     logger.info(

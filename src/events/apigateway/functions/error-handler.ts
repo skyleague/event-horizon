@@ -4,10 +4,10 @@ import { serviceConstants } from '../../../constants.js'
 import { EventError } from '../../../errors/event-error/event-error.js'
 import type { LambdaContext } from '../../types.js'
 import type { HTTPResponse } from '../types.js'
-export function httpErrorHandler<HttpErrorType = HttpError>(
+export function httpErrorHandler<Code extends number = number, HttpErrorType = HttpError>(
     { logger, isSensitive }: Pick<LambdaContext, 'isSensitive' | 'logger'>,
-    httpErrorSeralizer: (error: EventError) => HTTPResponse<HttpErrorType> = (eventError) => ({
-        statusCode: eventError.statusCode,
+    httpErrorSeralizer: (error: EventError) => HTTPResponse<Code, HttpErrorType> = (eventError) => ({
+        statusCode: eventError.statusCode as Code,
         body: {
             statusCode: eventError.statusCode,
             message: eventError.expose && !isSensitive ? eventError.message : eventError.name,
@@ -17,9 +17,9 @@ export function httpErrorHandler<HttpErrorType = HttpError>(
                     : undefined,
         } as HttpErrorType,
     }),
-): { onError: (error: Error | unknown) => HTTPResponse<HttpErrorType> } {
+): { onError: (error: Error | unknown) => HTTPResponse<Code, HttpErrorType> } {
     return {
-        onError: (error: Error | unknown): HTTPResponse<HttpErrorType> => {
+        onError: (error: Error | unknown): HTTPResponse<Code, HttpErrorType> => {
             const eventError = EventError.from(error)
 
             if (!isSensitive) {

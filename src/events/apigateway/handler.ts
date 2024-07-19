@@ -1,37 +1,25 @@
-import { httpErrorHandler } from './functions/error-handler.js'
-import { httpIOLogger } from './functions/io-logger.js'
-import { httpIOValidate } from './functions/io-validate.js'
-import { httpParseEvent } from './functions/parse-event.js'
-import { httpSerializeResponse } from './functions/serialize-response.js'
-import type { GatewayVersion, HTTPHandler } from './types.js'
-
-import { ioLoggerChild } from '../functions/io-logger-child.js'
-import type { LambdaContext } from '../types.js'
-
 import type { Try } from '@skyleague/axioms'
 import { mapTry, recoverTry } from '@skyleague/axioms'
 import type { APIGatewayProxyResult, APIGatewayProxyResultV2 } from 'aws-lambda'
 import type { APIGatewayProxyEventV2Schema } from '../../aws/apigateway/http.type.js'
 import type { APIGatewayProxyEventSchema } from '../../aws/apigateway/rest.type.js'
+import { ioLoggerChild } from '../functions/io-logger-child.js'
+import type { LambdaContext } from '../types.js'
+import { httpErrorHandler } from './functions/error-handler.js'
+import { httpIOLogger } from './functions/io-logger.js'
+import { httpIOValidate } from './functions/io-validate.js'
+import { httpParseEvent } from './functions/parse-event.js'
+import { httpSerializeResponse } from './functions/serialize-response.js'
+import type { HTTPHandler } from './types.js'
 
-export async function handleHTTPEvent<
-    Configuration,
-    Service,
-    Profile,
-    Body,
-    Path,
-    Query,
-    Headers,
-    Result,
-    GV extends GatewayVersion = 'http',
->(
-    handler: HTTPHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, GV>,
+export async function handleHTTPEvent<Handler extends HTTPHandler>(
+    handler: Handler,
     event: APIGatewayProxyEventV2Schema | APIGatewayProxyEventSchema,
-    context: LambdaContext<Configuration, Service, Profile>,
+    context: LambdaContext,
 ): Promise<Try<APIGatewayProxyResult | APIGatewayProxyResultV2>> {
     const { http } = handler
     const parseEventFn = httpParseEvent(http)
-    const ioValidateFn = httpIOValidate<Configuration, Service, Profile, Body, Path, Query, Headers, Result, GV>()
+    const ioValidateFn = httpIOValidate()
     const serializeResponseFn = httpSerializeResponse()
     const errorHandlerFn = httpErrorHandler(context, handler.serialize?.error)
     const inputOutputFn = httpIOLogger(http, context)

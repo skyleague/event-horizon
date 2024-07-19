@@ -16,13 +16,27 @@ on:
         type: boolean
 
 jobs:
+  optimize_ci:
+    runs-on: ubuntu-latest
+    outputs:
+      skip: ${{ steps.check_skip.outputs.skip }}
+    steps:
+      - name: Optimize CI
+        id: check_skip
+        uses: withgraphite/graphite-ci-action@main
+        with:
+          graphite_token: ${{ secrets.GRAPHITE_CI_OPTIMIZER_TOKEN }}
+
   typescript:
+    needs: [optimize_ci]
+    if: needs.optimize_ci.outputs.skip == 'false'
     uses: skyleague/node-standards/.github/workflows/reusable-typescript.yml@main
     secrets:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   release:
-    needs: [typescript]
+    needs: [typescript,optimize_ci]
+    if: needs.optimize_ci.outputs.skip == 'false'
     uses: skyleague/node-standards/.github/workflows/reusable-release.yml@main
     with:
       build_artifact_name: ${{ needs.typescript.outputs.artifact-name }}

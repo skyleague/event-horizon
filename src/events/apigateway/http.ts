@@ -5,7 +5,7 @@ import { eventHandler } from '../common/event.js'
 import type { RawRequest } from '../common/raw-aws.js'
 import type { DefaultServices } from '../types.js'
 import { handleHTTPEvent } from './handler.js'
-import type { HTTPHandler } from './types.js'
+import type { HTTPHandler, Responses } from './types.js'
 
 function findHeader(name: string) {
     return (request: RawRequest) =>
@@ -22,16 +22,20 @@ export function restApiHandler<
     Path,
     Query,
     Headers,
-    Result,
+    const Result extends Responses,
     D,
 >(
     definition: D & HTTPHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, 'rest'>,
-    { _kernel = handleHTTPEvent }: { _kernel?: typeof handleHTTPEvent } = {},
+    {
+        _kernel = handleHTTPEvent,
+    }: {
+        _kernel?: typeof handleHTTPEvent
+    } = {},
 ): D & EventHandlerFn<Configuration, Service, Profile, Result> {
     return eventHandler(definition, {
         handler: (request, context) => {
             if (typeof request === 'object' && request !== null && 'headers' in request) {
-                return _kernel(definition, request, context)
+                return _kernel(definition as HTTPHandler, request, context)
             }
             throw EventError.unexpectedEventType()
         },
@@ -48,7 +52,7 @@ export function httpApiHandler<
     Path,
     Query,
     Headers,
-    Result,
+    const Result extends Responses,
     D,
 >(
     definition: D & HTTPHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, 'http'>,
@@ -57,7 +61,7 @@ export function httpApiHandler<
     return eventHandler(definition, {
         handler: (request, context) => {
             if (typeof request === 'object' && request !== null && 'headers' in request) {
-                return _kernel(definition, request, context)
+                return _kernel(definition as HTTPHandler, request, context)
             }
             throw EventError.unexpectedEventType()
         },

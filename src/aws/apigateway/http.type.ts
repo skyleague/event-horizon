@@ -4,22 +4,12 @@
  */
 /* eslint-disable */
 
-import type { DefinedError, ValidateFunction } from 'ajv'
-
+import type { APIGatewayCert } from './rest.type.js'
 import { validate as APIGatewayEventRequestContextV2Validator } from './schemas/api-gateway-event-request-context-v2.schema.js'
 import { validate as APIGatewayProxyEventV2SchemaValidator } from './schemas/api-gateway-proxy-event-v2-schema.schema.js'
 import { validate as APIGatewayRequestAuthorizerEventV2SchemaValidator } from './schemas/api-gateway-request-authorizer-event-v2-schema.schema.js'
 
-export interface APIGatewayCert {
-    clientCertPem: string
-    subjectDN: string
-    issuerDN: string
-    serialNumber: string
-    validity: {
-        notBefore: string
-        notAfter: string
-    }
-}
+import type { DefinedError, ValidateFunction } from 'ajv'
 
 export interface APIGatewayEventRequestContextV2 {
     accountId: string

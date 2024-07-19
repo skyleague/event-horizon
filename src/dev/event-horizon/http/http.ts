@@ -2,9 +2,9 @@ import type { Dependent } from '@skyleague/axioms'
 import { constant, object } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
 import { APIGatewayProxyEventV2Schema } from '../../../aws/apigateway/http.type.js'
-import type { HTTPHandler, HTTPRequest } from '../../../events/apigateway/types.js'
+import type { HTTPHandler, HTTPRequest, Responses } from '../../../events/apigateway/types.js'
 
-export function httpApiEvent<Configuration, Service, Profile, Body, Path, Query, Headers, Result>(
+export function httpApiEvent<Configuration, Service, Profile, Body, Path, Query, Headers, Result extends Responses>(
     { http }: HTTPHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, 'http'>,
     { generation = 'fast' }: { generation?: 'full' | 'fast' } = {},
 ): Dependent<HTTPRequest<Body, Path, Query, Headers, 'http'>> {

@@ -180,10 +180,24 @@ exports[`buids the petstore openapi 1`] = `
           },
           "responses": {
             "200": {
-              "$ref": "#/components/responses/Pet",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/responses/Pet",
+                  },
+                },
+              },
+              "description": "",
             },
             "default": {
-              "$ref": "#/components/responses/Error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/responses/Error",
+                  },
+                },
+              },
+              "description": "The default error error response for both 400 & 500 type errors",
             },
           },
         },
@@ -203,10 +217,24 @@ exports[`buids the petstore openapi 1`] = `
           ],
           "responses": {
             "200": {
-              "$ref": "#/components/responses/PetArray",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/responses/PetArray",
+                  },
+                },
+              },
+              "description": "",
             },
             "default": {
-              "$ref": "#/components/responses/Error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/responses/Error",
+                  },
+                },
+              },
+              "description": "The default error error response for both 400 & 500 type errors",
             },
           },
           "summary": "Finds Pets by status",
