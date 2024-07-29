@@ -496,7 +496,13 @@ describe('openapiFromHandlers', () => {
                     [path]: {
                         [method]: {
                             parameters: [],
-                            responses: { 200: schema, default: { $ref: '#/components/responses/Error' } },
+                            responses: {
+                                200: { content: { 'application/json': { schema } }, description: '' },
+                                default: {
+                                    content: { 'application/json': { schema: { $ref: '#/components/responses/Error' } } },
+                                    description: 'The default error error response for both 400 & 500 type errors',
+                                },
+                            },
                         },
                     },
                 },
@@ -536,7 +542,7 @@ describe('openapiFromHandlers', () => {
                     [path]: {
                         [method]: {
                             parameters: [],
-                            responses: { default: schema },
+                            responses: { default: { content: { 'application/json': { schema } }, description: '' } },
                         },
                     },
                 },

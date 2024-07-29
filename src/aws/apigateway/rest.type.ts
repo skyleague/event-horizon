@@ -4,13 +4,23 @@
  */
 /* eslint-disable */
 
-import type { APIGatewayCert } from './http.type.js'
+import type { DefinedError, ValidateFunction } from 'ajv'
+
 import { validate as APIGatewayEventRequestContextValidator } from './schemas/api-gateway-event-request-context.schema.js'
 import { validate as APIGatewayProxyEventSchemaValidator } from './schemas/api-gateway-proxy-event-schema.schema.js'
 import { validate as APIGatewayRequestAuthorizerEventSchemaValidator } from './schemas/api-gateway-request-authorizer-event-schema.schema.js'
 import { validate as APIGatewayTokenAuthorizerEventSchemaValidator } from './schemas/api-gateway-token-authorizer-event-schema.schema.js'
 
-import type { DefinedError, ValidateFunction } from 'ajv'
+export interface APIGatewayCert {
+    clientCertPem: string
+    subjectDN: string
+    issuerDN: string
+    serialNumber: string
+    validity: {
+        notBefore: string
+        notAfter: string
+    }
+}
 
 export interface APIGatewayEventIdentity {
     accessKey?: string | null | undefined

@@ -36,7 +36,7 @@ export function profileHandler<T, Services extends DefaultServices | undefined>(
     if (profile?.schema === undefined) {
         return {
             before: (): Promise<Try<T>> => {
-                return Promise.resolve({}) as Promise<T>
+                return Promise.resolve({}) as Promise<Try<T>>
             },
         }
     }
