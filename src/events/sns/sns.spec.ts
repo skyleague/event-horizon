@@ -11,8 +11,8 @@ import { context } from '../../test/context/context.js'
 import { asyncForAll, oneOf, random, tuple, unknown } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
 import { expect, expectTypeOf, it, vi } from 'vitest'
-import { APIGatewayProxyEventV2Schema } from '../../aws/apigateway/http.type.js'
-import { APIGatewayProxyEventSchema } from '../../aws/apigateway/rest.type.js'
+import { APIGatewayProxyEventV2Schema, APIGatewayRequestAuthorizerEventV2Schema } from '../../aws/apigateway/http.type.js'
+import { APIGatewayProxyEventSchema, APIGatewayRequestAuthorizerEventSchema } from '../../aws/apigateway/rest.type.js'
 import { DynamoDBStreamSchema } from '../../aws/dynamodb/dynamodb.type.js'
 import { EventBridgeSchema } from '../../aws/eventbridge/eventbridge.type.js'
 import { KinesisFirehoseSchema } from '../../aws/firehose/firehose.type.js'
@@ -64,6 +64,8 @@ it('does not handle non sns events', async () => {
                 arbitrary(KinesisFirehoseSchema),
                 arbitrary(APIGatewayProxyEventSchema),
                 arbitrary(APIGatewayProxyEventV2Schema),
+                arbitrary(APIGatewayRequestAuthorizerEventSchema),
+                arbitrary(APIGatewayRequestAuthorizerEventV2Schema),
                 arbitrary(KinesisDataStreamSchema),
                 arbitrary(S3Schema),
                 arbitrary(S3BatchEvent),

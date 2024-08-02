@@ -10,7 +10,8 @@ import type {
     Responses,
     Schema,
 } from '@skyleague/therefore/src/types/openapi.type.js'
-import { HttpError } from '../../events/apigateway/functions/http-error.type.js'
+import { HttpError } from '../../events/apigateway/event/functions/http-error.type.js'
+import type { SecurityRequirement, SecurityRequirements } from '../../events/apigateway/types.js'
 import type { EventHandler } from '../../events/common/types.js'
 
 interface JsonSchemaContext {
@@ -63,6 +64,17 @@ export function ensureTarget(
             }
         }
     }
+}
+
+export function normalizeSecurity(security: SecurityRequirements | undefined): SecurityRequirement[] | undefined {
+    if (security === undefined) {
+        return undefined
+    }
+    if (isArray(security)) {
+        return security
+    }
+
+    return [security]
 }
 
 export function normalizeSchema({
@@ -293,6 +305,7 @@ export function openapiFromHandlers(handlers: Record<string, unknown>, options: 
                     description: handler.description,
                     deprecated: handler.deprecated,
                     tags: handler.tags,
+                    security: normalizeSecurity(handler.http.security),
                     parameters,
                     requestBody,
                     responses,

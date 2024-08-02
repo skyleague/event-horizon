@@ -1,1 +1,1 @@
-npx --no -- lint-staged --concurrent=true --allow-empty
+./node_modules/.bin/lint-staged --allow-empty

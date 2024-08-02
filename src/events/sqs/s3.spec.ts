@@ -46,7 +46,7 @@ it('handles a simple snapshot', async () => {
         ),
     ).resolves.toBeUndefined()
 
-    expect(s3.mock.calls[0][0]).toMatchInlineSnapshot(`
+    expect(s3.mock.calls[0]![0]).toMatchInlineSnapshot(`
       {
         "raw": {
           "awsRegion": "us-east-1",

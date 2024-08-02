@@ -1,4 +1,4 @@
-import { httpApiHandler } from '../../../../src/events/apigateway/http.js'
+import { httpApiHandler } from '../../../../src/events/apigateway/event/http.js'
 import { Pet } from '../../lib/models.type.js'
 
 export const handler = httpApiHandler({
