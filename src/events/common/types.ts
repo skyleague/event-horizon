@@ -1,5 +1,5 @@
 import type { SetRequired } from '@skyleague/axioms/types'
-import type { HTTPHandler } from '../apigateway/types.js'
+import type { HTTPHandler } from '../apigateway/event/types.js'
 import type { DynamoDBStreamHandler } from '../dynamodb/types.js'
 import type { EventBridgeHandler } from '../eventbridge/types.js'
 import type { FirehoseTransformationHandler } from '../firehose/types.js'

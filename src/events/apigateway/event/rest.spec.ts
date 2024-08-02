@@ -1,18 +1,19 @@
 import { constants, alpha, asyncForAll, oneOf, random, tuple, unknown } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
 import { expect, expectTypeOf, it, vi } from 'vitest'
-import { literalSchema, warmerEvent } from '../../../test/schema.js'
-import { APIGatewayProxyEventV2Schema } from '../../aws/apigateway/http.type.js'
-import { DynamoDBStreamSchema } from '../../aws/dynamodb/dynamodb.type.js'
-import { EventBridgeSchema } from '../../aws/eventbridge/eventbridge.type.js'
-import { KinesisFirehoseSchema } from '../../aws/firehose/firehose.type.js'
-import { KinesisDataStreamSchema } from '../../aws/kinesis/kinesis.type.js'
-import { S3BatchEvent } from '../../aws/s3-batch/s3.type.js'
-import { S3Schema } from '../../aws/s3/s3.type.js'
-import { SecretRotationEvent } from '../../aws/secret-rotation/secret-rotation.type.js'
-import { SnsSchema } from '../../aws/sns/sns.type.js'
-import { SqsSchema } from '../../aws/sqs/sqs.type.js'
-import { context } from '../../test/context/context.js'
+import { literalSchema, warmerEvent } from '../../../../test/schema.js'
+import { APIGatewayProxyEventV2Schema } from '../../../aws/apigateway/http.type.js'
+import { DynamoDBStreamSchema } from '../../../aws/dynamodb/dynamodb.type.js'
+import { EventBridgeSchema } from '../../../aws/eventbridge/eventbridge.type.js'
+import { KinesisFirehoseSchema } from '../../../aws/firehose/firehose.type.js'
+import { KinesisDataStreamSchema } from '../../../aws/kinesis/kinesis.type.js'
+import { S3BatchEvent } from '../../../aws/s3-batch/s3.type.js'
+import { S3Schema } from '../../../aws/s3/s3.type.js'
+import { SecretRotationEvent } from '../../../aws/secret-rotation/secret-rotation.type.js'
+import { SnsSchema } from '../../../aws/sns/sns.type.js'
+import { SqsSchema } from '../../../aws/sqs/sqs.type.js'
+import { context } from '../../../test/context/context.js'
+import type { SecurityRequirements } from '../types.js'
 import { restApiHandler } from './http.js'
 import type { HTTPRequest } from './types.js'
 
@@ -28,7 +29,7 @@ it('handles http events', async () => {
                 path,
                 schema: { responses: {} },
                 bodyType: 'plaintext',
-                handler: vi.fn(),
+                handler: vi.fn() as any,
             },
         },
         { _kernel: http },
@@ -52,6 +53,10 @@ it('handles schema types', () => {
         http: {
             method,
             path,
+            security: {
+                foo: [],
+                bar: [],
+            },
             schema: {
                 body: literalSchema<'body'>(),
                 path: literalSchema<'path'>(),
@@ -61,7 +66,19 @@ it('handles schema types', () => {
             },
             bodyType: 'plaintext',
             handler: (request) => {
-                expectTypeOf(request).toEqualTypeOf<HTTPRequest<'body', 'path', 'query', 'headers', 'rest'>>()
+                expectTypeOf(request).toEqualTypeOf<
+                    HTTPRequest<
+                        'body',
+                        'path',
+                        'query',
+                        'headers',
+                        {
+                            readonly foo: []
+                            readonly bar: []
+                        },
+                        'rest'
+                    >
+                >()
 
                 return {
                     statusCode: 200,
@@ -71,7 +88,19 @@ it('handles schema types', () => {
         },
     })
     expectTypeOf(handler.http.handler).toEqualTypeOf<
-        (request: HTTPRequest<'body', 'path', 'query', 'headers', 'rest'>) => {
+        (
+            request: HTTPRequest<
+                'body',
+                'path',
+                'query',
+                'headers',
+                {
+                    readonly foo: []
+                    readonly bar: []
+                },
+                'rest'
+            >,
+        ) => {
             statusCode: 200
             body: '200-response'
         }
@@ -92,7 +121,9 @@ it('handles distributed schema types', () => {
             },
             bodyType: 'plaintext',
             handler: (request) => {
-                expectTypeOf(request).toEqualTypeOf<HTTPRequest<'body', 'path', 'query', 'headers', 'rest'>>()
+                expectTypeOf(request).toEqualTypeOf<
+                    HTTPRequest<'body', 'path', 'query', 'headers', SecurityRequirements, 'rest'>
+                >()
 
                 if (request.body.length === 0) {
                     return {
@@ -108,7 +139,7 @@ it('handles distributed schema types', () => {
         },
     })
     expectTypeOf(handler.http.handler).toEqualTypeOf<
-        (request: HTTPRequest<'body', 'path', 'query', 'headers', 'rest'>) =>
+        (request: HTTPRequest<'body', 'path', 'query', 'headers', SecurityRequirements, 'rest'>) =>
             | {
                   statusCode: 400
                   body: '400-response'
@@ -134,7 +165,9 @@ it('handles null response types', () => {
             },
             bodyType: 'plaintext',
             handler: (request) => {
-                expectTypeOf(request).toEqualTypeOf<HTTPRequest<'body', 'path', 'query', 'headers', 'rest'>>()
+                expectTypeOf(request).toEqualTypeOf<
+                    HTTPRequest<'body', 'path', 'query', 'headers', SecurityRequirements, 'rest'>
+                >()
 
                 if (request.body.length === 0) {
                     return {
@@ -149,7 +182,7 @@ it('handles null response types', () => {
         },
     })
     expectTypeOf(handler.http.handler).toEqualTypeOf<
-        (request: HTTPRequest<'body', 'path', 'query', 'headers', 'rest'>) =>
+        (request: HTTPRequest<'body', 'path', 'query', 'headers', SecurityRequirements, 'rest'>) =>
             | {
                   statusCode: 400
                   body: '400-response'
@@ -179,7 +212,9 @@ it('handles full response type', () => {
             },
             bodyType: 'plaintext',
             handler: (request) => {
-                expectTypeOf(request).toEqualTypeOf<HTTPRequest<'body', 'path', 'query', 'headers', 'rest'>>()
+                expectTypeOf(request).toEqualTypeOf<
+                    HTTPRequest<'body', 'path', 'query', 'headers', SecurityRequirements, 'rest'>
+                >()
 
                 if (request.body.length === 0) {
                     return {
@@ -202,7 +237,7 @@ it('handles full response type', () => {
         },
     })
     expectTypeOf(handler.http.handler).toEqualTypeOf<
-        (request: HTTPRequest<'body', 'path', 'query', 'headers', 'rest'>) =>
+        (request: HTTPRequest<'body', 'path', 'query', 'headers', SecurityRequirements, 'rest'>) =>
             | { statusCode: 400; body: '400-response'; headers?: never }
             | {
                   statusCode: 200
@@ -301,7 +336,7 @@ it('handles schema types and gives errors on non matching responses', () => {
     })
 })
 
-it('handles no resposne type and gives errors correctly', () => {
+it('handles no response type and gives errors correctly', () => {
     restApiHandler({
         http: {
             method,
@@ -358,7 +393,7 @@ it('does not handle non http events', async () => {
                 path,
                 schema: { responses: {} },
                 bodyType: 'plaintext',
-                handler: vi.fn(),
+                handler: vi.fn() as any,
             },
         },
         { _kernel: http },
@@ -368,7 +403,8 @@ it('does not handle non http events', async () => {
             oneOf(
                 arbitrary(EventBridgeSchema),
                 arbitrary(KinesisFirehoseSchema),
-                // arbitrary(APIGatewayProxyEvent),
+                // arbitrary(APIGatewayProxyEventSchema),
+                // arbitrary(APIGatewayProxyEventV2Schema),
                 arbitrary(KinesisDataStreamSchema),
                 arbitrary(S3Schema),
                 arbitrary(S3BatchEvent),

@@ -1,13 +1,24 @@
 import type { Dependent } from '@skyleague/axioms'
 import { constant, object } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
-import { APIGatewayProxyEventSchema } from '../../../aws/apigateway/rest.type.js'
-import type { HTTPHandler, HTTPRequest, Responses } from '../../../events/apigateway/types.js'
+import { APIGatewayProxyEventSchema } from '../../../../aws/apigateway/rest.type.js'
+import type { HTTPHandler, HTTPRequest, Responses } from '../../../../events/apigateway/event/types.js'
+import type { SecurityRequirements } from '../../../../events/apigateway/types.js'
 
-export function restApiEvent<Configuration, Service, Profile, Body, Path, Query, Headers, Result extends Responses>(
-    { http }: HTTPHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, 'rest'>,
+export function restApiEvent<
+    Configuration,
+    Service,
+    Profile,
+    Body,
+    Path,
+    Query,
+    Headers,
+    Result extends Responses,
+    Security extends SecurityRequirements,
+>(
+    { http }: HTTPHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, Security, 'rest'>,
     { generation = 'fast' }: { generation?: 'full' | 'fast' } = {},
-): Dependent<HTTPRequest<Body, Path, Query, Headers, 'rest'>> {
+): Dependent<HTTPRequest<Body, Path, Query, Headers, Security, 'rest'>> {
     const { bodyType = 'json' } = http
 
     const body = http.schema.body !== undefined ? arbitrary(http.schema.body) : constant(undefined)
@@ -43,10 +54,11 @@ export function restApiEvent<Configuration, Service, Profile, Body, Path, Query,
 
             return {
                 ...event,
+                security: http.security ?? [],
                 get raw() {
                     return event.raw
                 },
-            } as HTTPRequest<Body, Path, Query, Headers, 'rest'>
+            } as HTTPRequest<Body, Path, Query, Headers, Security, 'rest'>
         })
     })
 }

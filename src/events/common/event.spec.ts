@@ -435,7 +435,7 @@ describe('eventHandler', () => {
 
                 expect(handlerImpl).toHaveBeenCalledWith(request, expect.objectContaining({ raw: ctx.raw }))
 
-                const rCtx = handlerImpl.mock.calls[0][1]
+                const rCtx = handlerImpl.mock.calls[0]![1]
                 expect(setbinding).toBeCalledWith({ requestId: rCtx.requestId, traceId: rCtx.traceId })
                 expect(rCtx.logger).toBe(ctx.logger)
                 expect(rCtx.logger).not.toBe(logger)
@@ -570,7 +570,7 @@ describe('eventHandler', () => {
 
                 expect(handlerImpl).toHaveBeenCalledWith(request, expect.objectContaining({ raw: ctx.raw }))
 
-                const rCtx = handlerImpl.mock.calls[0][1]
+                const rCtx = handlerImpl.mock.calls[0]![1]
                 expect(setbinding).toBeCalledWith({ requestId: rCtx.requestId, traceId: rCtx.traceId })
                 expect(rCtx.logger).toBe(ctx.logger)
                 expect(rCtx.logger).not.toBe(logger)
@@ -636,7 +636,7 @@ describe('eventHandler', () => {
 
                 expect(handlerImpl).toHaveBeenCalledWith(request, expect.objectContaining({ raw: ctx.raw }))
 
-                const rCtx = handlerImpl.mock.calls[0][1]
+                const rCtx = handlerImpl.mock.calls[0]![1]
                 expect(setbinding).toBeCalledWith({ requestId: rCtx.requestId, traceId: rCtx.traceId })
                 expect(rCtx.logger).toBe(ctx.logger)
                 expect(rCtx.logger).not.toBe(logger)
@@ -706,7 +706,7 @@ describe('eventHandler', () => {
 
                 expect(handlerImpl).toHaveBeenCalledWith(request, expect.objectContaining({ raw: ctx.raw }))
 
-                const rCtx = handlerImpl.mock.calls[0][1]
+                const rCtx = handlerImpl.mock.calls[0]![1]
                 expect(setbinding).toBeCalledWith({ requestId: rCtx.requestId, traceId: rCtx.traceId })
                 expect(rCtx.logger).toBe(ctx.logger)
                 expect(rCtx.logger).not.toBe(logger)

@@ -2,7 +2,8 @@ import type { Simplify } from '@skyleague/axioms/types'
 import type { Schema } from '@skyleague/therefore'
 import type { Equal, Expect } from 'type-testing'
 import { it } from 'vitest'
-import type { HTTPHeaders, HTTPResponses } from './types.js'
+import type { HTTPHeaders } from '../types.js'
+import type { HTTPResponses } from './types.js'
 
 it('response type is properly expanded', () => {
     type _test_simple_response = Expect<

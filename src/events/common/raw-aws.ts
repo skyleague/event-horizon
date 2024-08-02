@@ -3,6 +3,9 @@ import type {
     APIGatewayProxyEventV2,
     APIGatewayProxyHandler,
     APIGatewayProxyHandlerV2,
+    APIGatewayRequestAuthorizerEvent,
+    APIGatewayRequestAuthorizerEventV2,
+    APIGatewayRequestIAMAuthorizerHandlerV2,
     CloudFrontRequestHandler,
     Context,
     DynamoDBStreamEvent,
@@ -22,8 +25,8 @@ import type {
     ScheduledHandler,
     SecretsManagerRotationHandler,
 } from 'aws-lambda'
-import type { APIGatewayProxyEventV2Schema } from '../../aws/apigateway/http.type.js'
-import type { APIGatewayProxyEventSchema } from '../../aws/apigateway/rest.type.js'
+import type { APIGatewayProxyEventV2Schema, APIGatewayRequestAuthorizerEventV2Schema } from '../../aws/apigateway/http.type.js'
+import type { APIGatewayProxyEventSchema, APIGatewayRequestAuthorizerEventSchema } from '../../aws/apigateway/rest.type.js'
 import type { DynamoDBStreamSchema } from '../../aws/dynamodb/dynamodb.type.js'
 import type { EventBridgeSchema } from '../../aws/eventbridge/eventbridge.type.js'
 import type { KinesisDataStreamSchema } from '../../aws/kinesis/kinesis.type.js'
@@ -34,6 +37,7 @@ import type { SqsSchema } from '../../aws/sqs/sqs.type.js'
 export type AWSLambdaHandler =
     | APIGatewayProxyHandler
     | APIGatewayProxyHandlerV2
+    | APIGatewayRequestIAMAuthorizerHandlerV2
     | CloudFrontRequestHandler
     | DynamoDBStreamHandler
     | EventBridgeHandler<string, unknown, void>
@@ -57,6 +61,8 @@ export type RawRequest =
           | KinesisStreamEvent
           | APIGatewayProxyEvent
           | APIGatewayProxyEventV2
+          | APIGatewayRequestAuthorizerEvent
+          | APIGatewayRequestAuthorizerEventV2
           | S3Event
           | SNSEvent
           | DynamoDBStreamEvent
@@ -66,6 +72,8 @@ export type RawRequest =
     | KinesisDataStreamSchema
     | APIGatewayProxyEventSchema
     | APIGatewayProxyEventV2Schema
+    | APIGatewayRequestAuthorizerEventSchema
+    | APIGatewayRequestAuthorizerEventV2Schema
     | S3Schema
     | SnsSchema
     | DynamoDBStreamSchema
