@@ -1,7 +1,6 @@
-import type { HTTPEmptyResponse, HTTPResponse } from '../types.js'
-
 import { isString } from '@skyleague/axioms'
 import type { APIGatewayProxyResult, APIGatewayProxyResultV2 } from 'aws-lambda'
+import type { HTTPEmptyResponse, HTTPResponse } from '../types.js'
 
 export function httpSerializeResponse() {
     return {

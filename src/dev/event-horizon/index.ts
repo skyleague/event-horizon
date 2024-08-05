@@ -1,6 +1,6 @@
 export * from './eventbridge/index.js'
 export * from './firehose/index.js'
-export * from './http/index.js'
+export * from './apigateway/index.js'
 export * from './kinesis/index.js'
 export * from './s3/index.js'
 export * from './s3-batch/index.js'

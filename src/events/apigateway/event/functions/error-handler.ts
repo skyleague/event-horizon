@@ -1,9 +1,9 @@
+import { serviceConstants } from '../../../../constants.js'
+import { EventError } from '../../../../errors/event-error/event-error.js'
+import type { LambdaContext } from '../../../types.js'
+import type { HTTPResponse } from '../types.js'
 import type { HttpError } from './http-error.type.js'
 
-import { serviceConstants } from '../../../constants.js'
-import { EventError } from '../../../errors/event-error/event-error.js'
-import type { LambdaContext } from '../../types.js'
-import type { HTTPResponse } from '../types.js'
 export function httpErrorHandler<Code extends number = number, HttpErrorType = HttpError>(
     { logger, isSensitive }: Pick<LambdaContext, 'isSensitive' | 'logger'>,
     httpErrorSeralizer: (error: EventError) => HTTPResponse<Code, HttpErrorType> = (eventError) => ({

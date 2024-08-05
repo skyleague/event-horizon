@@ -4,7 +4,7 @@
  */
 /* eslint-disable */
 
-import type { APIGatewayCert } from './rest.type.js'
+import type { APIGatewayCert, APIGatewayHttpMethod } from './proxy.type.js'
 import { validate as APIGatewayEventRequestContextV2Validator } from './schemas/api-gateway-event-request-context-v2.schema.js'
 import { validate as APIGatewayProxyEventV2SchemaValidator } from './schemas/api-gateway-proxy-event-v2-schema.schema.js'
 import { validate as APIGatewayRequestAuthorizerEventV2SchemaValidator } from './schemas/api-gateway-request-authorizer-event-v2-schema.schema.js'
@@ -186,7 +186,7 @@ export type RequestContextV2Authorizer =
     | undefined
 
 export interface RequestContextV2Http {
-    method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS'
+    method: keyof typeof APIGatewayHttpMethod
     path: string
     protocol: string
     sourceIp: string

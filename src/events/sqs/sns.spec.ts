@@ -46,7 +46,7 @@ it('handles a simple snapshot', async () => {
         ),
     ).resolves.toBeUndefined()
 
-    expect(sns.mock.calls[0][0]).toMatchInlineSnapshot(`
+    expect(sns.mock.calls[0]![0]).toMatchInlineSnapshot(`
       {
         "payload": {
           "message": "hello world",
@@ -108,7 +108,7 @@ it('handles a fifo simple snapshot', async () => {
         ),
     ).resolves.toBeUndefined()
 
-    expect(sns.mock.calls[0][0]).toMatchInlineSnapshot(`
+    expect(sns.mock.calls[0]![0]).toMatchInlineSnapshot(`
       {
         "payload": {
           "message": "hello world",

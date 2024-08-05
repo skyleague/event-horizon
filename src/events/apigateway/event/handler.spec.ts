@@ -1,19 +1,18 @@
-import { handleHTTPEvent } from './handler.js'
-
-import { httpApiEvent } from '../../dev/event-horizon/http/http.js'
-import { EventError } from '../../errors/event-error/event-error.js'
-import { context } from '../../test/context/context.js'
-
 import { constants, alpha, asyncForAll, integer, isString, json, object, random, tuple } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
 import { expect, it, vi } from 'vitest'
+import { httpApiEvent } from '../../../dev/event-horizon/apigateway/event/http.js'
+import { EventError } from '../../../errors/event-error/event-error.js'
+import { context } from '../../../test/context/context.js'
+import { handleHTTPEvent } from './handler.js'
 import { httpApiHandler, restApiHandler } from './http.js'
 
 const neverTrue = {
     is: () => false,
     schema: { type: 'object' },
     errors: [],
-} as unknown as Schema<string>
+    // biome-ignore lint/complexity/noBannedTypes: this is a test
+} as unknown as Schema<{}>
 
 const method = random(constants('get', 'put'))
 const path = `/${random(alpha())}` as const
@@ -25,7 +24,7 @@ it.each([httpApiHandler, restApiHandler])('plaintext success does not give failu
             method,
             path,
             schema: { responses: {} },
-            bodyType: 'plaintext' as const,
+            bodyType: 'plaintext',
             handler: h,
         },
     })
@@ -62,7 +61,7 @@ it.each([httpApiHandler, restApiHandler])('json success does not give failures',
             method,
             path,
             schema: { responses: {} },
-            bodyType: 'json' as const,
+            bodyType: 'json',
             handler: h,
         },
     })
@@ -99,7 +98,7 @@ it.each([httpApiHandler, restApiHandler])('binary success does not give failures
             method,
             path,
             schema: { responses: {} },
-            bodyType: 'binary' as const,
+            bodyType: 'binary',
             handler: h,
         },
     })

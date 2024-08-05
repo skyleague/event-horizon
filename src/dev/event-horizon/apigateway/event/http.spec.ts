@@ -1,6 +1,6 @@
 import { forAll, isString } from '@skyleague/axioms'
 import { it, vi } from 'vitest'
-import { APIGatewayProxyEventV2Schema } from '../../../aws/apigateway/http.type.js'
+import { APIGatewayProxyEventV2Schema } from '../../../../aws/apigateway/http.type.js'
 import { httpApiEvent } from './http.js'
 
 it('httpApiEvent === httpApiEvent', () => {

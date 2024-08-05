@@ -1,6 +1,6 @@
 import { handler } from './handler.js'
 
-import { httpApiEvent } from '../../../../src/dev/event-horizon/http/http.js'
+import { httpApiEvent } from '../../../../src/dev/event-horizon/apigateway/event/http.js'
 import { context } from '../../../../src/test/context/context.js'
 import { Pet } from '../../lib/models.type.js'
 

@@ -1,10 +1,10 @@
 import type { Try } from '@skyleague/axioms'
 import { mapTry, recoverTry } from '@skyleague/axioms'
 import type { APIGatewayProxyResult, APIGatewayProxyResultV2 } from 'aws-lambda'
-import type { APIGatewayProxyEventV2Schema } from '../../aws/apigateway/http.type.js'
-import type { APIGatewayProxyEventSchema } from '../../aws/apigateway/rest.type.js'
-import { ioLoggerChild } from '../functions/io-logger-child.js'
-import type { LambdaContext } from '../types.js'
+import type { APIGatewayProxyEventV2Schema } from '../../../aws/apigateway/http.type.js'
+import type { APIGatewayProxyEventSchema } from '../../../aws/apigateway/rest.type.js'
+import { ioLoggerChild } from '../../functions/io-logger-child.js'
+import type { LambdaContext } from '../../types.js'
 import { httpErrorHandler } from './functions/error-handler.js'
 import { httpIOLogger } from './functions/io-logger.js'
 import { httpIOValidate } from './functions/io-validate.js'
@@ -19,7 +19,7 @@ export async function handleHTTPEvent<Handler extends HTTPHandler>(
 ): Promise<Try<APIGatewayProxyResult | APIGatewayProxyResultV2>> {
     const { http } = handler
     const parseEventFn = httpParseEvent(http)
-    const ioValidateFn = httpIOValidate()
+    const ioValidateFn = httpIOValidate(http)
     const serializeResponseFn = httpSerializeResponse()
     const errorHandlerFn = httpErrorHandler(context, handler.serialize?.error)
     const inputOutputFn = httpIOLogger(http, context)
@@ -32,7 +32,7 @@ export async function handleHTTPEvent<Handler extends HTTPHandler>(
             ...e.path,
         })
 
-        return ioValidateFn.before(http, e)
+        return ioValidateFn.before(e)
     })
 
     inputOutputFn.before(httpEvent)

@@ -11,7 +11,7 @@ export default defineConfig({
             exclude: ['**/*.schema.js', '**/*.schema.ts', '**/*.client.ts', '**/*.type.ts', ...coverageConfigDefaults.exclude],
         },
         fakeTimers: {
-            now: new Date(2022, 1, 10),
+            now: new Date(2022, 1, 10).getTime(),
             toFake: [
                 // 'setTimeout',
                 // 'setImmediate',
