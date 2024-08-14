@@ -1,6 +1,5 @@
 import type { Schema } from '@skyleague/therefore/src/types/openapi.type.js'
-import { serviceConstants } from '../../../constants.js'
-
+import { serviceConstants } from '../../../../constants.js'
 
 export interface HttpError {
     statusCode: number
