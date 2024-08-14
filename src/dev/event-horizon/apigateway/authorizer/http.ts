@@ -1,7 +1,7 @@
 import type { Dependent } from '@skyleague/axioms'
 import { constant, object } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
-import { APIGatewayRequestAuthorizerEventV2Schema } from '../../../../aws/apigateway/http.schema.js'
+import { APIGatewayRequestAuthorizerEventV2Schema } from '../../../../aws/apigateway/http.type.js'
 import type {
     RequestAuthorizerEvent,
     RequestAuthorizerHandler,
