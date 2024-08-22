@@ -199,6 +199,15 @@ export function openapiFromHandlers(handlers: Record<string, unknown>, options: 
             }
             const responses: Responses = {}
             for (const [statusCode, response] of entriesOf(handler.http.schema.responses)) {
+                function asStatusResponse(schema: JsonSchema | Reference) {
+                    if ('$ref' in schema) {
+                        return schema
+                    }
+                    return {
+                        description: (response as { description?: string })?.description ?? '',
+                        content: { 'application/json': { schema } },
+                    }
+                }
                 if (response === null) {
                     responses[statusCode.toString()] = {
                         description: '',
@@ -207,7 +216,7 @@ export function openapiFromHandlers(handlers: Record<string, unknown>, options: 
                 } else if ('body' in response) {
                     if (response.body === null) {
                         responses[statusCode.toString()] = {
-                            description: '',
+                            description: (response as { description?: string })?.description ?? '',
                             content: undefined,
                         }
                     } else {
@@ -216,10 +225,7 @@ export function openapiFromHandlers(handlers: Record<string, unknown>, options: 
                             schema: response.body.schema as Schema,
                             target: 'responses',
                         }) as Reference
-                        responses[statusCode.toString()] = {
-                            description: (response as { description?: string })?.description ?? '',
-                            content: { 'application/json': { schema } },
-                        }
+                        responses[statusCode.toString()] = asStatusResponse(schema)
                     }
                 } else {
                     const schema = normalizeSchema({
@@ -227,21 +233,11 @@ export function openapiFromHandlers(handlers: Record<string, unknown>, options: 
                         schema: response?.schema as Schema,
                         target: 'responses',
                     }) as Reference
-                    responses[statusCode.toString()] = {
-                        description: (response as { description?: string })?.description ?? '',
-                        content: { 'application/json': { schema } },
-                    }
+                    responses[statusCode.toString()] = asStatusResponse(schema)
                 }
             }
             if (responses.default === undefined && Object.keys(responses).filter((s) => s.startsWith('2')).length > 0) {
-                responses.default = {
-                    description: errorDescription,
-                    content: {
-                        'application/json': {
-                            schema: { $ref: '#/components/responses/ErrorResponse' },
-                        },
-                    },
-                }
+                responses.default = { $ref: '#/components/responses/ErrorResponse' }
             }
 
             const parameters: Parameter[] = []

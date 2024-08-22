@@ -1,4 +1,17 @@
-import { alpha, array, entriesOf, forAll, json, omit, omitUndefined, random, record, string, tuple } from '@skyleague/axioms'
+import {
+    alpha,
+    alphaNumeric,
+    array,
+    entriesOf,
+    forAll,
+    json,
+    omit,
+    omitUndefined,
+    random,
+    record,
+    string,
+    tuple,
+} from '@skyleague/axioms'
 import { describe, expect, it, vi } from 'vitest'
 import { HttpError } from '../../events/apigateway/event/functions/http-error.type.js'
 import { httpApiHandler } from '../../events/apigateway/event/http.js'
@@ -498,10 +511,233 @@ describe('openapiFromHandlers', () => {
                             parameters: [],
                             responses: {
                                 200: { content: { 'application/json': { schema } }, description: '' },
-                                default: {
-                                    content: { 'application/json': { schema: { $ref: '#/components/responses/ErrorResponse' } } },
-                                    description: 'The default error error response for both 400 & 500 type errors',
+                                default: { $ref: '#/components/responses/ErrorResponse' },
+                            },
+                        },
+                    },
+                },
+            })
+        })
+    })
+
+    it('response', () => {
+        const h = vi.fn()
+        forAll(tuple(string(), string(), record(json())), ([method, path, schema]) => {
+            const helloWorld = httpApiHandler({
+                http: {
+                    method,
+                    path,
+                    schema: { responses: { 200: { schema } } },
+                    bodyType: 'plaintext' as const,
+                    handler: h,
+                } as any,
+            })
+
+            expect(openapiFromHandlers({ helloWorld }, { info: { title, version } })).toEqual({
+                components: {
+                    requestBodies: {},
+                    responses: {
+                        ErrorResponse: {
+                            content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } },
+                            description: HttpError.schema.description,
+                        },
+                    },
+                    schemas: {
+                        ErrorResponse: HttpError.schema,
+                    },
+                },
+                info: { title, version },
+                openapi: '3.0.1',
+                paths: {
+                    [path]: {
+                        [method]: {
+                            parameters: [],
+                            responses: {
+                                200: { content: { 'application/json': { schema } }, description: '' },
+                                default: { $ref: '#/components/responses/ErrorResponse' },
+                            },
+                        },
+                    },
+                },
+            })
+        })
+    })
+
+    it('response with title', () => {
+        const h = vi.fn()
+        forAll(tuple(string(), string(), record(json()), alphaNumeric()), ([method, path, schema, title]) => {
+            const helloWorld = httpApiHandler({
+                http: {
+                    method,
+                    path,
+                    schema: { responses: { 200: { schema: { ...schema, title } } } },
+                    bodyType: 'plaintext' as const,
+                    handler: h,
+                } as any,
+            })
+
+            expect(openapiFromHandlers({ helloWorld }, { info: { title, version } })).toEqual({
+                components: {
+                    requestBodies: {},
+                    responses: {
+                        [title]: {
+                            content: {
+                                'application/json': {
+                                    schema: {
+                                        $ref: `#/components/schemas/${title}`,
+                                    },
                                 },
+                            },
+                            description: '',
+                        },
+                        ErrorResponse: {
+                            content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } },
+                            description: HttpError.schema.description,
+                        },
+                    },
+                    schemas: {
+                        ErrorResponse: HttpError.schema,
+                        [title]: { ...schema, title },
+                    },
+                },
+                info: { title, version },
+                openapi: '3.0.1',
+                paths: {
+                    [path]: {
+                        [method]: {
+                            parameters: [],
+                            responses: {
+                                200: { $ref: `#/components/responses/${title}` },
+                                default: { $ref: '#/components/responses/ErrorResponse' },
+                            },
+                        },
+                    },
+                },
+            })
+        })
+    })
+
+    it('response with description', () => {
+        const h = vi.fn()
+        forAll(tuple(string(), string(), record(json()), string()), ([method, path, schema, description]) => {
+            const helloWorld = httpApiHandler({
+                http: {
+                    method,
+                    path,
+                    schema: { responses: { 200: { body: { schema }, description } } },
+                    bodyType: 'plaintext' as const,
+                    handler: h,
+                } as any,
+            })
+
+            expect(openapiFromHandlers({ helloWorld }, { info: { title, version } })).toEqual({
+                components: {
+                    requestBodies: {},
+                    responses: {
+                        ErrorResponse: {
+                            content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } },
+                            description: HttpError.schema.description,
+                        },
+                    },
+                    schemas: {
+                        ErrorResponse: HttpError.schema,
+                    },
+                },
+                info: { title, version },
+                openapi: '3.0.1',
+                paths: {
+                    [path]: {
+                        [method]: {
+                            parameters: [],
+                            responses: {
+                                200: { content: { 'application/json': { schema } }, description },
+                                default: { $ref: '#/components/responses/ErrorResponse' },
+                            },
+                        },
+                    },
+                },
+            })
+        })
+    })
+
+    it('response with null and description', () => {
+        const h = vi.fn()
+        forAll(tuple(string(), string(), string()), ([method, path, description]) => {
+            const helloWorld = httpApiHandler({
+                http: {
+                    method,
+                    path,
+                    schema: { responses: { 200: { body: null, description } } },
+                    bodyType: 'plaintext' as const,
+                    handler: h,
+                } as any,
+            })
+
+            expect(openapiFromHandlers({ helloWorld }, { info: { title, version } })).toEqual({
+                components: {
+                    requestBodies: {},
+                    responses: {
+                        ErrorResponse: {
+                            content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } },
+                            description: HttpError.schema.description,
+                        },
+                    },
+                    schemas: {
+                        ErrorResponse: HttpError.schema,
+                    },
+                },
+                info: { title, version },
+                openapi: '3.0.1',
+                paths: {
+                    [path]: {
+                        [method]: {
+                            parameters: [],
+                            responses: {
+                                200: { content: undefined, description },
+                                default: { $ref: '#/components/responses/ErrorResponse' },
+                            },
+                        },
+                    },
+                },
+            })
+        })
+    })
+
+    it('response with null', () => {
+        const h = vi.fn()
+        forAll(tuple(string(), string()), ([method, path]) => {
+            const helloWorld = httpApiHandler({
+                http: {
+                    method,
+                    path,
+                    schema: { responses: { 200: null } },
+                    bodyType: 'plaintext' as const,
+                    handler: h,
+                } as any,
+            })
+
+            expect(openapiFromHandlers({ helloWorld }, { info: { title, version } })).toEqual({
+                components: {
+                    requestBodies: {},
+                    responses: {
+                        ErrorResponse: {
+                            content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } },
+                            description: HttpError.schema.description,
+                        },
+                    },
+                    schemas: {
+                        ErrorResponse: HttpError.schema,
+                    },
+                },
+                info: { title, version },
+                openapi: '3.0.1',
+                paths: {
+                    [path]: {
+                        [method]: {
+                            parameters: [],
+                            responses: {
+                                200: { content: undefined, description: '' },
+                                default: { $ref: '#/components/responses/ErrorResponse' },
                             },
                         },
                     },
