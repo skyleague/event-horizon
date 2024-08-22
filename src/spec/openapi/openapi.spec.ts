@@ -499,7 +499,7 @@ describe('openapiFromHandlers', () => {
                             responses: {
                                 200: { content: { 'application/json': { schema } }, description: '' },
                                 default: {
-                                    content: { 'application/json': { schema: { $ref: '#/components/responses/Error' } } },
+                                    content: { 'application/json': { schema: { $ref: '#/components/responses/ErrorResponse' } } },
                                     description: 'The default error error response for both 400 & 500 type errors',
                                 },
                             },

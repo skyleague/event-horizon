@@ -193,7 +193,7 @@ exports[`buids the petstore openapi 1`] = `
               "content": {
                 "application/json": {
                   "schema": {
-                    "$ref": "#/components/responses/Error",
+                    "$ref": "#/components/responses/ErrorResponse",
                   },
                 },
               },
@@ -230,7 +230,7 @@ exports[`buids the petstore openapi 1`] = `
               "content": {
                 "application/json": {
                   "schema": {
-                    "$ref": "#/components/responses/Error",
+                    "$ref": "#/components/responses/ErrorResponse",
                   },
                 },
               },
