@@ -415,13 +415,13 @@ describe('openapiFromHandlers', () => {
                 components: {
                     requestBodies: {},
                     responses: {
-                        Error: {
-                            content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } },
+                        ErrorResponse: {
+                            content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } },
                             description: HttpError.schema.description,
                         },
                     },
                     schemas: {
-                        Error: HttpError.schema,
+                        ErrorResponse: HttpError.schema,
                     },
                 },
                 info: { title, version },
@@ -448,13 +448,13 @@ describe('openapiFromHandlers', () => {
                 components: {
                     requestBodies: {},
                     responses: {
-                        Error: {
-                            content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } },
+                        ErrorResponse: {
+                            content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } },
                             description: HttpError.schema.description,
                         },
                     },
                     schemas: {
-                        Error: HttpError.schema,
+                        ErrorResponse: HttpError.schema,
                     },
                 },
                 info: { title, version },
@@ -481,13 +481,13 @@ describe('openapiFromHandlers', () => {
                 components: {
                     requestBodies: {},
                     responses: {
-                        Error: {
-                            content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } },
+                        ErrorResponse: {
+                            content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } },
                             description: HttpError.schema.description,
                         },
                     },
                     schemas: {
-                        Error: HttpError.schema,
+                        ErrorResponse: HttpError.schema,
                     },
                 },
                 info: { title, version },
@@ -527,13 +527,13 @@ describe('openapiFromHandlers', () => {
                 components: {
                     requestBodies: {},
                     responses: {
-                        Error: {
-                            content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } },
+                        ErrorResponse: {
+                            content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } },
                             description: HttpError.schema.description,
                         },
                     },
                     schemas: {
-                        Error: HttpError.schema,
+                        ErrorResponse: HttpError.schema,
                     },
                 },
                 info: { title, version },
@@ -573,13 +573,13 @@ describe('openapiFromHandlers', () => {
                     components: {
                         requestBodies: {},
                         responses: {
-                            Error: {
-                                content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } },
+                            ErrorResponse: {
+                                content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } },
                                 description: HttpError.schema.description,
                             },
                         },
                         schemas: {
-                            Error: HttpError.schema,
+                            ErrorResponse: HttpError.schema,
                         },
                     },
                     info: { title, version },
@@ -629,13 +629,13 @@ describe('openapiFromHandlers', () => {
                     components: {
                         requestBodies: {},
                         responses: {
-                            Error: {
-                                content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } },
+                            ErrorResponse: {
+                                content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } },
                                 description: HttpError.schema.description,
                             },
                         },
                         schemas: {
-                            Error: HttpError.schema,
+                            ErrorResponse: HttpError.schema,
                         },
                     },
                     info: { title, version },
@@ -685,13 +685,13 @@ describe('openapiFromHandlers', () => {
                     components: {
                         requestBodies: {},
                         responses: {
-                            Error: {
-                                content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } },
+                            ErrorResponse: {
+                                content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } },
                                 description: HttpError.schema.description,
                             },
                         },
                         schemas: {
-                            Error: HttpError.schema,
+                            ErrorResponse: HttpError.schema,
                         },
                     },
                     info: { title, version },

@@ -22,11 +22,11 @@ exports[`buids the petstore openapi 1`] = `
         },
       },
       "responses": {
-        "Error": {
+        "ErrorResponse": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Error",
+                "$ref": "#/components/schemas/ErrorResponse",
               },
             },
           },
@@ -71,7 +71,7 @@ exports[`buids the petstore openapi 1`] = `
           "title": "Category",
           "type": "object",
         },
-        "Error": {
+        "ErrorResponse": {
           "description": "The default error error response for both 400 & 500 type errors",
           "properties": {
             "message": {
