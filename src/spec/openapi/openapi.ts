@@ -166,16 +166,16 @@ export function openapiFromHandlers(handlers: Record<string, unknown>, options: 
         components: {
             ...options.components,
             schemas: {
-                Error: defaultError,
+                ErrorResponse: defaultError,
             },
             requestBodies: {},
             responses: {
-                Error: {
+                ErrorResponse: {
                     description: errorDescription,
                     content: {
                         'application/json': {
                             schema: {
-                                $ref: '#/components/schemas/Error',
+                                $ref: '#/components/schemas/ErrorResponse',
                             },
                         },
                     },
