@@ -238,7 +238,7 @@ export function openapiFromHandlers(handlers: Record<string, unknown>, options: 
                     description: errorDescription,
                     content: {
                         'application/json': {
-                            schema: { $ref: '#/components/responses/Error' },
+                            schema: { $ref: '#/components/responses/ErrorResponse' },
                         },
                     },
                 }
