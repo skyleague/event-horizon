@@ -28,6 +28,7 @@ export function authorizerSerializeResponse() {
                             },
                         ],
                     },
+                    context: response.context,
                 }
             }
             return {
@@ -43,6 +44,7 @@ export function authorizerSerializeResponse() {
                         },
                     ],
                 },
+                context: response.context,
             }
         },
     }
