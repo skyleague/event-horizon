@@ -43,6 +43,7 @@ it('success handles authoriziation correctly', async () => {
                     Version: '2012-10-17',
                 },
                 principalId: req.raw.requestContext.http.sourceIp ?? 'unknown',
+                context,
             })
 
             expect(h).toHaveBeenCalledWith(expect.objectContaining({ raw: req.raw }), ctx)
@@ -87,6 +88,7 @@ it('success handles authoriziation correctly', async () => {
                     Version: '2012-10-17',
                 },
                 principalId: req.raw.requestContext.http.sourceIp ?? 'unknown',
+                context,
             })
 
             expect(h).toHaveBeenCalledWith(expect.objectContaining({ raw: req.raw }), ctx)
