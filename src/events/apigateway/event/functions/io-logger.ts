@@ -9,7 +9,7 @@ export function httpIOLogger<Handler extends HTTPEventHandler>(
     { path }: Handler,
     { logger, isSensitive }: Pick<LambdaContext, 'logger' | 'isSensitive'>,
 ) {
-    const pathPrefix = path !== undefined ? `${path} ` : undefined
+    const pathPrefix = path !== undefined ? `${path} ` : ''
     return {
         before: (request: Try<HTTPRequest>) => {
             if (!isSensitive) {
