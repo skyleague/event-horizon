@@ -6,7 +6,7 @@ import type { RawRequest } from '../../common/raw-aws.js'
 import type { DefaultServices } from '../../types.js'
 import type { SecurityRequirements } from '../types.js'
 import { handleHTTPEvent } from './handler.js'
-import type { HTTPHandler, Responses } from './types.js'
+import type { AuthorizerSchema, HTTPHandler, Responses } from './types.js'
 
 export function findHeader(name: string) {
     return (request: RawRequest) =>
@@ -25,9 +25,11 @@ export function restApiHandler<
     Headers,
     const Result extends Responses,
     const Security extends SecurityRequirements,
+    Authorizer extends AuthorizerSchema,
     D,
 >(
-    definition: D & HTTPHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, Security, 'rest'>,
+    definition: D &
+        HTTPHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, Security, Authorizer, 'rest'>,
     {
         _kernel = handleHTTPEvent,
     }: {
@@ -56,9 +58,11 @@ export function httpApiHandler<
     Headers,
     const Result extends Responses,
     const Security extends SecurityRequirements,
+    Authorizer extends AuthorizerSchema,
     D,
 >(
-    definition: D & HTTPHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, Security, 'http'>,
+    definition: D &
+        HTTPHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, Security, Authorizer, 'http'>,
     { _kernel = handleHTTPEvent }: { _kernel?: typeof handleHTTPEvent } = {},
 ): D & EventHandlerFn<Configuration, Service, Profile, Result> {
     return eventHandler(definition, {
