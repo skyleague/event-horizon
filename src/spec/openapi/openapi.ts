@@ -25,7 +25,7 @@ export function jsonptrToName(ptr: string) {
 export function addComponent(ctx: JsonSchemaContext, schema: JsonSchema | Schema, name?: string): string {
     const { openapi } = ctx
 
-    const component = schema.title ?? name
+    const component = (schema.title ?? name)?.replace(/[^a-zA-Z0-9]/g, '-')
 
     if (component === undefined) {
         throw new Error('Component name is required')
