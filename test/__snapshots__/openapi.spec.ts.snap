@@ -72,14 +72,12 @@ exports[`buids the petstore openapi 1`] = `
           "type": "object",
         },
         "ErrorResponse": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "additionalProperties": true,
           "description": "The default error error response for both 400 & 500 type errors",
           "properties": {
             "message": {
               "description": "A detailed message of the error.",
-              "type": "string",
-            },
-            "stack": {
-              "description": "When debugging is enabled, a stack trace is exposed.",
               "type": "string",
             },
             "statusCode": {
@@ -88,10 +86,10 @@ exports[`buids the petstore openapi 1`] = `
             },
           },
           "required": [
-            "statusCode",
             "message",
+            "statusCode",
           ],
-          "title": "Default Error Response",
+          "title": "HttpError",
           "type": "object",
         },
         "Pet": {
@@ -181,6 +179,9 @@ exports[`buids the petstore openapi 1`] = `
           "responses": {
             "200": {
               "$ref": "#/components/responses/Pet",
+            },
+            "404": {
+              "$ref": "#/components/responses/ErrorResponse",
             },
             "default": {
               "$ref": "#/components/responses/ErrorResponse",
