@@ -1,6 +1,6 @@
 import type { Try } from '@skyleague/axioms'
 import { mapTry, recoverTry, tryToError } from '@skyleague/axioms'
-import type { APIGatewayIAMAuthorizerResult } from 'aws-lambda'
+import type { APIGatewayIAMAuthorizerResult, APIGatewaySimpleAuthorizerResult } from 'aws-lambda'
 import type { APIGatewayRequestAuthorizerEventV2Schema } from '../../../aws/apigateway/http.type.js'
 import type { APIGatewayRequestAuthorizerEventSchema } from '../../../aws/apigateway/rest.type.js'
 import { ioLoggerChild } from '../../functions/io-logger-child.js'
@@ -16,7 +16,7 @@ export async function handleAuthorizerEvent<Handler extends RequestAuthorizerHan
     handler: Handler,
     event: APIGatewayRequestAuthorizerEventV2Schema | APIGatewayRequestAuthorizerEventSchema,
     context: LambdaContext,
-): Promise<Try<APIGatewayIAMAuthorizerResult>> {
+): Promise<Try<APIGatewayIAMAuthorizerResult | APIGatewaySimpleAuthorizerResult>> {
     const { request } = handler
     const parseEventFn = authorizerParseEvent(request)
     const ioValidateFn = authorizerIOValidate(request)

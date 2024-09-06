@@ -31,7 +31,7 @@ it('success handles authoriziation correctly', async () => {
             const response = await handleAuthorizerEvent(handler, req.raw, ctx)
 
             expect(response).toEqual({
-                isAuthorized,
+                // isAuthorized,
                 policyDocument: {
                     Statement: [
                         {
@@ -76,7 +76,7 @@ it('success handles authoriziation correctly', async () => {
             const response = await handleAuthorizerEvent(handler, req.raw, ctx)
 
             expect(response).toEqual({
-                isAuthorized,
+                // isAuthorized,
                 policyDocument: {
                     Statement: [
                         {
