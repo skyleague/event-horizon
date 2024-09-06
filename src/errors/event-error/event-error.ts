@@ -1,6 +1,7 @@
 import { asArray, isError, isObject, isThrown } from '@skyleague/axioms'
 import type { Exact } from '@skyleague/axioms/types'
 import type { ErrorObject } from 'ajv'
+import { HttpError } from '../../events/apigateway/event/functions/http-error.type.js'
 import type { HTTPHeaders, HTTPMethod } from '../../events/apigateway/types.js'
 import type { Logger } from '../../observability/logger/logger.js'
 
@@ -97,7 +98,7 @@ export interface EventOptions {
 /**
  * @group Errors
  */
-export class EventError extends Error {
+export class EventError extends Error implements HttpError {
     public isEventError = true
     public forceLevel: 'error' | 'info' | 'warning' | undefined
     public thrown: boolean
@@ -109,6 +110,12 @@ export class EventError extends Error {
     public override message: string
     public statusCode: number
     public attributes: unknown | undefined
+
+    public static validate = HttpError.validate
+    public static schema = HttpError.schema
+    public static errors = HttpError.errors
+    public static is = HttpError.is
+    public static parse = HttpError.parse
 
     public constructor(
         message?: ErrorLike,
@@ -176,10 +183,6 @@ export class EventError extends Error {
         return this.statusCode >= 500 && this.statusCode < 600
     }
 
-    public static is<O>(e: EventError | O): e is EventError {
-        return e instanceof Error && 'isEventError' in e && e.isEventError
-    }
-
     public static log(logger: Logger, error: EventError | unknown, mode: 'error' | 'level' = 'level'): EventError {
         const eventError = EventError.from(error)
         if (mode === 'level') {
@@ -197,8 +200,12 @@ export class EventError extends Error {
         return eventError
     }
 
+    public static _is<O>(e: EventError | O): e is EventError {
+        return e instanceof Error && 'isEventError' in e && e.isEventError
+    }
+
     public static from(error: EventError | unknown): EventError {
-        return EventError.is(error)
+        return EventError._is(error)
             ? error
             : isError(error)
               ? new EventError(error, { cause: error, ctor: EventError.from, name: 'EventError' })

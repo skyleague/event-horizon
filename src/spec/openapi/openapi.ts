@@ -10,6 +10,7 @@ import type {
     Responses,
     Schema,
 } from '@skyleague/therefore/src/types/openapi.type.js'
+import { EventError } from '../../errors/event-error/event-error.js'
 import { HttpError } from '../../events/apigateway/event/functions/http-error.type.js'
 import type { SecurityRequirement, SecurityRequirements } from '../../events/apigateway/types.js'
 import type { EventHandler } from '../../events/common/types.js'
@@ -22,10 +23,16 @@ export function jsonptrToName(ptr: string) {
     return ptr.replace(/#((.*?)\/)*/, '')
 }
 
-export function addComponent(ctx: JsonSchemaContext, schema: JsonSchema | Schema, name?: string): string {
+export function addComponent({
+    ctx,
+    schema,
+    name,
+    sanitize = true,
+}: { ctx: JsonSchemaContext; schema: JsonSchema | Schema; name?: string; sanitize?: boolean }): string {
     const { openapi } = ctx
 
-    const component = (schema.title ?? name)?.replace(/[^a-zA-Z0-9]/g, '-')
+    const _component = schema.title ?? name
+    const component = sanitize ? _component?.replace(/[^a-zA-Z0-9]/g, '-') : _component
 
     if (component === undefined) {
         throw new Error('Component name is required')
@@ -88,6 +95,10 @@ export function normalizeSchema({
     target?: 'parameters' | 'requestBodies' | 'responses' | 'schemas'
     defsOnly?: boolean
 }): JsonSchema | Reference {
+    // check by reference
+    if (schema === EventError.schema) {
+        return { $ref: '#/components/responses/ErrorResponse' }
+    }
     const jsonschema = structuredClone(schema) as unknown as JsonSchema
     // biome-ignore lint/performance/noDelete: we need to remove the $schema property
     delete jsonschema.$schema
@@ -95,7 +106,7 @@ export function normalizeSchema({
     if (jsonschema.$defs !== undefined) {
         for (const [name, def] of entriesOf(jsonschema.$defs)) {
             if (def !== undefined) {
-                addComponent(ctx, normalizeSchema({ ctx, schema: def }), name)
+                addComponent({ ctx, schema: normalizeSchema({ ctx, schema: def }), name })
             }
         }
 
@@ -143,7 +154,7 @@ export function normalizeSchema({
     }
 
     if (jsonschema.title !== undefined) {
-        const name = addComponent(ctx, jsonschema)
+        const name = addComponent({ ctx, schema: jsonschema })
         ensureTarget(ctx, `#/components/${target}/${name}`, target)
         return { $ref: `#/components/${target}/${name}` }
     }
@@ -158,7 +169,7 @@ export interface OpenapiOptions extends Partial<OpenapiV3> {
 
 export function openapiFromHandlers(handlers: Record<string, unknown>, options: OpenapiOptions) {
     const { defaultError = HttpError.schema } = options
-    const errorDescription = defaultError.description ?? 'An error occurred'
+    const errorDescription = (defaultError as { description?: string }).description ?? 'An error occurred'
     const openapi: OpenapiV3 = {
         openapi: '3.0.1',
         ...omit(options, ['defaultError']),
@@ -166,7 +177,7 @@ export function openapiFromHandlers(handlers: Record<string, unknown>, options: 
         components: {
             ...options.components,
             schemas: {
-                ErrorResponse: defaultError,
+                ErrorResponse: defaultError as Schema,
             },
             requestBodies: {},
             responses: {
