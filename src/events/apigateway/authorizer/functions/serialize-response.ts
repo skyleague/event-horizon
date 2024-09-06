@@ -8,7 +8,7 @@ export function authorizerSerializeResponse() {
         onAfter: (
             event: APIGatewayRequestAuthorizerEventV2Schema | APIGatewayRequestAuthorizerEventSchema,
             response: AuthorizerReponse,
-        ): APIGatewayIAMAuthorizerResult & APIGatewaySimpleAuthorizerResult => {
+        ): APIGatewayIAMAuthorizerResult | APIGatewaySimpleAuthorizerResult => {
             // make the true version really strict
             const isAuthorized = response.isAuthorized === true
             if ('routeArn' in event) {
@@ -32,7 +32,8 @@ export function authorizerSerializeResponse() {
                 }
             }
             return {
-                isAuthorized: isAuthorized,
+                // the simple reponse will give a configuration error
+                // isAuthorized: isAuthorized,
                 principalId: event.requestContext.identity.sourceIp ?? 'unknown',
                 policyDocument: {
                     Version: '2012-10-17',
