@@ -25,7 +25,8 @@ export async function handleHTTPEvent<Handler extends HTTPHandler>(
     const inputOutputFn = httpIOLogger(http, context)
     const ioLoggerChildFn = ioLoggerChild(context, context.logger)
 
-    const unvalidatedHttpEvent = mapTry(event, (e) => parseEventFn.before(e))
+    const unvalidatedAuthorizer = mapTry(event, (e) => parseEventFn.authorization(e))
+    const unvalidatedHttpEvent = mapTry(unvalidatedAuthorizer, (a) => parseEventFn.before(event, a))
 
     const httpEvent = mapTry(unvalidatedHttpEvent, (e) => {
         ioLoggerChildFn.before({

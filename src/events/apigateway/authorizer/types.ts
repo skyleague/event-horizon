@@ -1,5 +1,4 @@
 import type { Promisable, Try } from '@skyleague/axioms'
-import type { IfUnknown } from '@skyleague/axioms/types'
 import type { Schema } from '@skyleague/therefore'
 import type { APIGatewayRequestAuthorizerEventV2Schema } from '../../../aws/apigateway/http.type.js'
 import type { APIGatewayRequestAuthorizerEventSchema } from '../../../aws/apigateway/rest.type.js'
@@ -20,11 +19,10 @@ export interface HTTPSecurityScheme {
     bearerFormat?: 'JWT'
 }
 
-export type AuthorizerReponse<Context = unknown> = { isAuthorized: boolean } & IfUnknown<
-    Context,
-    { context?: never },
-    { context: Context }
->
+export interface AuthorizerReponse<Context = unknown> {
+    isAuthorized: boolean
+    context: Context
+}
 
 export interface RequestAuthorizerEvent<
     Path = HTTPPathParameters | undefined,

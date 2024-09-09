@@ -19,6 +19,22 @@ export function httpIOValidate<Handler extends HTTPEventHandler>(http: Handler) 
                 return EventError.validation({ errors: http.schema.headers.errors, location: 'headers' })
             }
 
+            if (http.schema.authorizer !== undefined) {
+                if ('jwt' in http.schema.authorizer && http.schema.authorizer.jwt !== true && 'claims' in event.authorizer) {
+                    if (http.schema.authorizer.jwt.is(event.authorizer.claims) === false) {
+                        return EventError.validation({ errors: http.schema.authorizer.jwt.errors, location: 'authorizer.jwt' })
+                    }
+                }
+                if ('lambda' in http.schema.authorizer && http.schema.authorizer.lambda !== true) {
+                    if (http.schema.authorizer.lambda.is(event.authorizer) === false) {
+                        return EventError.validation({
+                            errors: http.schema.authorizer.lambda.errors,
+                            location: 'authorizer.lambda',
+                        })
+                    }
+                }
+            }
+
             return event as EventFromHandler<Handler>
         },
     }
