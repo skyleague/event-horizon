@@ -262,7 +262,7 @@ export function openapiFromHandlers(handlers: Record<string, unknown>, options: 
                             required: headers.required?.includes(name),
                             description: value.description,
                             deprecated: value.deprecated,
-                            schema: value as unknown as Schema,
+                            schema: structuredClone(value) as unknown as Schema,
                         } as const),
                     ),
                 )
@@ -278,7 +278,7 @@ export function openapiFromHandlers(handlers: Record<string, unknown>, options: 
                             required: true,
                             description: value.description,
                             deprecated: value.deprecated,
-                            schema: value as unknown as Schema,
+                            schema: structuredClone(value) as unknown as Schema,
                         } as const),
                     ),
                 )
