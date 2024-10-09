@@ -11,6 +11,9 @@ export function traceServices({ tracer }: { tracer: Tracer }) {
                     if (isAWSv3Client(service)) {
                         tracer.captureAWSv3Client(service)
                     }
+                    if (typeof service === 'object' && service !== null && 'client' in service && isAWSv3Client(service.client)) {
+                        tracer.captureAWSv3Client(service.client)
+                    }
                 }
             }
             return services
