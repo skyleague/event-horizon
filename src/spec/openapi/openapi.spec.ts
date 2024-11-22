@@ -438,8 +438,22 @@ describe('openapiFromHandlers', () => {
                     },
                 },
                 info: { title, version },
-                openapi: '3.0.1',
-                paths: { [path]: { [method]: { parameters: [], responses: {} } } },
+                openapi: '3.1.0',
+                paths: {
+                    [path]: {
+                        [method]: {
+                            parameters: [],
+                            requestBody: {
+                                content: {
+                                    'text/plain': {
+                                        schema: {},
+                                    },
+                                },
+                            },
+                            responses: {},
+                        },
+                    },
+                },
             })
         })
     })
@@ -452,7 +466,6 @@ describe('openapiFromHandlers', () => {
                     method,
                     path,
                     schema: { responses: {}, body: { schema } },
-                    bodyType: 'plaintext' as const,
                     handler: h,
                 } as any,
             })
@@ -471,8 +484,12 @@ describe('openapiFromHandlers', () => {
                     },
                 },
                 info: { title, version },
-                openapi: '3.0.1',
-                paths: { [path]: { [method]: { parameters: [], responses: {}, requestBody: schema } } },
+                openapi: '3.1.0',
+                paths: {
+                    [path]: {
+                        [method]: { parameters: [], responses: {}, requestBody: { content: { 'application/json': { schema } } } },
+                    },
+                },
             })
         })
     })
@@ -504,11 +521,18 @@ describe('openapiFromHandlers', () => {
                     },
                 },
                 info: { title, version },
-                openapi: '3.0.1',
+                openapi: '3.1.0',
                 paths: {
                     [path]: {
                         [method]: {
                             parameters: [],
+                            requestBody: {
+                                content: {
+                                    'text/plain': {
+                                        schema: {},
+                                    },
+                                },
+                            },
                             responses: {
                                 200: { content: { 'application/json': { schema } }, description: '' },
                                 default: { $ref: '#/components/responses/ErrorResponse' },
@@ -547,11 +571,18 @@ describe('openapiFromHandlers', () => {
                     },
                 },
                 info: { title, version },
-                openapi: '3.0.1',
+                openapi: '3.1.0',
                 paths: {
                     [path]: {
                         [method]: {
                             parameters: [],
+                            requestBody: {
+                                content: {
+                                    'text/plain': {
+                                        schema: {},
+                                    },
+                                },
+                            },
                             responses: {
                                 200: { content: { 'application/json': { schema } }, description: '' },
                                 default: { $ref: '#/components/responses/ErrorResponse' },
@@ -601,11 +632,18 @@ describe('openapiFromHandlers', () => {
                     },
                 },
                 info: { title, version },
-                openapi: '3.0.1',
+                openapi: '3.1.0',
                 paths: {
                     [path]: {
                         [method]: {
                             parameters: [],
+                            requestBody: {
+                                content: {
+                                    'text/plain': {
+                                        schema: {},
+                                    },
+                                },
+                            },
                             responses: {
                                 200: { $ref: `#/components/responses/${title}` },
                                 default: { $ref: '#/components/responses/ErrorResponse' },
@@ -644,11 +682,18 @@ describe('openapiFromHandlers', () => {
                     },
                 },
                 info: { title, version },
-                openapi: '3.0.1',
+                openapi: '3.1.0',
                 paths: {
                     [path]: {
                         [method]: {
                             parameters: [],
+                            requestBody: {
+                                content: {
+                                    'text/plain': {
+                                        schema: {},
+                                    },
+                                },
+                            },
                             responses: {
                                 200: { content: { 'application/json': { schema } }, description },
                                 default: { $ref: '#/components/responses/ErrorResponse' },
@@ -687,11 +732,18 @@ describe('openapiFromHandlers', () => {
                     },
                 },
                 info: { title, version },
-                openapi: '3.0.1',
+                openapi: '3.1.0',
                 paths: {
                     [path]: {
                         [method]: {
                             parameters: [],
+                            requestBody: {
+                                content: {
+                                    'text/plain': {
+                                        schema: {},
+                                    },
+                                },
+                            },
                             responses: {
                                 200: { content: undefined, description },
                                 default: { $ref: '#/components/responses/ErrorResponse' },
@@ -730,11 +782,18 @@ describe('openapiFromHandlers', () => {
                     },
                 },
                 info: { title, version },
-                openapi: '3.0.1',
+                openapi: '3.1.0',
                 paths: {
                     [path]: {
                         [method]: {
                             parameters: [],
+                            requestBody: {
+                                content: {
+                                    'text/plain': {
+                                        schema: {},
+                                    },
+                                },
+                            },
                             responses: {
                                 200: { content: undefined, description: '' },
                                 default: { $ref: '#/components/responses/ErrorResponse' },
@@ -773,11 +832,18 @@ describe('openapiFromHandlers', () => {
                     },
                 },
                 info: { title, version },
-                openapi: '3.0.1',
+                openapi: '3.1.0',
                 paths: {
                     [path]: {
                         [method]: {
                             parameters: [],
+                            requestBody: {
+                                content: {
+                                    'text/plain': {
+                                        schema: {},
+                                    },
+                                },
+                            },
                             responses: { default: { content: { 'application/json': { schema } }, description: '' } },
                         },
                     },
@@ -819,7 +885,7 @@ describe('openapiFromHandlers', () => {
                         },
                     },
                     info: { title, version },
-                    openapi: '3.0.1',
+                    openapi: '3.1.0',
                     paths: {
                         [path]: {
                             [method]: {
@@ -833,6 +899,13 @@ describe('openapiFromHandlers', () => {
                                         schema: value,
                                     }),
                                 ),
+                                requestBody: {
+                                    content: {
+                                        'text/plain': {
+                                            schema: {},
+                                        },
+                                    },
+                                },
                                 responses: {},
                             },
                         },
@@ -856,7 +929,7 @@ describe('openapiFromHandlers', () => {
                         method,
                         path,
                         schema: { responses: {}, path: { schema } },
-                        bodyType: 'plaintext' as const,
+                        bodyType: 'binary' as const,
                         handler: h,
                     } as any,
                 })
@@ -875,7 +948,7 @@ describe('openapiFromHandlers', () => {
                         },
                     },
                     info: { title, version },
-                    openapi: '3.0.1',
+                    openapi: '3.1.0',
                     paths: {
                         [path]: {
                             [method]: {
@@ -889,6 +962,13 @@ describe('openapiFromHandlers', () => {
                                         schema: value,
                                     }),
                                 ),
+                                requestBody: {
+                                    content: {
+                                        'application/octet-stream': {
+                                            schema: {},
+                                        },
+                                    },
+                                },
                                 responses: {},
                             },
                         },
@@ -931,7 +1011,7 @@ describe('openapiFromHandlers', () => {
                         },
                     },
                     info: { title, version },
-                    openapi: '3.0.1',
+                    openapi: '3.1.0',
                     paths: {
                         [path]: {
                             [method]: {
@@ -945,6 +1025,13 @@ describe('openapiFromHandlers', () => {
                                         schema: value,
                                     }),
                                 ),
+                                requestBody: {
+                                    content: {
+                                        'text/plain': {
+                                            schema: {},
+                                        },
+                                    },
+                                },
                                 responses: {},
                             },
                         },

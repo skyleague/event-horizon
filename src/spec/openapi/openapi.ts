@@ -84,6 +84,60 @@ export function normalizeSecurity(security: SecurityRequirements | undefined): S
     return [security]
 }
 
+function convertToOpenAPISchema(schema: JsonSchema, openapiVersion: '3.0.1' | '3.1.0'): JsonSchema {
+    if (openapiVersion === '3.0.1') {
+        // OpenAPI 3.0.1 doesn't support certain JSON Schema features
+        const converted = { ...schema } as JsonSchema
+
+        // Remove unsupported keywords
+        // delete converted.contentEncoding
+        // delete converted.contentMediaType
+        // delete converted.contentSchema
+        // delete converted.if
+        // delete converted.then
+        // delete converted.else
+        // delete converted.unevaluatedProperties
+        // delete converted.unevaluatedItems
+
+        // Convert null
+        if (converted.type === 'null') {
+            converted.type = 'string'
+            converted.enum = [null]
+            converted.nullable = true
+        }
+        if (Array.isArray(converted.type) && converted.type.includes('null')) {
+            const types = converted.type.filter((t) => t !== 'null')
+            converted.type = types.length === 1 ? types[0] : types
+            converted.nullable = true
+        }
+
+        // Convert inclusive min/max to OpenAPI 3.0.1 format
+        if (
+            converted.exclusiveMinimum !== undefined &&
+            (typeof converted.exclusiveMinimum === 'number' || typeof converted.exclusiveMinimum === 'boolean')
+        ) {
+            if (typeof converted.exclusiveMinimum === 'number') {
+                converted.minimum = converted.exclusiveMinimum
+                converted.exclusiveMinimum = true as never
+            }
+        }
+        if (
+            converted.exclusiveMaximum !== undefined &&
+            (typeof converted.exclusiveMaximum === 'number' || typeof converted.exclusiveMaximum === 'boolean')
+        ) {
+            if (typeof converted.exclusiveMaximum === 'number') {
+                converted.maximum = converted.exclusiveMaximum
+                converted.exclusiveMaximum = true as never
+            }
+        }
+
+        return converted
+    }
+
+    // OpenAPI 3.1.0 supports full JSON Schema 2020-12
+    return schema as JsonSchema
+}
+
 export function normalizeSchema({
     ctx,
     schema,
@@ -103,75 +157,89 @@ export function normalizeSchema({
     // biome-ignore lint/performance/noDelete: we need to remove the $schema property
     delete jsonschema.$schema
 
-    if (jsonschema.$defs !== undefined) {
-        for (const [name, def] of entriesOf(jsonschema.$defs)) {
+    // Convert schema to OpenAPI compatible version
+    const converted = convertToOpenAPISchema(jsonschema, ctx.openapi.openapi as '3.0.1' | '3.1.0')
+
+    if (converted.$defs !== undefined) {
+        for (const [name, def] of entriesOf(converted.$defs)) {
             if (def !== undefined) {
                 addComponent({ ctx, schema: normalizeSchema({ ctx, schema: def }), name })
             }
         }
 
         // biome-ignore lint/performance/noDelete: we need to remove the $defs property
-        delete jsonschema.$defs
+        delete converted.$defs
     }
 
-    if ('$ref' in jsonschema && jsonschema.$ref !== undefined) {
-        ensureTarget(ctx, jsonschema.$ref, target)
-        return { ...jsonschema, $ref: jsonschema.$ref.replace('#/$defs/', `#/components/${target}/`) }
+    if ('$ref' in converted && converted.$ref !== undefined) {
+        ensureTarget(ctx, converted.$ref, target)
+        return { ...converted, $ref: converted.$ref.replace('#/$defs/', `#/components/${target}/`) }
     }
 
     if (defsOnly) {
         return {}
     }
-    if (jsonschema.anyOf !== undefined) {
-        jsonschema.anyOf = jsonschema.anyOf.map((i) => normalizeSchema({ ctx, schema: i }))
+    if (converted.anyOf !== undefined) {
+        converted.anyOf = converted.anyOf.map((i) => normalizeSchema({ ctx, schema: i }))
     }
-    if (jsonschema.oneOf !== undefined) {
-        jsonschema.oneOf = jsonschema.oneOf.map((i) => normalizeSchema({ ctx, schema: i }))
+    if (converted.oneOf !== undefined) {
+        converted.oneOf = converted.oneOf.map((i) => normalizeSchema({ ctx, schema: i }))
     }
 
-    if (jsonschema.type === 'array') {
-        if (jsonschema.items !== undefined) {
-            if (isArray(jsonschema.items)) {
-                jsonschema.items = jsonschema.items.map((i) => normalizeSchema({ ctx, schema: i }))
+    if (converted.type === 'array') {
+        if (converted.items !== undefined) {
+            if (isArray(converted.items)) {
+                converted.items = converted.items.map((i) => normalizeSchema({ ctx, schema: i }))
             } else {
-                jsonschema.items = normalizeSchema({ ctx, schema: jsonschema.items })
+                converted.items = normalizeSchema({ ctx, schema: converted.items })
             }
         }
-    } else if (jsonschema.type === 'object') {
-        if (jsonschema.properties !== undefined) {
-            for (const [key, c] of entriesOf(jsonschema.properties)) {
-                jsonschema.properties[key] = normalizeSchema({ ctx, schema: c })
+    } else if (converted.type === 'object') {
+        if (converted.properties !== undefined) {
+            for (const [key, c] of entriesOf(converted.properties)) {
+                converted.properties[key] = normalizeSchema({ ctx, schema: c })
             }
         }
-        if (jsonschema.patternProperties !== undefined) {
-            for (const [key, c] of entriesOf(jsonschema.patternProperties)) {
-                jsonschema.patternProperties[key] = normalizeSchema({ ctx, schema: c })
+        if (converted.patternProperties !== undefined) {
+            for (const [key, c] of entriesOf(converted.patternProperties)) {
+                converted.patternProperties[key] = normalizeSchema({ ctx, schema: c })
             }
         }
-        if (jsonschema.additionalProperties !== undefined && !isBoolean(jsonschema.additionalProperties)) {
-            jsonschema.additionalProperties = normalizeSchema({ ctx, schema: jsonschema.additionalProperties })
+        if (converted.additionalProperties !== undefined && !isBoolean(converted.additionalProperties)) {
+            converted.additionalProperties = normalizeSchema({ ctx, schema: converted.additionalProperties })
         }
     }
 
-    if (jsonschema.title !== undefined) {
-        const name = addComponent({ ctx, schema: jsonschema })
+    if (converted.title !== undefined) {
+        const name = addComponent({ ctx, schema: converted })
         ensureTarget(ctx, `#/components/${target}/${name}`, target)
         return { $ref: `#/components/${target}/${name}` }
     }
 
-    return jsonschema
+    return converted
 }
 
 export interface OpenapiOptions extends Partial<OpenapiV3> {
+    // restrict down
+    openapi?: '3.0.1' | '3.1.0'
     info: Info
     defaultError?: Schema
 }
 
 export function openapiFromHandlers(handlers: Record<string, unknown>, options: OpenapiOptions) {
-    const { defaultError = HttpError.schema } = options
+    const { defaultError = HttpError.schema, openapi: targetOpenapi = '3.1.0' } = options
     const errorDescription = (defaultError as { description?: string }).description ?? 'An error occurred'
+
+    // Track schema frequencies for jsonSchemaDialect
+    const schemaFrequencies = new Map<string, number>()
+    const trackSchema = (schema: JsonSchema) => {
+        if (schema?.$schema) {
+            schemaFrequencies.set(schema.$schema, (schemaFrequencies.get(schema.$schema) ?? 0) + 1)
+        }
+    }
+
     const openapi: OpenapiV3 = {
-        openapi: '3.0.1',
+        openapi: targetOpenapi,
         ...omit(options, ['defaultError']),
         paths: {},
         components: {
@@ -194,20 +262,69 @@ export function openapiFromHandlers(handlers: Record<string, unknown>, options: 
             },
         },
     }
+
+    // Collect schema information
+    for (const h of valuesOf(handlers)) {
+        const handler = h as EventHandler
+        if ('http' in handler && handler.http.path !== undefined) {
+            for (const key of ['body', 'query', 'path', 'headers'] as const) {
+                trackSchema(handler.http.schema[key]?.schema as JsonSchema)
+            }
+            for (const r of Object.values(handler.http.schema.responses).filter((r): r is NonNullable<typeof r> => r !== null)) {
+                trackSchema('schema' in r ? (r.schema as JsonSchema) : (r.body?.schema as JsonSchema))
+            }
+        }
+    }
+
+    // Set jsonSchemaDialect if schemas were found
+    // if (targetOpenapi === '3.1.0' && schemaFrequencies.size > 0) {
+    //     // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+    //     ;(openapi as any).jsonSchemaDialect = Array.from(schemaFrequencies.entries()).reduce((a, b) => (b[1] > a[1] ? b : a))[0]
+    // }
+
+    // Process handlers
     for (const h of valuesOf(handlers)) {
         const handler = h as EventHandler
         if ('http' in handler && handler.http.path !== undefined) {
             openapi.paths[handler.http.path] ??= {}
 
             let requestBody: Reference | RequestBody | undefined = undefined
-            const bodySchema = handler.http.schema.body?.schema
-            if (bodySchema !== undefined) {
-                requestBody = normalizeSchema({
-                    ctx: { openapi },
-                    schema: bodySchema as Schema,
-                    target: 'requestBodies',
-                }) as Reference
+            const bodyType = handler.http.bodyType ?? 'json'
+            // Map handler body types to content types and schemas
+            const contentTypeMap = {
+                binary: 'application/octet-stream',
+                json: 'application/json',
+                plaintext: 'text/plain',
+            } as const
+
+            const contentType = contentTypeMap[bodyType]
+
+            // For OpenAPI 3.0.1, we need to use specific schema types for non-JSON content
+            if (handler.http.schema.body?.schema !== undefined) {
+                // If there's a schema defined, normalize it and create requestBody
+                requestBody = {
+                    content: {
+                        [contentType]: {
+                            schema: normalizeSchema({
+                                ctx: { openapi },
+                                schema: handler.http.schema.body.schema as Schema,
+                                target: 'requestBodies',
+                            }) as Reference,
+                        },
+                    },
+                }
+            } else if (bodyType !== 'json') {
+                // For non-JSON body types, always include requestBody with appropriate schema
+                requestBody = {
+                    content: {
+                        [contentType]: {
+                            schema:
+                                targetOpenapi === '3.0.1' && bodyType === 'binary' ? { type: 'string', format: 'binary' } : {},
+                        },
+                    },
+                }
             }
+            // For JSON bodyType with no schema, requestBody remains undefined
             const responses: Responses = {}
             for (const [statusCode, response] of entriesOf(handler.http.schema.responses)) {
                 function asStatusResponse(schema: JsonSchema | Reference) {
