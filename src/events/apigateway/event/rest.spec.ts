@@ -76,8 +76,8 @@ it('handles schema types', () => {
                             readonly foo: []
                             readonly bar: []
                         },
-                        AuthorizerSchema,
-                        'rest'
+                        'rest',
+                        AuthorizerSchema<'rest'>
                     >
                 >()
                 expectTypeOf(request.authorizer).toEqualTypeOf<AnyAuthorizerContext<'rest'>>()
@@ -100,8 +100,8 @@ it('handles schema types', () => {
                     readonly foo: []
                     readonly bar: []
                 },
-                AuthorizerSchema,
-                'rest'
+                'rest',
+                AuthorizerSchema<'rest'>
             >,
         ) => {
             statusCode: 200
@@ -125,7 +125,7 @@ it('handles distributed schema types', () => {
             bodyType: 'plaintext',
             handler: (request) => {
                 expectTypeOf(request).toEqualTypeOf<
-                    HTTPRequest<'body', 'path', 'query', 'headers', SecurityRequirements, AuthorizerSchema, 'rest'>
+                    HTTPRequest<'body', 'path', 'query', 'headers', SecurityRequirements, 'rest', AuthorizerSchema<'rest'>>
                 >()
 
                 if (request.body.length === 0) {
@@ -142,7 +142,7 @@ it('handles distributed schema types', () => {
         },
     })
     expectTypeOf(handler.http.handler).toEqualTypeOf<
-        (request: HTTPRequest<'body', 'path', 'query', 'headers', SecurityRequirements, AuthorizerSchema, 'rest'>) =>
+        (request: HTTPRequest<'body', 'path', 'query', 'headers', SecurityRequirements, 'rest', AuthorizerSchema<'rest'>>) =>
             | {
                   statusCode: 400
                   body: '400-response'
@@ -169,7 +169,7 @@ it('handles null response types', () => {
             bodyType: 'plaintext',
             handler: (request) => {
                 expectTypeOf(request).toEqualTypeOf<
-                    HTTPRequest<'body', 'path', 'query', 'headers', SecurityRequirements, AuthorizerSchema, 'rest'>
+                    HTTPRequest<'body', 'path', 'query', 'headers', SecurityRequirements, 'rest', AuthorizerSchema<'rest'>>
                 >()
 
                 if (request.body.length === 0) {
@@ -185,7 +185,7 @@ it('handles null response types', () => {
         },
     })
     expectTypeOf(handler.http.handler).toEqualTypeOf<
-        (request: HTTPRequest<'body', 'path', 'query', 'headers', SecurityRequirements, AuthorizerSchema, 'rest'>) =>
+        (request: HTTPRequest<'body', 'path', 'query', 'headers', SecurityRequirements, 'rest', AuthorizerSchema<'rest'>>) =>
             | {
                   statusCode: 400
                   body: '400-response'
@@ -216,7 +216,7 @@ it('handles full response type', () => {
             bodyType: 'plaintext',
             handler: (request) => {
                 expectTypeOf(request).toEqualTypeOf<
-                    HTTPRequest<'body', 'path', 'query', 'headers', SecurityRequirements, AuthorizerSchema, 'rest'>
+                    HTTPRequest<'body', 'path', 'query', 'headers', SecurityRequirements, 'rest', AuthorizerSchema<'rest'>>
                 >()
 
                 if (request.body.length === 0) {
@@ -240,7 +240,7 @@ it('handles full response type', () => {
         },
     })
     expectTypeOf(handler.http.handler).toEqualTypeOf<
-        (request: HTTPRequest<'body', 'path', 'query', 'headers', SecurityRequirements, AuthorizerSchema, 'rest'>) =>
+        (request: HTTPRequest<'body', 'path', 'query', 'headers', SecurityRequirements, 'rest', AuthorizerSchema<'rest'>>) =>
             | { statusCode: 400; body: '400-response'; headers?: never }
             | {
                   statusCode: 200
@@ -282,8 +282,8 @@ it('handles authorizer schema types - jwt', () => {
                             readonly foo: []
                             readonly bar: []
                         },
-                        { jwt: Schema<{ foo: 'jwt' }> },
-                        'rest'
+                        'rest',
+                        { jwt: Schema<{ foo: 'jwt' }> }
                     >
                 >()
                 expectTypeOf(request.authorizer).toEqualTypeOf<{
@@ -309,8 +309,8 @@ it('handles authorizer schema types - jwt', () => {
                     readonly foo: []
                     readonly bar: []
                 },
-                { jwt: Schema<{ foo: 'jwt' }> },
-                'rest'
+                'rest',
+                { jwt: Schema<{ foo: 'jwt' }> }
             >,
         ) => {
             statusCode: 200
@@ -346,8 +346,8 @@ it('handles authorizer schema types - jwt - true', () => {
                             readonly foo: []
                             readonly bar: []
                         },
-                        { jwt: true },
-                        'rest'
+                        'rest',
+                        { jwt: true }
                     >
                 >()
                 expectTypeOf(request.authorizer).toEqualTypeOf<{
@@ -373,8 +373,8 @@ it('handles authorizer schema types - jwt - true', () => {
                     readonly foo: []
                     readonly bar: []
                 },
-                { jwt: true },
-                'rest'
+                'rest',
+                { jwt: true }
             >,
         ) => {
             statusCode: 200
@@ -410,8 +410,8 @@ it('handles authorizer schema types - lambda', () => {
                             readonly foo: []
                             readonly bar: []
                         },
-                        { lambda: Schema<{ foo: 'jwt' }> },
-                        'rest'
+                        'rest',
+                        { lambda: Schema<{ foo: 'jwt' }> }
                     >
                 >()
                 expectTypeOf(request.authorizer).toEqualTypeOf<{ foo: 'jwt' }>()
@@ -434,8 +434,8 @@ it('handles authorizer schema types - lambda', () => {
                     readonly foo: []
                     readonly bar: []
                 },
-                { lambda: Schema<{ foo: 'jwt' }> },
-                'rest'
+                'rest',
+                { lambda: Schema<{ foo: 'jwt' }> }
             >,
         ) => {
             statusCode: 200
@@ -471,8 +471,8 @@ it('handles authorizer schema types - lambda - true', () => {
                             readonly foo: []
                             readonly bar: []
                         },
-                        { lambda: true },
-                        'rest'
+                        'rest',
+                        { lambda: true }
                     >
                 >()
                 expectTypeOf(request.authorizer).toEqualTypeOf<{
@@ -497,8 +497,8 @@ it('handles authorizer schema types - lambda - true', () => {
                     readonly foo: []
                     readonly bar: []
                 },
-                { lambda: true },
-                'rest'
+                'rest',
+                { lambda: true }
             >,
         ) => {
             statusCode: 200
@@ -534,8 +534,8 @@ it('handles authorizer schema types - iam', () => {
                             readonly foo: []
                             readonly bar: []
                         },
-                        { iam: true },
-                        'rest'
+                        'rest',
+                        { iam: true }
                     >
                 >()
                 expectTypeOf(request.authorizer).toEqualTypeOf<RestIamAuthorizer>()
@@ -558,8 +558,8 @@ it('handles authorizer schema types - iam', () => {
                     readonly foo: []
                     readonly bar: []
                 },
-                { iam: true },
-                'rest'
+                'rest',
+                { iam: true }
             >,
         ) => {
             statusCode: 200

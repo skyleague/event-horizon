@@ -23,13 +23,13 @@ export function httpParseEvent<
     Headers,
     Result extends Responses,
     Security extends SecurityRequirements,
-    Authorizer extends AuthorizerSchema,
     GV extends GatewayVersion,
+    Authorizer extends AuthorizerSchema<GV>,
 >({
     bodyType = 'json',
     schema,
     security,
-}: HTTPEventHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, Security, Authorizer, GV>) {
+}: HTTPEventHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, Security, GV, Authorizer>) {
     return {
         authorization: (event: APIGatewayProxyEventV2Schema | APIGatewayProxyEventSchema): Try<AnyAuthorizerContext<GV>> => {
             if (schema.authorizer !== undefined) {
@@ -38,7 +38,7 @@ export function httpParseEvent<
                         return {
                             ...event.requestContext.authorizer,
                             scopes: event.requestContext.authorizer.scopes ?? [],
-                        }
+                        } as AnyAuthorizerContext<GV>
                     }
                     if (
                         isDefined(event.requestContext.authorizer) &&
@@ -48,14 +48,14 @@ export function httpParseEvent<
                         return {
                             ...event.requestContext.authorizer.jwt,
                             scopes: event.requestContext.authorizer.jwt.scopes ?? [],
-                        }
+                        } as AnyAuthorizerContext<GV>
                     }
                     return EventError.badRequest('Expected request to be authorized using JWT')
                 }
 
                 if ('lambda' in schema.authorizer) {
                     if (isDefined(event.requestContext.authorizer) && 'principalId' in event.requestContext.authorizer) {
-                        return event.requestContext.authorizer satisfies AnyAuthorizerContext<'rest'> as AnyAuthorizerContext<GV>
+                        return event.requestContext.authorizer as AnyAuthorizerContext<GV>
                     }
                     if (
                         isDefined(event.requestContext.authorizer) &&

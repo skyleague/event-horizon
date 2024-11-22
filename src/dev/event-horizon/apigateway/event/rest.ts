@@ -1,5 +1,4 @@
-import type { Dependent } from '@skyleague/axioms'
-import { constant, object } from '@skyleague/axioms'
+import { type Dependent, constant, object } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
 import { APIGatewayProxyEventSchema } from '../../../../aws/apigateway/rest.type.js'
 import type { AuthorizerSchema, HTTPHandler, HTTPRequest, Responses } from '../../../../events/apigateway/event/types.js'
@@ -15,11 +14,11 @@ export function restApiEvent<
     Headers,
     Result extends Responses,
     Security extends SecurityRequirements,
-    Authorizer extends AuthorizerSchema,
+    Authorizer extends AuthorizerSchema<'rest'>,
 >(
-    { http }: HTTPHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, Security, Authorizer, 'rest'>,
+    { http }: HTTPHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, Security, 'rest', Authorizer>,
     { generation = 'fast' }: { generation?: 'full' | 'fast' } = {},
-): Dependent<HTTPRequest<Body, Path, Query, Headers, Security, Authorizer, 'rest'>> {
+): Dependent<HTTPRequest<Body, Path, Query, Headers, Security, 'rest', Authorizer>> {
     const { bodyType = 'json' } = http
 
     const body = http.schema.body !== undefined ? arbitrary(http.schema.body) : constant(undefined)
@@ -59,7 +58,7 @@ export function restApiEvent<
                 get raw() {
                     return event.raw
                 },
-            } as HTTPRequest<Body, Path, Query, Headers, Security, Authorizer, 'rest'>
+            } as HTTPRequest<Body, Path, Query, Headers, Security, 'rest', Authorizer>
         })
     })
 }

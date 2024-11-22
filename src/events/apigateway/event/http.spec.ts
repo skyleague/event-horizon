@@ -76,8 +76,8 @@ it('handles schema types', () => {
                             readonly foo: []
                             readonly bar: []
                         },
-                        AuthorizerSchema,
-                        'http'
+                        'http',
+                        AuthorizerSchema<'http'>
                     >
                 >()
                 expectTypeOf(request.authorizer).toEqualTypeOf<AnyAuthorizerContext<'http'>>()
@@ -100,8 +100,8 @@ it('handles schema types', () => {
                     readonly foo: []
                     readonly bar: []
                 },
-                AuthorizerSchema,
-                'http'
+                'http',
+                AuthorizerSchema<'http'>
             >,
         ) => {
             statusCode: 200
@@ -125,7 +125,7 @@ it('handles distributed schema types', () => {
             bodyType: 'plaintext',
             handler: (request) => {
                 expectTypeOf(request).toEqualTypeOf<
-                    HTTPRequest<'body', 'path', 'query', 'headers', SecurityRequirements, AuthorizerSchema, 'http'>
+                    HTTPRequest<'body', 'path', 'query', 'headers', SecurityRequirements, 'http', AuthorizerSchema<'http'>>
                 >()
 
                 if (request.body.length === 0) {
@@ -142,7 +142,7 @@ it('handles distributed schema types', () => {
         },
     })
     expectTypeOf(handler.http.handler).toEqualTypeOf<
-        (request: HTTPRequest<'body', 'path', 'query', 'headers', SecurityRequirements, AuthorizerSchema, 'http'>) =>
+        (request: HTTPRequest<'body', 'path', 'query', 'headers', SecurityRequirements, 'http', AuthorizerSchema<'http'>>) =>
             | {
                   statusCode: 400
                   body: '400-response'
@@ -169,7 +169,7 @@ it('handles null response types', () => {
             bodyType: 'plaintext',
             handler: (request) => {
                 expectTypeOf(request).toEqualTypeOf<
-                    HTTPRequest<'body', 'path', 'query', 'headers', SecurityRequirements, AuthorizerSchema, 'http'>
+                    HTTPRequest<'body', 'path', 'query', 'headers', SecurityRequirements, 'http', AuthorizerSchema<'http'>>
                 >()
 
                 if (request.body.length === 0) {
@@ -185,7 +185,7 @@ it('handles null response types', () => {
         },
     })
     expectTypeOf(handler.http.handler).toEqualTypeOf<
-        (request: HTTPRequest<'body', 'path', 'query', 'headers', SecurityRequirements, AuthorizerSchema, 'http'>) =>
+        (request: HTTPRequest<'body', 'path', 'query', 'headers', SecurityRequirements, 'http', AuthorizerSchema<'http'>>) =>
             | {
                   statusCode: 400
                   body: '400-response'
@@ -216,7 +216,7 @@ it('handles full response type', () => {
             bodyType: 'plaintext',
             handler: (request) => {
                 expectTypeOf(request).toEqualTypeOf<
-                    HTTPRequest<'body', 'path', 'query', 'headers', SecurityRequirements, AuthorizerSchema, 'http'>
+                    HTTPRequest<'body', 'path', 'query', 'headers', SecurityRequirements, 'http', AuthorizerSchema<'http'>>
                 >()
 
                 if (request.body.length === 0) {
@@ -240,7 +240,7 @@ it('handles full response type', () => {
         },
     })
     expectTypeOf(handler.http.handler).toEqualTypeOf<
-        (request: HTTPRequest<'body', 'path', 'query', 'headers', SecurityRequirements, AuthorizerSchema, 'http'>) =>
+        (request: HTTPRequest<'body', 'path', 'query', 'headers', SecurityRequirements, 'http', AuthorizerSchema<'http'>>) =>
             | { statusCode: 400; body: '400-response'; headers?: never }
             | {
                   statusCode: 200
@@ -339,134 +339,6 @@ it('handles schema types and gives errors on non matching responses', () => {
     })
 })
 
-it('handles authorizer schema types - jwt', () => {
-    const handler = httpApiHandler({
-        http: {
-            method,
-            path,
-            security: {
-                foo: [],
-                bar: [],
-            },
-            schema: {
-                authorizer: {
-                    jwt: literalSchema<{ foo: 'jwt' }>(),
-                },
-                responses: {},
-            },
-            bodyType: 'plaintext',
-            handler: (request) => {
-                expectTypeOf(request).toEqualTypeOf<
-                    HTTPRequest<
-                        unknown,
-                        unknown,
-                        unknown,
-                        unknown,
-                        {
-                            readonly foo: []
-                            readonly bar: []
-                        },
-                        { jwt: Schema<{ foo: 'jwt' }> },
-                        'http'
-                    >
-                >()
-                expectTypeOf(request.authorizer).toEqualTypeOf<{
-                    claims: { foo: 'jwt' }
-                    scopes: string[]
-                }>()
-
-                return {
-                    statusCode: 200,
-                    body: '200-response' as const,
-                }
-            },
-        },
-    })
-    expectTypeOf(handler.http.handler).toEqualTypeOf<
-        (
-            request: HTTPRequest<
-                unknown,
-                unknown,
-                unknown,
-                unknown,
-                {
-                    readonly foo: []
-                    readonly bar: []
-                },
-                { jwt: Schema<{ foo: 'jwt' }> },
-                'http'
-            >,
-        ) => {
-            statusCode: 200
-            body: '200-response'
-        }
-    >()
-})
-
-it('handles authorizer schema types - jwt - true', () => {
-    const handler = httpApiHandler({
-        http: {
-            method,
-            path,
-            security: {
-                foo: [],
-                bar: [],
-            },
-            schema: {
-                authorizer: {
-                    jwt: true,
-                },
-                responses: {},
-            },
-            bodyType: 'plaintext',
-            handler: (request) => {
-                expectTypeOf(request).toEqualTypeOf<
-                    HTTPRequest<
-                        unknown,
-                        unknown,
-                        unknown,
-                        unknown,
-                        {
-                            readonly foo: []
-                            readonly bar: []
-                        },
-                        { jwt: true },
-                        'http'
-                    >
-                >()
-                expectTypeOf(request.authorizer).toEqualTypeOf<{
-                    claims: Record<string, unknown>
-                    scopes: string[]
-                }>()
-
-                return {
-                    statusCode: 200,
-                    body: '200-response' as const,
-                }
-            },
-        },
-    })
-    expectTypeOf(handler.http.handler).toEqualTypeOf<
-        (
-            request: HTTPRequest<
-                unknown,
-                unknown,
-                unknown,
-                unknown,
-                {
-                    readonly foo: []
-                    readonly bar: []
-                },
-                { jwt: true },
-                'http'
-            >,
-        ) => {
-            statusCode: 200
-            body: '200-response'
-        }
-    >()
-})
-
 it('handles authorizer schema types - lambda', () => {
     const handler = httpApiHandler({
         http: {
@@ -494,8 +366,8 @@ it('handles authorizer schema types - lambda', () => {
                             readonly foo: []
                             readonly bar: []
                         },
-                        { lambda: Schema<{ foo: 'jwt' }> },
-                        'http'
+                        'http',
+                        { lambda: Schema<{ foo: 'jwt' }> }
                     >
                 >()
                 expectTypeOf(request.authorizer).toEqualTypeOf<{ foo: 'jwt' }>()
@@ -518,8 +390,8 @@ it('handles authorizer schema types - lambda', () => {
                     readonly foo: []
                     readonly bar: []
                 },
-                { lambda: Schema<{ foo: 'jwt' }> },
-                'http'
+                'http',
+                { lambda: Schema<{ foo: 'jwt' }> }
             >,
         ) => {
             statusCode: 200
@@ -555,8 +427,8 @@ it('handles authorizer schema types - lambda - true', () => {
                             readonly foo: []
                             readonly bar: []
                         },
-                        { lambda: true },
-                        'http'
+                        'http',
+                        { lambda: true }
                     >
                 >()
                 expectTypeOf(request.authorizer).toEqualTypeOf<{
@@ -581,8 +453,8 @@ it('handles authorizer schema types - lambda - true', () => {
                     readonly foo: []
                     readonly bar: []
                 },
-                { lambda: true },
-                'http'
+                'http',
+                { lambda: true }
             >,
         ) => {
             statusCode: 200
@@ -618,8 +490,8 @@ it('handles authorizer schema types - iam', () => {
                             readonly foo: []
                             readonly bar: []
                         },
-                        { iam: true },
-                        'http'
+                        'http',
+                        { iam: true }
                     >
                 >()
                 expectTypeOf(request.authorizer).toEqualTypeOf<HTTPIamAuthorizer>()
@@ -642,8 +514,8 @@ it('handles authorizer schema types - iam', () => {
                     readonly foo: []
                     readonly bar: []
                 },
-                { iam: true },
-                'http'
+                'http',
+                { iam: true }
             >,
         ) => {
             statusCode: 200
