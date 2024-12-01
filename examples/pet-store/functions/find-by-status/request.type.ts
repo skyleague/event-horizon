@@ -3,16 +3,19 @@
  * Do not manually touch this
  */
 /* eslint-disable */
-import AjvValidator from 'ajv'
-import type { ValidateFunction } from 'ajv'
-import { Status } from '../../lib/models.type.js'
+
+import type { Status } from '../../lib/models.type.js'
+
+import type { DefinedError, ValidateFunction } from 'ajv'
+
+import { validate as QueryValidator } from './schemas/query.schema.js'
 
 export interface Query {
     status: Status
 }
 
 export const Query = {
-    validate: (await import('./schemas/query.schema.js')).validate10 as unknown as ValidateFunction<Query>,
+    validate: QueryValidator as ValidateFunction<Query>,
     get schema() {
         return Query.validate.schema
     },
@@ -20,9 +23,10 @@ export const Query = {
         return Query.validate.errors ?? undefined
     },
     is: (o: unknown): o is Query => Query.validate(o) === true,
-    assert: (o: unknown) => {
-        if (!Query.validate(o)) {
-            throw new AjvValidator.ValidationError(Query.errors ?? [])
+    parse: (o: unknown): { right: Query } | { left: DefinedError[] } => {
+        if (Query.is(o)) {
+            return { right: o }
         }
+        return { left: (Query.errors ?? []) as DefinedError[] }
     },
 } as const

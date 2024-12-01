@@ -1,30 +1,17 @@
 import type { Promisable, Try } from '@skyleague/axioms'
-import type { IfEmptyObject, Simplify } from '@skyleague/axioms/types'
-import type { InferSchemaType, Schema } from '@skyleague/therefore'
+import type { IfEmptyObject, IsNever, Simplify } from '@skyleague/axioms/types'
 import type { APIGatewayProxyEventV2Schema, RequestContextV2Authorizer } from '../../../aws/apigateway/http.type.js'
 import type { APIGatewayEventRequestContext, APIGatewayProxyEventSchema } from '../../../aws/apigateway/rest.type.js'
+import type { GenericParser, InferFromParser, MaybeGenericParser } from '../../../parsers/types.js'
 import type { EventHandlerDefinition, LambdaContext } from '../../types.js'
 import type { HTTPHeaders, HTTPMethod, HTTPPathParameters, HTTPQueryParameters, SecurityRequirements } from '../types.js'
 import type { HttpError } from './functions/http-error.type.js'
 
+export type GatewayVersion = 'http' | 'rest'
+
 export type AuthorizerSchema<GV extends GatewayVersion> = GV extends 'http'
-    ?
-          | {
-                lambda: Schema<Record<string, unknown>> | true
-            }
-          | {
-                iam?: true
-            }
-    :
-          | {
-                jwt: Schema<Record<string, unknown>> | true
-            }
-          | {
-                lambda: Schema<Record<string, unknown>> | true
-            }
-          | {
-                iam?: true
-            }
+    ? { lambda: GenericParser | true } | { iam?: true }
+    : { jwt: GenericParser | true } | { lambda: GenericParser | true } | { iam?: true }
 
 export type AuthorizerContext<GV extends GatewayVersion, Authorizer extends AuthorizerSchema<GV>> = Authorizer extends {
     jwt: true
@@ -33,17 +20,15 @@ export type AuthorizerContext<GV extends GatewayVersion, Authorizer extends Auth
           claims: Record<string, unknown>
           scopes: string[]
       }
-    : Authorizer extends {
-            jwt: Schema<infer AuthorizerContext>
-        }
+    : Authorizer extends { jwt: infer AuthorizerContextParser extends MaybeGenericParser }
       ? {
-            claims: AuthorizerContext
+            claims: InferFromParser<AuthorizerContextParser>
             scopes: string[]
         }
       : Authorizer extends { lambda: true }
-        ? { lambda: Record<string, unknown> }
-        : Authorizer extends { lambda: Schema<infer AuthorizerContext> }
-          ? AuthorizerContext
+        ? Record<string, unknown>
+        : Authorizer extends { lambda: infer AuthorizerContextParser extends MaybeGenericParser }
+          ? InferFromParser<AuthorizerContextParser>
           : Authorizer extends { iam: true }
             ? GV extends 'http'
                 ? HTTPIamAuthorizer
@@ -64,92 +49,101 @@ export type RestIamAuthorizer = Extract<
 >
 
 export interface HTTPRequest<
-    Body = unknown,
-    Path = HTTPPathParameters | undefined,
-    Query = HTTPQueryParameters | undefined,
-    Headers = HTTPHeaders | undefined,
-    Security extends SecurityRequirements = SecurityRequirements,
+    Body = undefined,
+    Path = undefined,
+    Query = undefined,
+    Headers = undefined,
+    Security extends SecurityRequirements | undefined = SecurityRequirements | undefined,
     GV extends GatewayVersion = 'http' | 'rest',
     Authorizer extends AuthorizerSchema<GV> = AuthorizerSchema<GV>,
 > {
-    body: Body
-    headers: Headers
-    query: Query
-    path: Path
-    security: Security
+    body: [Body] extends [undefined] ? unknown : Body
+    headers: [Headers] extends [undefined] ? HTTPHeaders : Headers
+    query: [Query] extends [undefined] ? HTTPQueryParameters : Query
+    path: [Path] extends [undefined] ? HTTPPathParameters : Path
+    security: [Security] extends [undefined] ? [] : Security
     authorizer: AuthorizerContext<GV, Authorizer>
     readonly raw: GV extends 'http' ? APIGatewayProxyEventV2Schema : APIGatewayProxyEventSchema
 }
 
-export interface HTTPResponse<Code extends number = number, Result = unknown, Headers = HTTPHeaders> {
-    statusCode: Code
-    headers?: Headers | undefined
-    body: Result
+export type HTTPResponse<Code extends number = number, Result = unknown, Headers = undefined> = Simplify<
+    {
+        statusCode: Code
+    } & (IsNever<Headers> extends true
+        ? { headers?: never }
+        : Headers extends undefined
+          ? { headers?: HTTPHeaders }
+          : { headers: Headers }) &
+        (IsNever<Result> extends true ? { body?: never } : { body: Result })
+>
+
+export type BodyOnlyResponse = GenericParser | null
+export interface FullResponse<
+    Body extends MaybeGenericParser = MaybeGenericParser,
+    Headers extends MaybeGenericParser = MaybeGenericParser,
+> {
+    body: Body | null
+    headers?: Headers
+    description?: string
 }
 
-export interface HTTPEmptyResponse<Code extends number = number, Headers = HTTPHeaders> {
-    statusCode: Code
-    headers?: Headers | undefined
-    body?: never
-}
+export type Responses = { [key: number]: BodyOnlyResponse | FullResponse }
 
 export type _HTTPResponses<Result extends Responses> = {
-    [key in keyof Result]: key extends number
-        ? Result[key] extends null
-            ? HTTPEmptyResponse<key>
-            : HTTPResponse<key, ReponseType<Result[key]>, HeadersType<Result[key]>>
+    [Code in keyof Result]: Code extends number
+        ? Result[Code] extends null
+            ? HTTPResponse<Code, never>
+            : Result[Code] extends { body: GenericParser | null }
+              ? HTTPResponse<
+                    Code,
+                    Result[Code] extends { body: GenericParser } ? InferFromParser<Result[Code]['body']> : never,
+                    Result[Code] extends { headers: GenericParser } ? InferFromParser<Result[Code]['headers']> : undefined
+                >
+              : Result[Code] extends GenericParser
+                ? HTTPResponse<Code, InferFromParser<Result[Code]>, undefined>
+                : HTTPResponse<Code, never, undefined>
         : never
 }[keyof Result]
 
 export type HTTPResponses<Result extends Responses> = Simplify<
-    IfEmptyObject<Result, _HTTPResponses<Responses>, _HTTPResponses<Result>>
+    IfEmptyObject<Result, HTTPResponse<number>, _HTTPResponses<Result>>
 >
-export type GatewayVersion = 'http' | 'rest'
-
-export type ReponseType<Result extends BodyResponse | Response> = InferSchemaType<
-    Result extends Response ? Result['body'] : Result
->
-export type HeadersType<Result extends BodyResponse | Response> = Result extends Response
-    ? // biome-ignore lint/complexity/noBannedTypes: check if headers is defined
-      Result['headers'] extends {}
-        ? InferSchemaType<Result['headers']>
-        : HTTPHeaders
-    : HTTPHeaders
-
-export type BodyResponse<T = unknown> = Schema<T> | null
-export interface Response<T = unknown, Headers extends HTTPHeaders = HTTPHeaders> {
-    body: Schema<T> | null
-    headers?: Schema<Headers>
-    description?: string
-}
-
-export type Responses = { [key: number]: BodyResponse | Response }
 
 export interface HTTPEventHandler<
     Configuration = unknown,
     Service = unknown,
-    Profile = unknown,
-    Body = unknown,
-    Path = HTTPPathParameters,
-    Query = HTTPQueryParameters,
-    Headers = HTTPHeaders,
+    Profile extends MaybeGenericParser = MaybeGenericParser,
+    Body extends MaybeGenericParser = MaybeGenericParser,
+    Path extends MaybeGenericParser = MaybeGenericParser,
+    Query extends MaybeGenericParser = MaybeGenericParser,
+    Headers extends MaybeGenericParser = MaybeGenericParser,
     Result extends Responses = Responses,
-    Security extends SecurityRequirements = SecurityRequirements,
+    Security extends SecurityRequirements | undefined = SecurityRequirements | undefined,
     GV extends GatewayVersion = 'http' | 'rest',
     Authorizer extends AuthorizerSchema<GV> = AuthorizerSchema<GV>,
 > {
     method?: HTTPMethod
     path?: `/${string}`
     schema: {
-        body?: Schema<Body>
-        path?: Schema<Path>
-        query?: Schema<Query>
-        headers?: Schema<Headers>
+        body?: Body
+        path?: Path
+        query?: Query
+        headers?: Headers
         authorizer?: Authorizer
         responses: Result
     }
     handler: (
-        request: NoInfer<HTTPRequest<Body, Path, Query, Headers, Security, GV, Authorizer>>,
+        request: NoInfer<
+            HTTPRequest<
+                InferFromParser<Body, undefined>,
+                InferFromParser<Path, undefined>,
+                InferFromParser<Query, undefined>,
+                InferFromParser<Headers, undefined>,
+                Security,
+                GV,
+                Authorizer
+            >
+        >,
         context: LambdaContext<Configuration, Service, Profile>,
     ) => Promisable<Try<HTTPResponses<NoInfer<Result>>>>
     security?: Security
@@ -163,13 +157,13 @@ export type ErrorSerializer<Code extends number = number, EventErrorType = HttpE
 export interface HTTPHandler<
     Configuration = unknown,
     Service = unknown,
-    Profile = unknown,
-    Body = unknown,
-    Path = HTTPPathParameters,
-    Query = HTTPQueryParameters,
-    Headers = HTTPHeaders,
+    Profile extends MaybeGenericParser = MaybeGenericParser,
+    Body extends MaybeGenericParser = MaybeGenericParser,
+    Path extends MaybeGenericParser = MaybeGenericParser,
+    Query extends MaybeGenericParser = MaybeGenericParser,
+    Headers extends MaybeGenericParser = MaybeGenericParser,
     Result extends Responses = Responses,
-    Security extends SecurityRequirements = SecurityRequirements,
+    Security extends SecurityRequirements | undefined = SecurityRequirements | undefined,
     GV extends GatewayVersion = 'http' | 'rest',
     Authorizer extends AuthorizerSchema<GV> = AuthorizerSchema<GV>,
 > extends EventHandlerDefinition<Configuration, Service, Profile> {

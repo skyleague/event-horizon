@@ -15,13 +15,14 @@ import type {
     FirehoseTransformationResultRecord,
 } from 'aws-lambda'
 import type { KinesisFirehoseRecord } from '../../aws/firehose/firehose.type.js'
+import type { MaybeGenericParser } from '../../parsers/types.js'
 
 export async function handleFirehoseTransformation<
     const Configuration,
     const Service extends DefaultServices | undefined,
-    const Profile,
-    const Payload,
-    const Result,
+    const Profile extends MaybeGenericParser,
+    const Payload extends MaybeGenericParser,
+    const Result extends MaybeGenericParser,
 >(
     handler: FirehoseTransformationHandler<Configuration, Service, Profile, Payload, Result>,
     events: KinesisFirehoseRecord[],
@@ -39,7 +40,7 @@ export async function handleFirehoseTransformation<
     for (const [i, event] of events.entries()) {
         const item = { item: i }
 
-        const firehoseEvent = mapTry(event, (e) => {
+        const firehoseEvent = await mapTry(event, (e) => {
             const unvalidatedFirehoseEvent = parseEventFn.before(e)
             return ioValidateFn.before(firehose.schema.payload, unvalidatedFirehoseEvent, 'payload')
         })
@@ -47,7 +48,7 @@ export async function handleFirehoseTransformation<
         ioLoggerFn.before(firehoseEvent, item)
 
         const unvalidatedTransformed = await mapTry(firehoseEvent, (success) => firehose.handler(success, context))
-        const transformed = mapTry(unvalidatedTransformed, (t) => ioValidateFn.after(firehose.schema.result, t, 'payload'))
+        const transformed = await mapTry(unvalidatedTransformed, (t) => ioValidateFn.after(firehose.schema.result, t, 'payload'))
 
         const response = transformTry(
             transformed,

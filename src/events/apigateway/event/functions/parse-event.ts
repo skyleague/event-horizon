@@ -3,6 +3,7 @@ import type { APIGatewayProxyEventV2Schema } from '../../../../aws/apigateway/ht
 import type { APIGatewayProxyEventSchema } from '../../../../aws/apigateway/rest.type.js'
 import { EventError } from '../../../../errors/event-error/event-error.js'
 import { parseJSON } from '../../../../parsers/json/json.js'
+import type { MaybeGenericParser } from '../../../../parsers/types.js'
 import type { SecurityRequirements } from '../../types.js'
 import type {
     AnyAuthorizerContext,
@@ -16,13 +17,13 @@ import type {
 export function httpParseEvent<
     Configuration,
     Service,
-    Profile,
-    Body,
-    Path,
-    Query,
-    Headers,
+    Profile extends MaybeGenericParser,
+    Body extends MaybeGenericParser,
+    Path extends MaybeGenericParser,
+    Query extends MaybeGenericParser,
+    Headers extends MaybeGenericParser,
     Result extends Responses,
-    Security extends SecurityRequirements,
+    Security extends SecurityRequirements | undefined,
     GV extends GatewayVersion,
     Authorizer extends AuthorizerSchema<GV>,
 >({

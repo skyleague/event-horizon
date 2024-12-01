@@ -7,15 +7,17 @@ import type {
     RequestAuthorizerHandler,
     SecuritySchemes,
 } from '../../../../events/apigateway/authorizer/types.js'
+import type { MaybeGenericParser } from '../../../../parsers/types.js'
+import { coerce } from '../../coerce.js'
 
 export function restApiAuthorizerEvent<
     Configuration,
     Service,
-    Profile,
-    Path,
-    Query,
-    Headers,
-    Context = never,
+    Profile extends MaybeGenericParser,
+    Path extends MaybeGenericParser,
+    Query extends MaybeGenericParser,
+    Headers extends MaybeGenericParser,
+    Context extends MaybeGenericParser,
     Security extends SecuritySchemes = SecuritySchemes,
 >(
     { request }: RequestAuthorizerHandler<Configuration, Service, Profile, Path, Query, Headers, Context, Security, 'rest'>,
@@ -34,12 +36,13 @@ export function restApiAuthorizerEvent<
             raw: constant(r),
         }).map((event) => {
             // force coercion
-            request.schema?.headers?.is?.(event.headers) ?? true
-            request.schema?.query?.is?.(event.query) ?? true
-            request.schema?.path?.is?.(event.path) ?? true
+            event.headers = coerce(request.schema?.headers, event.headers)
+            event.query = coerce(request.schema?.query, event.query)
+            event.path = coerce(request.schema?.path, event.path)
 
             event.raw.headers ??= (event.headers as typeof event.raw.headers) ?? {}
             event.raw.queryStringParameters ??= (event.query as typeof event.raw.queryStringParameters) ?? {}
+            event.raw.pathParameters ??= (event.path as typeof event.raw.pathParameters) ?? {}
 
             return {
                 ...event,

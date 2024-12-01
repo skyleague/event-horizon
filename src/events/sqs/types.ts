@@ -1,9 +1,9 @@
 import type { DefaultServices, EventHandlerDefinition, LambdaContext } from '../types.js'
 
 import type { Promisable, Try } from '@skyleague/axioms'
-import type { Schema } from '@skyleague/therefore'
 import type { SQSBatchItemFailure } from 'aws-lambda'
 import type { SqsRecordSchema } from '../../aws/sqs/sqs.type.js'
+import type { InferFromParser, MaybeGenericParser } from '../../parsers/types.js'
 import type { EventHandlerFn } from '../common/event.js'
 
 export interface SQSEvent<Payload = unknown> {
@@ -13,26 +13,35 @@ export interface SQSEvent<Payload = unknown> {
     readonly raw: SqsRecordSchema
 }
 
-export interface SQSEventHandler<Configuration = unknown, Service = unknown, Profile = unknown, Payload = unknown> {
+export interface SQSEventHandler<
+    Configuration = unknown,
+    Service = unknown,
+    Profile extends MaybeGenericParser = MaybeGenericParser,
+    Payload extends MaybeGenericParser = MaybeGenericParser,
+> {
     schema: {
-        payload?: Schema<Payload>
+        payload?: Payload
     }
     handler: (
-        payload: SQSEvent<Payload>,
+        payload: SQSEvent<InferFromParser<Payload, unknown>>,
         context: LambdaContext<Configuration, Service, Profile>,
-    ) => Promisable<Try<NoInfer<void>>>
+    ) => Promisable<Try<void>>
     payloadType?: 'json' | 'plaintext'
 }
 
-export interface SQSHandler<Configuration = unknown, Service = unknown, Profile = unknown, Payload = unknown>
-    extends EventHandlerDefinition<Configuration, Service, Profile> {
+export interface SQSHandler<
+    Configuration = unknown,
+    Service = unknown,
+    Profile extends MaybeGenericParser = MaybeGenericParser,
+    Payload extends MaybeGenericParser = MaybeGenericParser,
+> extends EventHandlerDefinition<Configuration, Service, Profile> {
     sqs: SQSEventHandler<Configuration, Service, Profile, Payload>
 }
 
 export interface SQSEnvelopeHandler<
     Configuration = unknown,
     Service extends DefaultServices | undefined = DefaultServices,
-    Profile = unknown,
+    Profile extends MaybeGenericParser = MaybeGenericParser,
 > {
     envelope: EventHandlerFn<Configuration, Service, Profile>
 }
@@ -42,14 +51,19 @@ export interface SQSMessageGroup<Payload = unknown> {
     records: SQSEvent<Try<Payload>>[]
 }
 
-export interface SQSGroupEventHandler<Configuration = unknown, Service = unknown, Profile = unknown, Payload = unknown> {
+export interface SQSGroupEventHandler<
+    Configuration = unknown,
+    Service = unknown,
+    Profile extends MaybeGenericParser = MaybeGenericParser,
+    Payload extends MaybeGenericParser = MaybeGenericParser,
+> {
     schema: {
-        payload?: Schema<Payload>
+        payload?: Payload
     }
     handler: (
-        payload: SQSMessageGroup<Payload>,
+        payload: SQSMessageGroup<InferFromParser<Payload, unknown>>,
         context: LambdaContext<Configuration, Service, Profile>,
-        // biome-ignore lint/suspicious/noConfusingVoidType: <explanation>
+        // biome-ignore lint/suspicious/noConfusingVoidType: false positive
     ) => Promisable<Try<NoInfer<SQSBatchItemFailure[] | void>>>
     payloadType?: 'json' | 'plaintext'
 
@@ -61,7 +75,11 @@ export interface SQSGroupEventHandler<Configuration = unknown, Service = unknown
     parallelism?: number
 }
 
-export interface SQSGroupHandler<Configuration = unknown, Service = unknown, Profile = unknown, Payload = unknown>
-    extends EventHandlerDefinition<Configuration, Service, Profile> {
+export interface SQSGroupHandler<
+    Configuration = unknown,
+    Service = unknown,
+    Profile extends MaybeGenericParser = MaybeGenericParser,
+    Payload extends MaybeGenericParser = MaybeGenericParser,
+> extends EventHandlerDefinition<Configuration, Service, Profile> {
     sqs: SQSGroupEventHandler<Configuration, Service, Profile, Payload>
 }

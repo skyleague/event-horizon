@@ -3,6 +3,7 @@ import type { SnsNotificationSchema, SnsRecordSchema } from '../../aws/sns/sns.t
 import type {} from '../../aws/sns/sns.type.js'
 import type { SqsRecordSchema } from '../../aws/sqs/sqs.type.js'
 import { EventError } from '../../errors/event-error/event-error.js'
+import type { MaybeGenericParser } from '../../parsers/types.js'
 import { type EventHandlerFn, eventHandler } from '../common/event.js'
 import type { RawRequest } from '../common/raw-aws.js'
 import type { LambdaContext } from '../types.js'
@@ -12,15 +13,27 @@ import { handleSQSMessageGroup } from './handler.js'
 import type { SQSEnvelopeHandler, SQSEvent, SQSHandler } from './types.js'
 import type { SQSGroupHandler } from './types.js'
 
-export function sqsHandler<Configuration, Service extends DefaultServices | undefined, Profile, Payload, D>(
+export function sqsHandler<
+    D,
+    Configuration = undefined,
+    Service extends DefaultServices | undefined = undefined,
+    Profile extends MaybeGenericParser = undefined,
+    Payload extends MaybeGenericParser = undefined,
+>(
     definition: D & SQSHandler<Configuration, Service, Profile, Payload>,
     options?: { _kernel?: typeof handleSQSEvent },
 ): D & EventHandlerFn<Configuration, Service, Profile>
-export function sqsHandler<Configuration, Service extends DefaultServices | undefined, Profile, D>(
+export function sqsHandler<Configuration, Service extends DefaultServices | undefined, Profile extends MaybeGenericParser, D>(
     definition: SQSEnvelopeHandler<Configuration, Service, Profile>,
     options?: { _kernel?: typeof handleSQSEvent },
 ): D & EventHandlerFn<Configuration, Service, Profile>
-export function sqsHandler<Configuration, Service extends DefaultServices | undefined, Profile, Payload, D>(
+export function sqsHandler<
+    Configuration,
+    Service extends DefaultServices | undefined,
+    Profile extends MaybeGenericParser,
+    Payload extends MaybeGenericParser,
+    D,
+>(
     definition: D & (SQSHandler<Configuration, Service, Profile, Payload> | SQSEnvelopeHandler<Configuration, Service, Profile>),
     { _kernel = handleSQSEvent }: { _kernel?: typeof handleSQSEvent } = {},
 ): D & EventHandlerFn<Configuration, Service, Profile> {
@@ -49,7 +62,7 @@ export function sqsHandler<Configuration, Service extends DefaultServices | unde
     })
 }
 
-function fromEnvelope<Configuration, Service extends DefaultServices | undefined, Profile>({
+function fromEnvelope<Configuration, Service extends DefaultServices | undefined, Profile extends MaybeGenericParser>({
     envelope,
 }: SQSEnvelopeHandler<Configuration, Service, Profile>): EventHandlerFn<Configuration, Service, Profile> {
     const { services, config, profile, ...definition } = envelope
@@ -86,7 +99,13 @@ function fromEnvelope<Configuration, Service extends DefaultServices | undefined
     })
 }
 
-export function sqsGroupHandler<Configuration, Service extends DefaultServices | undefined, Profile, Payload, D>(
+export function sqsGroupHandler<
+    D,
+    Configuration = undefined,
+    Service extends DefaultServices | undefined = undefined,
+    Profile extends MaybeGenericParser = undefined,
+    Payload extends MaybeGenericParser = undefined,
+>(
     definition: D & SQSGroupHandler<Configuration, Service, Profile, Payload>,
     { _kernel = handleSQSMessageGroup }: { _kernel?: typeof handleSQSMessageGroup } = {},
 ): D & EventHandlerFn<Configuration, Service, Profile> {

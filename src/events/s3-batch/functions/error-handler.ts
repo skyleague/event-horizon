@@ -1,10 +1,16 @@
 import { EventError } from '../../../errors/event-error/event-error.js'
+import type { MaybeGenericParser } from '../../../parsers/types.js'
 import type { LambdaContext } from '../../types.js'
 import type { S3BatchHandler } from '../types.js'
 
 import type { S3BatchEventTask, S3BatchResultResult } from 'aws-lambda'
 
-export function s3BatchErrorHandler<Configuration, Service, Profile, Result>(
+export function s3BatchErrorHandler<
+    Configuration,
+    Service,
+    Profile extends MaybeGenericParser,
+    Result extends MaybeGenericParser,
+>(
     handler: S3BatchHandler<Configuration, Service, Profile, Result>,
     { logger, isSensitive }: Pick<LambdaContext, 'logger' | 'isSensitive'>,
 ) {

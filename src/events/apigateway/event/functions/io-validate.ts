@@ -1,41 +1,75 @@
 import type { Try } from '@skyleague/axioms'
 import { EventError } from '../../../../errors/event-error/event-error.js'
+import { safeParse } from '../../../../parsers/parse.js'
+import type { MaybeGenericParser } from '../../../../parsers/types.js'
 import type { EventFromHandler } from '../../../types.js'
-import type { HTTPEventHandler, HTTPRequest } from '../types.js'
+import type { SecurityRequirements } from '../../types.js'
+import type { GatewayVersion, HTTPEventHandler, HTTPRequest, Responses } from '../types.js'
 
-export function httpIOValidate<Handler extends HTTPEventHandler>(http: Handler) {
+export function httpIOValidate<
+    Configuration,
+    Service,
+    Profile extends MaybeGenericParser,
+    Body extends MaybeGenericParser,
+    Path extends MaybeGenericParser,
+    Query extends MaybeGenericParser,
+    Headers extends MaybeGenericParser,
+    Result extends Responses,
+    Security extends SecurityRequirements | undefined,
+    GV extends GatewayVersion,
+>(http: HTTPEventHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, Security, GV>) {
     return {
-        before: (event: HTTPRequest): Try<EventFromHandler<Handler>> => {
-            if (http.schema.body?.is(event.body) === false) {
-                return EventError.validation({ errors: http.schema.body.errors, location: 'body' })
+        before: async (
+            event: HTTPRequest,
+        ): Promise<
+            Try<
+                EventFromHandler<
+                    HTTPEventHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, Security, GV>
+                >
+            >
+        > => {
+            const bodyResult = await safeParse(http.schema.body, event.body, { location: 'body' })
+            if (bodyResult instanceof EventError) {
+                return bodyResult
             }
-            if (http.schema.query?.is(event.query) === false) {
-                return EventError.validation({ errors: http.schema.query.errors, location: 'query' })
+
+            const queryResult = await safeParse(http.schema.query, event.query, { location: 'query' })
+            if (queryResult instanceof EventError) {
+                return queryResult
             }
-            if (http.schema.path?.is(event.path) === false) {
-                return EventError.validation({ errors: http.schema.path.errors, location: 'path' })
+
+            const pathResult = await safeParse(http.schema.path, event.path, { location: 'path' })
+            if (pathResult instanceof EventError) {
+                return pathResult
             }
-            if (http.schema.headers?.is(event.headers) === false) {
-                return EventError.validation({ errors: http.schema.headers.errors, location: 'headers' })
+
+            const headersResult = await safeParse(http.schema.headers, event.headers, { location: 'headers' })
+            if (headersResult instanceof EventError) {
+                return headersResult
             }
 
             if (http.schema.authorizer !== undefined) {
                 if ('jwt' in http.schema.authorizer && http.schema.authorizer.jwt !== true && 'claims' in event.authorizer) {
-                    if (http.schema.authorizer.jwt.is(event.authorizer.claims) === false) {
-                        return EventError.validation({ errors: http.schema.authorizer.jwt.errors, location: 'authorizer.jwt' })
+                    const jwtResult = await safeParse(http.schema.authorizer.jwt, event.authorizer.claims, {
+                        location: 'authorizer.jwt',
+                    })
+                    if (jwtResult instanceof EventError) {
+                        return jwtResult
                     }
                 }
                 if ('lambda' in http.schema.authorizer && http.schema.authorizer.lambda !== true) {
-                    if (http.schema.authorizer.lambda.is(event.authorizer) === false) {
-                        return EventError.validation({
-                            errors: http.schema.authorizer.lambda.errors,
-                            location: 'authorizer.lambda',
-                        })
+                    const lambdaResult = await safeParse(http.schema.authorizer.lambda, event.authorizer, {
+                        location: 'authorizer.lambda',
+                    })
+                    if (lambdaResult instanceof EventError) {
+                        return lambdaResult
                     }
                 }
             }
 
-            return event as EventFromHandler<Handler>
+            return event as EventFromHandler<
+                HTTPEventHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, Security, GV>
+            >
         },
     }
 }

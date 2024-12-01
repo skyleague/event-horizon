@@ -1,6 +1,6 @@
 import type { Promisable, Try } from '@skyleague/axioms'
-import type { Schema } from '@skyleague/therefore'
 import type { SnsNotificationSchema } from '../../aws/sns/sns.type.js'
+import type { InferFromParser, MaybeGenericParser } from '../../parsers/types.js'
 import type { EventHandlerDefinition, LambdaContext } from '../types.js'
 
 export interface SNSEvent<Payload = unknown> {
@@ -8,18 +8,27 @@ export interface SNSEvent<Payload = unknown> {
     readonly raw: SnsNotificationSchema
 }
 
-export interface SNSEventHandler<Configuration = unknown, Service = unknown, Profile = unknown, Payload = unknown> {
+export interface SNSEventHandler<
+    Configuration = unknown,
+    Service = unknown,
+    Profile extends MaybeGenericParser = MaybeGenericParser,
+    Payload extends MaybeGenericParser = MaybeGenericParser,
+> {
     schema: {
-        payload?: Schema<Payload>
+        payload?: Payload
     }
     handler: (
-        request: NoInfer<SNSEvent<Payload>>,
+        request: NoInfer<SNSEvent<InferFromParser<Payload, unknown>>>,
         context: LambdaContext<Configuration, Service, Profile>,
-    ) => Promisable<Try<NoInfer<void>>>
+    ) => Promisable<Try<void>>
     payloadType?: 'binary' | 'json' | 'plaintext'
 }
 
-export interface SNSHandler<Configuration = unknown, Service = unknown, Profile = unknown, Payload = unknown>
-    extends EventHandlerDefinition<Configuration, Service, Profile> {
+export interface SNSHandler<
+    Configuration = unknown,
+    Service = unknown,
+    Profile extends MaybeGenericParser = MaybeGenericParser,
+    Payload extends MaybeGenericParser = MaybeGenericParser,
+> extends EventHandlerDefinition<Configuration, Service, Profile> {
     sns: SNSEventHandler<Configuration, Service, Profile, Payload>
 }

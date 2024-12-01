@@ -1,6 +1,7 @@
 import type { Try } from '@skyleague/axioms'
 import { isSuccess, mapTry, transformTry } from '@skyleague/axioms'
 import type { S3BatchEvent, S3BatchResult, S3BatchResultResult } from 'aws-lambda'
+import type { InferFromParser, MaybeGenericParser } from '../../parsers/types.js'
 import { ioLoggerChild } from '../functions/io-logger-child.js'
 import { ioLogger } from '../functions/io-logger.js'
 import { ioValidate } from '../functions/io-validate.js'
@@ -10,7 +11,12 @@ import { s3BatchParseEvent } from './functions/parse-event.js'
 import { s3BatchSerializeResult } from './functions/serialize-result.js'
 import type { S3BatchHandler, S3BatchTaskResult } from './types.js'
 
-export async function handleS3Batch<Configuration, Service, Profile, Result>(
+export async function handleS3Batch<
+    Configuration,
+    Service,
+    Profile extends MaybeGenericParser,
+    Result extends MaybeGenericParser,
+>(
     handler: S3BatchHandler<Configuration, Service, Profile, Result>,
     event: S3BatchEvent,
     context: LambdaContext<Configuration, Service, Profile>,
@@ -18,7 +24,7 @@ export async function handleS3Batch<Configuration, Service, Profile, Result>(
     const { s3Batch } = handler
 
     const errorHandlerFn = s3BatchErrorHandler(handler, context)
-    const serializeResult = s3BatchSerializeResult<Result>()
+    const serializeResult = s3BatchSerializeResult<InferFromParser<Result, unknown>>()
     const parseEventFn = s3BatchParseEvent()
     const ioValidateFn = ioValidate<never, S3BatchTaskResult>()
     const ioLoggerFn = ioLogger({ type: 's3-batch' }, context)
@@ -39,7 +45,7 @@ export async function handleS3Batch<Configuration, Service, Profile, Result>(
         ioLoggerFn.before(s3BatchTask, item)
 
         const unvalidatedResponse = await mapTry(s3BatchTask, (t) => s3Batch.handler(t, context))
-        const response = mapTry(unvalidatedResponse, (v) => ioValidateFn.after(s3Batch.schema.result, v, 'payload'))
+        const response = await mapTry(unvalidatedResponse, (v) => ioValidateFn.after(s3Batch.schema.result, v, 'payload'))
 
         const result = transformTry(
             response,

@@ -12,7 +12,7 @@ import { validate as KinesisFirehoseSchemaValidator } from './schemas/kinesis-fi
 export interface KinesisFirehoseRecord {
     recordId: string
     approximateArrivalTimestamp: number
-    kinesisRecordMetaData?: KinesisRecordMetaData | undefined
+    kinesisRecordMetadata?: KinesisRecordMetadata | null | undefined
     data: string
 }
 
@@ -58,10 +58,10 @@ export const KinesisFirehoseSchema = {
     },
 } as const
 
-export interface KinesisRecordMetaData {
+export type KinesisRecordMetadata = {
     shardId: string
     partitionKey: string
     approximateArrivalTimestamp: number
     sequenceNumber: string
     subsequenceNumber: number
-}
+} | null

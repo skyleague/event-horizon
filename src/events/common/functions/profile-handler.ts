@@ -1,30 +1,30 @@
-import { appConfigConstants } from '../../../constants.js'
-import { EventError } from '../../../errors/event-error/event-error.js'
-import { parseJSON } from '../../../parsers/json/json.js'
-import { createAppConfigData } from '../../../services/appconfig/appconfig.js'
-import type { DefaultServices } from '../../types.js'
-
 import { AppConfigProvider } from '@aws-lambda-powertools/parameters/appconfig'
 import type { Try } from '@skyleague/axioms'
 import { memoize } from '@skyleague/axioms'
-import type { Schema } from '@skyleague/therefore'
+import { appConfigConstants } from '../../../constants.js'
+import { EventError } from '../../../errors/event-error/event-error.js'
+import { parseJSON } from '../../../parsers/json/json.js'
+import { safeParse } from '../../../parsers/parse.js'
+import type { InferFromParser, MaybeGenericParser } from '../../../parsers/types.js'
+import { createAppConfigData } from '../../../services/appconfig/appconfig.js'
+import type { DefaultServices } from '../../types.js'
 
-export interface ProfileSchema<T> {
-    schema: Schema<T>
+export interface ProfileSchema<Profile extends MaybeGenericParser> {
+    schema: Profile
     application?: string | undefined
     environment?: string | undefined
     name?: string | undefined
     maxAge?: number
 }
 
-export interface ProfileOptions<T> {
-    profile?: ProfileSchema<T>
+export interface ProfileOptions<Profile extends MaybeGenericParser> {
+    profile?: ProfileSchema<Profile>
 }
 
-export function profileHandler<T, Services extends DefaultServices | undefined>(
-    definition: ProfileOptions<T>,
+export function profileHandler<Profile extends MaybeGenericParser, Services extends DefaultServices | undefined>(
+    definition: ProfileOptions<Profile>,
     services: () => Promise<Services> | Services,
-): { before: () => Promise<Try<T>> } {
+): { before: () => Promise<Try<InferFromParser<Profile, never>>> } {
     const { profile } = definition
     const {
         application = appConfigConstants.application,
@@ -35,8 +35,8 @@ export function profileHandler<T, Services extends DefaultServices | undefined>(
     // do not load appconfig when there is no profile defined
     if (profile?.schema === undefined) {
         return {
-            before: (): Promise<Try<T>> => {
-                return Promise.resolve({}) as Promise<Try<T>>
+            before: (): Promise<Try<InferFromParser<Profile, never>>> => {
+                return Promise.resolve({}) as Promise<Try<InferFromParser<Profile, never>>>
             },
         }
     }
@@ -50,7 +50,7 @@ export function profileHandler<T, Services extends DefaultServices | undefined>(
     let appConfig: AppConfigProvider
 
     return {
-        before: async (): Promise<Try<T>> => {
+        before: async (): Promise<Try<InferFromParser<Profile, never>>> => {
             if (
                 application === undefined ||
                 environment === undefined ||
@@ -72,10 +72,9 @@ export function profileHandler<T, Services extends DefaultServices | undefined>(
 
             const json = Buffer.from((await appConfig.get<string>(name, { maxAge })) ?? '{}').toString()
             const parsed: unknown = parseJSON(json)
-            if (!profile.schema.is(parsed)) {
-                throw EventError.validation({ errors: profile.schema.errors, location: 'profile', statusCode: 500 })
-            }
-            return parsed
+            return safeParse(profile.schema, parsed, { location: 'profile', statusCode: 500 }) as Promise<
+                Try<InferFromParser<Profile, never>>
+            >
         },
     }
 }

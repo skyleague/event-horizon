@@ -5,8 +5,13 @@ import type { DefaultServices } from '../../../events/types.js'
 
 import type { Dependent } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
+import type { MaybeGenericParser } from '../../../parsers/types.js'
 
-export function secretRotationEvent<Configuration, Service extends SetRequired<DefaultServices, 'secretsManager'>, Profile>(
+export function secretRotationEvent<
+    Configuration,
+    Service extends SetRequired<DefaultServices, 'secretsManager'>,
+    Profile extends MaybeGenericParser,
+>(
     _?: Pick<SecretRotationHandler<Configuration, Service, Profile>, 'services' | 'config'>,
     { generation = 'fast' }: { generation?: 'full' | 'fast' } = {},
 ): Dependent<SecretRotationRequest> {

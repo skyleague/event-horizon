@@ -9,7 +9,6 @@ it('type is compatible', () => {
 
     // @ts-expect-error - KinesisDataStreamSchema is not compatible with KinesisStreamEvent
     const _test: KinesisDataStreamSchema = {} as unknown as KinesisStreamEvent
-    // @ts-expect-error - KinesisStreamEvent is not compatible with KinesisDataStreamSchema
     const _test2: KinesisStreamEvent = {} as unknown as KinesisDataStreamSchema
     void _test
     void _test2

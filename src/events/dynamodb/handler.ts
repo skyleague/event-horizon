@@ -2,6 +2,7 @@ import type { Try } from '@skyleague/axioms'
 import { isLeft, mapLeft, mapTry, tryToEither } from '@skyleague/axioms'
 import type { DynamoDBBatchItemFailure, DynamoDBBatchResponse } from 'aws-lambda/trigger/dynamodb-stream.js'
 import type { DynamoDBStreamRecord } from '../../aws/dynamodb/dynamodb.type.js'
+import type { MaybeGenericParser } from '../../parsers/types.js'
 import { ioLoggerChild } from '../functions/io-logger-child.js'
 import { ioLogger } from '../functions/io-logger.js'
 import type { LambdaContext } from '../types.js'
@@ -9,7 +10,7 @@ import { dynamodbErrorHandler } from './functions/error-handler.js'
 import { dynamodbParseEvent } from './functions/parse-event.js'
 import type { DynamoDBStreamHandler } from './types.js'
 
-export async function handleDynamoDBStreamEvent<Configuration, Service, Profile>(
+export async function handleDynamoDBStreamEvent<Configuration, Service, Profile extends MaybeGenericParser>(
     handler: DynamoDBStreamHandler<Configuration, Service, Profile>,
     events: DynamoDBStreamRecord[],
     context: LambdaContext<Configuration, Service, Profile>,

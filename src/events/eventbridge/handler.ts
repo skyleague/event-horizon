@@ -1,6 +1,7 @@
 import type { Try } from '@skyleague/axioms'
 import { mapTry } from '@skyleague/axioms'
 import type { EventBridgeSchema } from '../../aws/eventbridge/eventbridge.type.js'
+import type { MaybeGenericParser } from '../../parsers/types.js'
 import { ioLogger } from '../functions/io-logger.js'
 import { ioValidate } from '../functions/io-validate.js'
 import type { DefaultServices, LambdaContext } from '../types.js'
@@ -10,9 +11,9 @@ import type { EventBridgeEvent, EventBridgeHandler } from './types.js'
 export async function handleEventBridgeEvent<
     const Configuration,
     const Service extends DefaultServices | undefined,
-    const Profile,
-    const Payload,
-    const Result,
+    const Profile extends MaybeGenericParser,
+    const Payload extends MaybeGenericParser,
+    const Result extends MaybeGenericParser,
 >(
     handler: EventBridgeHandler<Configuration, Service, Profile, Payload, Result>,
     event: EventBridgeSchema,
@@ -24,19 +25,15 @@ export async function handleEventBridgeEvent<
     const ioValidateFn = ioValidate<EventBridgeEvent>()
     const ioLoggerFn = ioLogger({ type: 'eventbridge' }, context)
 
-    const ebEvent = mapTry(event, (e): EventBridgeEvent<Payload> => {
+    const ebEvent = await mapTry(event, (e) => {
         const unvalidatedEbEvent = parseEventFn.before(e)
-        return ioValidateFn.before<Payload, 'payload', EventBridgeEvent<Payload>>(
-            eventBridge.schema.payload,
-            unvalidatedEbEvent,
-            'payload',
-        )
+        return ioValidateFn.before(eventBridge.schema.payload, unvalidatedEbEvent, 'payload')
     })
 
     ioLoggerFn.before(ebEvent)
 
     const unvalidatedResponse = await mapTry(ebEvent, (e) => eventBridge.handler(e, context))
-    const response = mapTry(unvalidatedResponse, (t) => ioValidateFn.after(eventBridge.schema.result, t))
+    const response = await mapTry(unvalidatedResponse, (t) => ioValidateFn.after(eventBridge.schema.result, t))
 
     ioLoggerFn.after(response)
 

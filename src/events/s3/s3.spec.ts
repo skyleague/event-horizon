@@ -1,7 +1,8 @@
 import { asyncForAll, oneOf, random, tuple, unknown } from '@skyleague/axioms'
-import { arbitrary } from '@skyleague/therefore'
-import { expect, it, vi } from 'vitest'
-import { warmerEvent } from '../../../test/schema.js'
+import { type Schema, arbitrary } from '@skyleague/therefore'
+import { expect, expectTypeOf, it, vi } from 'vitest'
+import { z } from 'zod'
+import { literalSchema, warmerEvent } from '../../../test/schema.js'
 import { APIGatewayProxyEventV2Schema, APIGatewayRequestAuthorizerEventV2Schema } from '../../aws/apigateway/http.type.js'
 import { APIGatewayProxyEventSchema, APIGatewayRequestAuthorizerEventSchema } from '../../aws/apigateway/rest.type.js'
 import { DynamoDBStreamSchema } from '../../aws/dynamodb/dynamodb.type.js'
@@ -14,7 +15,151 @@ import { SecretRotationEvent } from '../../aws/secret-rotation/secret-rotation.t
 import { SnsSchema } from '../../aws/sns/sns.type.js'
 import { SqsSchema } from '../../aws/sqs/sqs.type.js'
 import { context } from '../../test/context/context.js'
+import type { LambdaContext } from '../types.js'
 import { s3Handler } from './s3.js'
+import type { S3Event } from './types.js'
+
+it('handles service and config types', () => {
+    {
+        const handler = s3Handler({
+            s3: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, undefined, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<never>()
+                    expectTypeOf(context.services).toEqualTypeOf<never>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+                },
+            },
+        })
+        expectTypeOf(handler.s3.handler).toEqualTypeOf<
+            (request: NoInfer<S3Event>, context: LambdaContext<undefined, undefined, undefined>) => void
+        >()
+    }
+    {
+        const handler = s3Handler({
+            config: 'config' as const,
+            s3: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<'config', undefined, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<'config'>()
+                    expectTypeOf(context.services).toEqualTypeOf<never>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+                },
+            },
+        })
+        expectTypeOf(handler.s3.handler).toEqualTypeOf<
+            (request: NoInfer<S3Event>, context: LambdaContext<'config', undefined, undefined>) => void
+        >()
+    }
+    {
+        const handler = s3Handler({
+            config: () => 'config' as const,
+            s3: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<'config', undefined, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<'config'>()
+                    expectTypeOf(context.services).toEqualTypeOf<never>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+                },
+            },
+        })
+        expectTypeOf(handler.s3.handler).toEqualTypeOf<
+            (request: NoInfer<S3Event>, context: LambdaContext<'config', undefined, undefined>) => void
+        >()
+    }
+    {
+        const handler = s3Handler({
+            services: { services: 'services' as const },
+            s3: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, { services: 'services' }, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<never>()
+                    expectTypeOf(context.services).toEqualTypeOf<{ services: 'services' }>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+                },
+            },
+        })
+        expectTypeOf(handler.s3.handler).toEqualTypeOf<
+            (request: NoInfer<S3Event>, context: LambdaContext<undefined, { services: 'services' }, undefined>) => void
+        >()
+    }
+    {
+        const handler = s3Handler({
+            services: () => ({ services: 'services' as const }),
+            s3: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, { services: 'services' }, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<never>()
+                    expectTypeOf(context.services).toEqualTypeOf<{ services: 'services' }>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+                },
+            },
+        })
+        expectTypeOf(handler.s3.handler).toEqualTypeOf<
+            (request: NoInfer<S3Event>, context: LambdaContext<undefined, { services: 'services' }, undefined>) => void
+        >()
+    }
+    {
+        const handler = s3Handler({
+            config: () => 'config' as const,
+            services: (config) => {
+                expectTypeOf(config).toEqualTypeOf<'config'>()
+                return { services: 'services' as const }
+            },
+            s3: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<'config', { services: 'services' }, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<'config'>()
+                    expectTypeOf(context.services).toEqualTypeOf<{ services: 'services' }>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+                },
+            },
+        })
+        expectTypeOf(handler.s3.handler).toEqualTypeOf<
+            (request: NoInfer<S3Event>, context: LambdaContext<'config', { services: 'services' }, undefined>) => void
+        >()
+    }
+    {
+        const handler = s3Handler({
+            profile: { schema: literalSchema<'profile'>() },
+            s3: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, undefined, Schema<'profile'>>>()
+                    expectTypeOf(context.config).toEqualTypeOf<never>()
+                    expectTypeOf(context.services).toEqualTypeOf<never>()
+                    expectTypeOf(context.profile).toEqualTypeOf<'profile'>()
+                },
+            },
+        })
+        expectTypeOf(handler.s3.handler).toEqualTypeOf<
+            (request: NoInfer<S3Event>, context: LambdaContext<undefined, undefined, Schema<'profile'>>) => void
+        >()
+    }
+    {
+        const handler = s3Handler({
+            profile: { schema: z.literal('profile') },
+            s3: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, undefined, z.ZodLiteral<'profile'>>>()
+                    expectTypeOf(context.config).toEqualTypeOf<never>()
+                    expectTypeOf(context.services).toEqualTypeOf<never>()
+                    expectTypeOf(context.profile).toEqualTypeOf<'profile'>()
+                },
+            },
+        })
+        expectTypeOf(handler.s3.handler).toEqualTypeOf<
+            (request: NoInfer<S3Event>, context: LambdaContext<undefined, undefined, z.ZodLiteral<'profile'>>) => void
+        >()
+    }
+})
 
 it('handles s3 events', async () => {
     const s3 = vi.fn()

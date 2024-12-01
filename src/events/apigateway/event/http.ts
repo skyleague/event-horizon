@@ -1,5 +1,6 @@
 import { eventConstants } from '../../../constants.js'
 import { EventError } from '../../../errors/event-error/event-error.js'
+import type { MaybeGenericParser } from '../../../parsers/types.js'
 import type { EventHandlerFn } from '../../common/event.js'
 import { eventHandler } from '../../common/event.js'
 import type { RawRequest } from '../../common/raw-aws.js'
@@ -10,23 +11,23 @@ import type { AuthorizerSchema, HTTPHandler, Responses } from './types.js'
 
 export function findHeader(name: string) {
     return (request: RawRequest) =>
-        Object.entries(typeof request === 'object' && request !== null && 'headers' in request ? request.headers ?? {} : {}).find(
-            ([n]) => n.toLowerCase() === name.toLowerCase(),
-        )?.[1]
+        Object.entries(
+            typeof request === 'object' && request !== null && 'headers' in request ? (request.headers ?? {}) : {},
+        ).find(([n]) => n.toLowerCase() === name.toLowerCase())?.[1]
 }
 
 export function restApiHandler<
-    Configuration,
-    Service extends DefaultServices | undefined,
-    Profile,
-    Body,
-    Path,
-    Query,
-    Headers,
-    const Result extends Responses,
-    const Security extends SecurityRequirements,
-    Authorizer extends AuthorizerSchema<'rest'>,
     D,
+    Configuration = undefined,
+    Service extends DefaultServices | undefined = undefined,
+    Profile extends MaybeGenericParser = undefined,
+    Body extends MaybeGenericParser = undefined,
+    Path extends MaybeGenericParser = undefined,
+    Query extends MaybeGenericParser = undefined,
+    Headers extends MaybeGenericParser = undefined,
+    const Result extends Responses = Responses,
+    const Security extends SecurityRequirements | undefined = undefined,
+    Authorizer extends AuthorizerSchema<'rest'> = AuthorizerSchema<'rest'>,
 >(
     definition: D &
         HTTPHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, Security, 'rest', Authorizer>,
@@ -49,17 +50,17 @@ export function restApiHandler<
 }
 
 export function httpApiHandler<
-    Configuration,
-    Service extends DefaultServices | undefined,
-    Profile,
-    Body,
-    Path,
-    Query,
-    Headers,
-    const Result extends Responses,
-    const Security extends SecurityRequirements,
-    Authorizer extends AuthorizerSchema<'http'>,
     D,
+    Configuration = undefined,
+    Service extends DefaultServices | undefined = undefined,
+    Profile extends MaybeGenericParser = undefined,
+    Body extends MaybeGenericParser = undefined,
+    Path extends MaybeGenericParser = undefined,
+    Query extends MaybeGenericParser = undefined,
+    Headers extends MaybeGenericParser = undefined,
+    const Result extends Responses = Responses,
+    const Security extends SecurityRequirements | undefined = undefined,
+    Authorizer extends AuthorizerSchema<'http'> = AuthorizerSchema<'http'>,
 >(
     definition: D &
         HTTPHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, Security, 'http', Authorizer>,

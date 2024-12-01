@@ -1,6 +1,7 @@
 import { asyncForAll, oneOf, random, tuple, unknown } from '@skyleague/axioms'
-import { arbitrary } from '@skyleague/therefore'
+import { type Schema, arbitrary } from '@skyleague/therefore'
 import { expect, expectTypeOf, it, vi } from 'vitest'
+import { z } from 'zod'
 import { literalSchema, warmerEvent } from '../../../../test/schema.js'
 import { APIGatewayProxyEventV2Schema } from '../../../aws/apigateway/http.schema.js'
 import { APIGatewayProxyEventSchema, APIGatewayRequestAuthorizerEventSchema } from '../../../aws/apigateway/rest.type.js'
@@ -14,6 +15,8 @@ import { SecretRotationEvent } from '../../../aws/secret-rotation/secret-rotatio
 import { SnsSchema } from '../../../aws/sns/sns.type.js'
 import { SqsSchema } from '../../../aws/sqs/sqs.type.js'
 import { context } from '../../../test/context/context.js'
+import type { LambdaContext } from '../../types.js'
+import type { HTTPHeaders, HTTPPathParameters, HTTPQueryParameters } from '../types.js'
 import { restApiAuthorizer } from './http.js'
 import type { RequestAuthorizerEvent } from './types.js'
 
@@ -102,6 +105,335 @@ it('handles schema types', () => {
             context: 'context'
         }
     >()
+})
+
+it('handles schema types - zod', () => {
+    const handler = restApiAuthorizer({
+        request: {
+            schema: {
+                context: z.literal('context'),
+                path: z.literal('path'),
+                query: z.literal('query'),
+                headers: z.literal('headers'),
+            },
+            security: {
+                foo: {
+                    type: 'apiKey',
+                    name: 'api_key',
+                    in: 'header',
+                },
+            },
+            handler: (request) => {
+                expectTypeOf(request).toEqualTypeOf<
+                    RequestAuthorizerEvent<
+                        'path',
+                        'query',
+                        'headers',
+                        {
+                            readonly foo: {
+                                readonly type: 'apiKey'
+                                readonly name: 'api_key'
+                                readonly in: 'header'
+                            }
+                        },
+                        'rest'
+                    >
+                >()
+                expectTypeOf(request.path).toEqualTypeOf<'path'>()
+                expectTypeOf(request.query).toEqualTypeOf<'query'>()
+                expectTypeOf(request.headers).toEqualTypeOf<'headers'>()
+                expectTypeOf(request.security).toEqualTypeOf<{
+                    readonly foo: {
+                        readonly type: 'apiKey'
+                        readonly name: 'api_key'
+                        readonly in: 'header'
+                    }
+                }>()
+                expectTypeOf(request.raw).toEqualTypeOf<APIGatewayRequestAuthorizerEventSchema>()
+
+                return {
+                    isAuthorized: true,
+                    context: 'context' as const,
+                }
+            },
+        },
+    })
+    expectTypeOf(handler.request.handler).toEqualTypeOf<
+        (
+            request: RequestAuthorizerEvent<
+                'path',
+                'query',
+                'headers',
+                {
+                    readonly foo: {
+                        readonly type: 'apiKey'
+                        readonly name: 'api_key'
+                        readonly in: 'header'
+                    }
+                },
+                'rest'
+            >,
+        ) => {
+            isAuthorized: true
+            context: 'context'
+        }
+    >()
+})
+
+it('handles schema types - default', () => {
+    const handler = restApiAuthorizer({
+        request: {
+            handler: (request) => {
+                expectTypeOf(request).toEqualTypeOf<RequestAuthorizerEvent<undefined, undefined, undefined, undefined, 'rest'>>()
+                expectTypeOf(request.path).toEqualTypeOf<HTTPPathParameters>()
+                expectTypeOf(request.query).toEqualTypeOf<HTTPQueryParameters>()
+                expectTypeOf(request.headers).toEqualTypeOf<HTTPHeaders>()
+                expectTypeOf(request.security).toEqualTypeOf<[]>()
+                expectTypeOf(request.raw).toEqualTypeOf<APIGatewayRequestAuthorizerEventSchema>()
+
+                return {
+                    isAuthorized: true,
+                    context: 'context' as const,
+                }
+            },
+        },
+    })
+    expectTypeOf(handler.request.handler).toEqualTypeOf<
+        (request: RequestAuthorizerEvent<undefined, undefined, undefined, undefined, 'rest'>) => {
+            isAuthorized: true
+            context: 'context'
+        }
+    >()
+})
+
+it('handles service and config types', () => {
+    {
+        const handler = restApiAuthorizer({
+            request: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, undefined, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<never>()
+                    expectTypeOf(context.services).toEqualTypeOf<never>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+
+                    return {
+                        isAuthorized: true,
+                        context: 'context' as const,
+                    }
+                },
+            },
+        })
+        expectTypeOf(handler.request.handler).toEqualTypeOf<
+            (
+                request: RequestAuthorizerEvent<undefined, undefined, undefined, undefined, 'rest'>,
+                context: LambdaContext<undefined, undefined, undefined>,
+            ) => {
+                isAuthorized: true
+                context: 'context'
+            }
+        >()
+    }
+    {
+        const handler = restApiAuthorizer({
+            config: 'config' as const,
+            request: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<'config', undefined, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<'config'>()
+                    expectTypeOf(context.services).toEqualTypeOf<never>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+
+                    return {
+                        isAuthorized: true,
+                        context: 'context' as const,
+                    }
+                },
+            },
+        })
+        expectTypeOf(handler.request.handler).toEqualTypeOf<
+            (
+                request: RequestAuthorizerEvent<undefined, undefined, undefined, undefined, 'rest'>,
+                context: LambdaContext<'config', undefined, undefined>,
+            ) => {
+                isAuthorized: true
+                context: 'context'
+            }
+        >()
+    }
+    {
+        const handler = restApiAuthorizer({
+            config: () => 'config' as const,
+            request: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<'config', undefined, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<'config'>()
+                    expectTypeOf(context.services).toEqualTypeOf<never>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+
+                    return {
+                        isAuthorized: true,
+                        context: 'context' as const,
+                    }
+                },
+            },
+        })
+        expectTypeOf(handler.request.handler).toEqualTypeOf<
+            (
+                request: RequestAuthorizerEvent<undefined, undefined, undefined, undefined, 'rest'>,
+                context: LambdaContext<'config', undefined, undefined>,
+            ) => {
+                isAuthorized: true
+                context: 'context'
+            }
+        >()
+    }
+    {
+        const handler = restApiAuthorizer({
+            services: { services: 'services' as const },
+            request: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, { services: 'services' }, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<never>()
+                    expectTypeOf(context.services).toEqualTypeOf<{ services: 'services' }>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+
+                    return {
+                        isAuthorized: true,
+                        context: 'context' as const,
+                    }
+                },
+            },
+        })
+        expectTypeOf(handler.request.handler).toEqualTypeOf<
+            (
+                request: RequestAuthorizerEvent<undefined, undefined, undefined, undefined, 'rest'>,
+                context: LambdaContext<undefined, { services: 'services' }, undefined>,
+            ) => {
+                isAuthorized: true
+                context: 'context'
+            }
+        >()
+    }
+    {
+        const handler = restApiAuthorizer({
+            services: () => ({ services: 'services' as const }),
+            request: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, { services: 'services' }, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<never>()
+                    expectTypeOf(context.services).toEqualTypeOf<{ services: 'services' }>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+
+                    return {
+                        isAuthorized: true,
+                        context: 'context' as const,
+                    }
+                },
+            },
+        })
+        expectTypeOf(handler.request.handler).toEqualTypeOf<
+            (
+                request: RequestAuthorizerEvent<undefined, undefined, undefined, undefined, 'rest'>,
+                context: LambdaContext<undefined, { services: 'services' }, undefined>,
+            ) => {
+                isAuthorized: true
+                context: 'context'
+            }
+        >()
+    }
+    {
+        const handler = restApiAuthorizer({
+            config: () => 'config' as const,
+            services: (config) => {
+                expectTypeOf(config).toEqualTypeOf<'config'>()
+                return { services: 'services' as const }
+            },
+            request: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<'config', { services: 'services' }, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<'config'>()
+                    expectTypeOf(context.services).toEqualTypeOf<{ services: 'services' }>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+
+                    return {
+                        isAuthorized: true,
+                        context: 'context' as const,
+                    }
+                },
+            },
+        })
+        expectTypeOf(handler.request.handler).toEqualTypeOf<
+            (
+                request: RequestAuthorizerEvent<undefined, undefined, undefined, undefined, 'rest'>,
+                context: LambdaContext<'config', { services: 'services' }, undefined>,
+            ) => {
+                isAuthorized: true
+                context: 'context'
+            }
+        >()
+    }
+    {
+        const handler = restApiAuthorizer({
+            profile: { schema: literalSchema<'profile'>() },
+            request: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, undefined, Schema<'profile'>>>()
+                    expectTypeOf(context.config).toEqualTypeOf<never>()
+                    expectTypeOf(context.services).toEqualTypeOf<never>()
+                    expectTypeOf(context.profile).toEqualTypeOf<'profile'>()
+
+                    return {
+                        isAuthorized: true,
+                        context: 'context' as const,
+                    }
+                },
+            },
+        })
+        expectTypeOf(handler.request.handler).toEqualTypeOf<
+            (
+                request: RequestAuthorizerEvent<undefined, undefined, undefined, undefined, 'rest'>,
+                context: LambdaContext<undefined, undefined, Schema<'profile'>>,
+            ) => {
+                isAuthorized: true
+                context: 'context'
+            }
+        >()
+    }
+    {
+        const handler = restApiAuthorizer({
+            profile: { schema: z.literal('profile') },
+            request: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, undefined, z.ZodLiteral<'profile'>>>()
+                    expectTypeOf(context.config).toEqualTypeOf<never>()
+                    expectTypeOf(context.services).toEqualTypeOf<never>()
+                    expectTypeOf(context.profile).toEqualTypeOf<'profile'>()
+
+                    return {
+                        isAuthorized: true,
+                        context: 'context' as const,
+                    }
+                },
+            },
+        })
+        expectTypeOf(handler.request.handler).toEqualTypeOf<
+            (
+                request: RequestAuthorizerEvent<undefined, undefined, undefined, undefined, 'rest'>,
+                context: LambdaContext<undefined, undefined, z.ZodLiteral<'profile'>>,
+            ) => {
+                isAuthorized: true
+                context: 'context'
+            }
+        >()
+    }
 })
 
 it('handles schema types and gives errors', () => {

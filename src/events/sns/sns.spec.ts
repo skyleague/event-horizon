@@ -9,15 +9,17 @@ import { SecretRotationEvent } from '../../aws/secret-rotation/secret-rotation.t
 import { context } from '../../test/context/context.js'
 
 import { asyncForAll, oneOf, random, tuple, unknown } from '@skyleague/axioms'
-import { arbitrary } from '@skyleague/therefore'
+import { type Schema, arbitrary } from '@skyleague/therefore'
 import { expect, expectTypeOf, it, vi } from 'vitest'
+import { z } from 'zod'
 import { APIGatewayProxyEventV2Schema, APIGatewayRequestAuthorizerEventV2Schema } from '../../aws/apigateway/http.type.js'
 import { APIGatewayProxyEventSchema, APIGatewayRequestAuthorizerEventSchema } from '../../aws/apigateway/rest.type.js'
 import { DynamoDBStreamSchema } from '../../aws/dynamodb/dynamodb.type.js'
 import { EventBridgeSchema } from '../../aws/eventbridge/eventbridge.type.js'
 import { KinesisFirehoseSchema } from '../../aws/firehose/firehose.type.js'
-import { SnsSchema } from '../../aws/sns/sns.type.js'
+import { type SnsNotificationSchema, SnsSchema } from '../../aws/sns/sns.type.js'
 import { SqsSchema } from '../../aws/sqs/sqs.type.js'
+import type { LambdaContext } from '../types.js'
 
 it('handles sns events', async () => {
     const sns = vi.fn()
@@ -43,10 +45,182 @@ it('handles schema types', () => {
             schema: { payload: literalSchema<'payload'>() },
             handler: (request) => {
                 expectTypeOf(request).toEqualTypeOf<SNSEvent<'payload'>>()
+                expectTypeOf(request.payload).toEqualTypeOf<'payload'>()
+                expectTypeOf(request.raw).toEqualTypeOf<SnsNotificationSchema>()
             },
         },
     })
     expectTypeOf(handler.sns.handler).toEqualTypeOf<(request: SNSEvent<'payload'>) => void>()
+})
+
+it('handles schema types - zod', () => {
+    const handler = snsHandler({
+        sns: {
+            schema: { payload: z.literal('payload') },
+            handler: (request) => {
+                expectTypeOf(request).toEqualTypeOf<SNSEvent<'payload'>>()
+                expectTypeOf(request.payload).toEqualTypeOf<'payload'>()
+                expectTypeOf(request.raw).toEqualTypeOf<SnsNotificationSchema>()
+            },
+        },
+    })
+    expectTypeOf(handler.sns.handler).toEqualTypeOf<(request: SNSEvent<'payload'>) => void>()
+})
+
+it('handles schema types - dfault', () => {
+    const handler = snsHandler({
+        sns: {
+            schema: {},
+            handler: (request) => {
+                expectTypeOf(request).toEqualTypeOf<SNSEvent<unknown>>()
+                expectTypeOf(request.payload).toEqualTypeOf<unknown>()
+                expectTypeOf(request.raw).toEqualTypeOf<SnsNotificationSchema>()
+            },
+        },
+    })
+    expectTypeOf(handler.sns.handler).toEqualTypeOf<(request: SNSEvent<unknown>) => void>()
+})
+
+it('handles service and config types', () => {
+    {
+        const handler = snsHandler({
+            sns: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, undefined, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<never>()
+                    expectTypeOf(context.services).toEqualTypeOf<never>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+                },
+            },
+        })
+        expectTypeOf(handler.sns.handler).toEqualTypeOf<
+            (request: SNSEvent<unknown>, context: LambdaContext<undefined, undefined, undefined>) => void
+        >()
+    }
+    {
+        const handler = snsHandler({
+            config: 'config' as const,
+            sns: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<'config', undefined, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<'config'>()
+                    expectTypeOf(context.services).toEqualTypeOf<never>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+                },
+            },
+        })
+        expectTypeOf(handler.sns.handler).toEqualTypeOf<
+            (request: SNSEvent<unknown>, context: LambdaContext<'config', undefined, undefined>) => void
+        >()
+    }
+    {
+        const handler = snsHandler({
+            config: () => 'config' as const,
+            sns: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<'config', undefined, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<'config'>()
+                    expectTypeOf(context.services).toEqualTypeOf<never>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+                },
+            },
+        })
+        expectTypeOf(handler.sns.handler).toEqualTypeOf<
+            (request: SNSEvent<unknown>, context: LambdaContext<'config', undefined, undefined>) => void
+        >()
+    }
+    {
+        const handler = snsHandler({
+            services: { services: 'services' as const },
+            sns: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, { services: 'services' }, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<never>()
+                    expectTypeOf(context.services).toEqualTypeOf<{ services: 'services' }>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+                },
+            },
+        })
+        expectTypeOf(handler.sns.handler).toEqualTypeOf<
+            (request: SNSEvent<unknown>, context: LambdaContext<undefined, { services: 'services' }, undefined>) => void
+        >()
+    }
+    {
+        const handler = snsHandler({
+            services: () => ({ services: 'services' as const }),
+            sns: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, { services: 'services' }, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<never>()
+                    expectTypeOf(context.services).toEqualTypeOf<{ services: 'services' }>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+                },
+            },
+        })
+        expectTypeOf(handler.sns.handler).toEqualTypeOf<
+            (request: SNSEvent<unknown>, context: LambdaContext<undefined, { services: 'services' }, undefined>) => void
+        >()
+    }
+    {
+        const handler = snsHandler({
+            config: () => 'config' as const,
+            services: (config) => {
+                expectTypeOf(config).toEqualTypeOf<'config'>()
+                return { services: 'services' as const }
+            },
+            sns: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<'config', { services: 'services' }, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<'config'>()
+                    expectTypeOf(context.services).toEqualTypeOf<{ services: 'services' }>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+                },
+            },
+        })
+        expectTypeOf(handler.sns.handler).toEqualTypeOf<
+            (request: SNSEvent<unknown>, context: LambdaContext<'config', { services: 'services' }, undefined>) => void
+        >()
+    }
+    {
+        const handler = snsHandler({
+            profile: { schema: literalSchema<'profile'>() },
+            sns: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, undefined, Schema<'profile'>>>()
+                    expectTypeOf(context.config).toEqualTypeOf<never>()
+                    expectTypeOf(context.services).toEqualTypeOf<never>()
+                    expectTypeOf(context.profile).toEqualTypeOf<'profile'>()
+                },
+            },
+        })
+        expectTypeOf(handler.sns.handler).toEqualTypeOf<
+            (request: SNSEvent<unknown>, context: LambdaContext<undefined, undefined, Schema<'profile'>>) => void
+        >()
+    }
+    {
+        const handler = snsHandler({
+            profile: { schema: z.literal('profile') },
+            sns: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, undefined, z.ZodLiteral<'profile'>>>()
+                    expectTypeOf(context.config).toEqualTypeOf<never>()
+                    expectTypeOf(context.services).toEqualTypeOf<never>()
+                    expectTypeOf(context.profile).toEqualTypeOf<'profile'>()
+                },
+            },
+        })
+        expectTypeOf(handler.sns.handler).toEqualTypeOf<
+            (request: SNSEvent<unknown>, context: LambdaContext<undefined, undefined, z.ZodLiteral<'profile'>>) => void
+        >()
+    }
 })
 
 it('does not handle non sns events', async () => {

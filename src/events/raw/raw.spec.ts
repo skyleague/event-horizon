@@ -1,6 +1,7 @@
 import { asyncForAll, json, oneOf, random, tuple, unknown } from '@skyleague/axioms'
-import { arbitrary } from '@skyleague/therefore'
+import { type Schema, arbitrary } from '@skyleague/therefore'
 import { expect, expectTypeOf, it, vi } from 'vitest'
+import { z } from 'zod'
 import { literalSchema, warmerEvent } from '../../../test/schema.js'
 import { APIGatewayProxyEventV2Schema, APIGatewayRequestAuthorizerEventV2Schema } from '../../aws/apigateway/http.type.js'
 import { APIGatewayProxyEventSchema, APIGatewayRequestAuthorizerEventSchema } from '../../aws/apigateway/rest.type.js'
@@ -14,6 +15,7 @@ import { SecretRotationEvent } from '../../aws/secret-rotation/secret-rotation.t
 import { SnsSchema } from '../../aws/sns/sns.type.js'
 import { SqsSchema } from '../../aws/sqs/sqs.type.js'
 import { context } from '../../test/context/context.js'
+import type { LambdaContext } from '../types.js'
 import { rawHandler } from './raw.js'
 
 it('handles schema types', () => {
@@ -28,6 +30,192 @@ it('handles schema types', () => {
         },
     })
     expectTypeOf(handler.raw.handler).toEqualTypeOf<(request: 'payload') => 'result'>()
+})
+
+it('handles schema types - zod', () => {
+    const handler = rawHandler({
+        raw: {
+            schema: { payload: z.literal('payload'), result: z.literal('result') },
+            handler: (request) => {
+                expectTypeOf(request).toEqualTypeOf<'payload'>()
+
+                return 'result' as const
+            },
+        },
+    })
+    expectTypeOf(handler.raw.handler).toEqualTypeOf<(request: 'payload') => 'result'>()
+})
+
+it('handles schema types - default', () => {
+    const handler = rawHandler({
+        raw: {
+            schema: {},
+            handler: (request) => {
+                expectTypeOf(request).toEqualTypeOf<unknown>()
+
+                return 'result' as const
+            },
+        },
+    })
+    expectTypeOf(handler.raw.handler).toEqualTypeOf<(request: unknown) => 'result'>()
+})
+
+it('handles service and config types', () => {
+    {
+        const handler = rawHandler({
+            raw: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, undefined, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<never>()
+                    expectTypeOf(context.services).toEqualTypeOf<never>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+
+                    return 'result' as const
+                },
+            },
+        })
+        expectTypeOf(handler.raw.handler).toEqualTypeOf<
+            (request: unknown, context: LambdaContext<undefined, undefined, undefined>) => 'result'
+        >()
+    }
+    {
+        const handler = rawHandler({
+            config: 'config' as const,
+            raw: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<'config', undefined, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<'config'>()
+                    expectTypeOf(context.services).toEqualTypeOf<never>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+
+                    return 'result' as const
+                },
+            },
+        })
+        expectTypeOf(handler.raw.handler).toEqualTypeOf<
+            (request: unknown, context: LambdaContext<'config', undefined, undefined>) => 'result'
+        >()
+    }
+    {
+        const handler = rawHandler({
+            config: () => 'config' as const,
+            raw: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<'config', undefined, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<'config'>()
+                    expectTypeOf(context.services).toEqualTypeOf<never>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+
+                    return 'result' as const
+                },
+            },
+        })
+        expectTypeOf(handler.raw.handler).toEqualTypeOf<
+            (request: unknown, context: LambdaContext<'config', undefined, undefined>) => 'result'
+        >()
+    }
+    {
+        const handler = rawHandler({
+            services: { services: 'services' as const },
+            raw: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, { services: 'services' }, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<never>()
+                    expectTypeOf(context.services).toEqualTypeOf<{ services: 'services' }>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+
+                    return 'result' as const
+                },
+            },
+        })
+        expectTypeOf(handler.raw.handler).toEqualTypeOf<
+            (request: unknown, context: LambdaContext<undefined, { services: 'services' }, undefined>) => 'result'
+        >()
+    }
+    {
+        const handler = rawHandler({
+            services: () => ({ services: 'services' as const }),
+            raw: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, { services: 'services' }, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<never>()
+                    expectTypeOf(context.services).toEqualTypeOf<{ services: 'services' }>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+
+                    return 'result' as const
+                },
+            },
+        })
+        expectTypeOf(handler.raw.handler).toEqualTypeOf<
+            (request: unknown, context: LambdaContext<undefined, { services: 'services' }, undefined>) => 'result'
+        >()
+    }
+    {
+        const handler = rawHandler({
+            config: () => 'config' as const,
+            services: (config) => {
+                expectTypeOf(config).toEqualTypeOf<'config'>()
+                return { services: 'services' as const }
+            },
+            raw: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<'config', { services: 'services' }, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<'config'>()
+                    expectTypeOf(context.services).toEqualTypeOf<{ services: 'services' }>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+
+                    return 'result' as const
+                },
+            },
+        })
+        expectTypeOf(handler.raw.handler).toEqualTypeOf<
+            (request: unknown, context: LambdaContext<'config', { services: 'services' }, undefined>) => 'result'
+        >()
+    }
+    {
+        const handler = rawHandler({
+            profile: { schema: literalSchema<'profile'>() },
+            raw: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, undefined, Schema<'profile'>>>()
+                    expectTypeOf(context.config).toEqualTypeOf<never>()
+                    expectTypeOf(context.services).toEqualTypeOf<never>()
+                    expectTypeOf(context.profile).toEqualTypeOf<'profile'>()
+
+                    return 'result' as const
+                },
+            },
+        })
+        expectTypeOf(handler.raw.handler).toEqualTypeOf<
+            (request: unknown, context: LambdaContext<undefined, undefined, Schema<'profile'>>) => 'result'
+        >()
+    }
+    {
+        const handler = rawHandler({
+            profile: { schema: z.literal('profile') },
+            raw: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, undefined, z.ZodLiteral<'profile'>>>()
+                    expectTypeOf(context.config).toEqualTypeOf<never>()
+                    expectTypeOf(context.services).toEqualTypeOf<never>()
+                    expectTypeOf(context.profile).toEqualTypeOf<'profile'>()
+
+                    return 'result' as const
+                },
+            },
+        })
+        expectTypeOf(handler.raw.handler).toEqualTypeOf<
+            (request: unknown, context: LambdaContext<undefined, undefined, z.ZodLiteral<'profile'>>) => 'result'
+        >()
+    }
 })
 
 it('handles schema types and gives errors', () => {

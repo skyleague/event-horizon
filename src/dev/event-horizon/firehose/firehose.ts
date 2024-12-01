@@ -4,11 +4,18 @@ import type { Dependent } from '@skyleague/axioms'
 import { tuple, unknown } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
 import { KinesisFirehoseRecord } from '../../../aws/firehose/firehose.type.js'
+import type { MaybeGenericParser } from '../../../parsers/types.js'
 
 /**
  * @experimental
  */
-export function firehoseTransformationEvent<Configuration, Service, Profile, Payload, Result>(
+export function firehoseTransformationEvent<
+    Configuration,
+    Service,
+    Profile extends MaybeGenericParser,
+    Payload extends MaybeGenericParser,
+    Result extends MaybeGenericParser,
+>(
     { firehose }: FirehoseTransformationHandler<Configuration, Service, Profile, Payload, Result>,
     { generation = 'fast' }: { generation?: 'full' | 'fast' } = {},
 ): Dependent<FirehoseTransformationEvent<Payload>> {

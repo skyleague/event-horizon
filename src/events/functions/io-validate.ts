@@ -1,54 +1,64 @@
+import type { Try } from '@skyleague/axioms'
+import type { Simplify } from '@skyleague/axioms/types'
 import { EventError } from '../../errors/event-error/event-error.js'
-
-import type { SimplifyOnce, Try } from '@skyleague/axioms'
-import type { Schema } from '@skyleague/therefore'
-
+import { safeParse } from '../../parsers/parse.js'
+import type { InferFromParser, MaybeGenericParser } from '../../parsers/types.js'
 type MappedSchema<T, Key extends keyof T | undefined, ST> = Key extends keyof T
-    ? SimplifyOnce<Exclude<T, Key> & { [k in Key]: ST }>
+    ? Simplify<Exclude<T, Key> & { [k in Key]: ST }>
     : never
 
 export function ioValidate<I = unknown, O = unknown>(): {
-    before: <SI, Key extends keyof I | undefined = undefined, U = Key extends string ? Try<MappedSchema<I, Key, SI>> : Try<SI>>(
-        schema: Schema<SI> | undefined,
+    before: <
+        SI extends MaybeGenericParser,
+        Key extends keyof I | undefined = undefined,
+        U = Key extends string ? Try<MappedSchema<I, Key, InferFromParser<SI>>> : Try<InferFromParser<SI>>,
+    >(
+        schema: SI,
         event: I,
         path?: Key,
-    ) => U
-    after: <SO, Key extends keyof O | undefined = undefined, U = Key extends string ? Try<MappedSchema<O, Key, SO>> : Try<SO>>(
-        schema: Schema<SO> | undefined,
+    ) => Promise<U>
+    after: <
+        SO extends MaybeGenericParser,
+        Key extends keyof O | undefined = undefined,
+        U = Key extends string ? Try<MappedSchema<O, Key, InferFromParser<SO>>> : Try<InferFromParser<SO>>,
+    >(
+        schema: SO,
         event: O,
         path?: Key,
-    ) => U
+    ) => Promise<U>
 } {
     return {
-        before: <
-            SI,
+        before: async <
+            SI extends MaybeGenericParser,
             Key extends keyof I | undefined = undefined,
-            U = Key extends string ? Try<MappedSchema<I, Key, SI>> : Try<SI>,
+            U = Key extends string ? Try<MappedSchema<I, Key, InferFromParser<SI>>> : Try<InferFromParser<SI>>,
         >(
-            schema: Schema<SI> | undefined,
+            schema: SI,
             event: I,
             key?: Key,
-        ): U => {
+        ): Promise<U> => {
             const unknownValue = key !== undefined ? event[key] : event
-            if (schema?.is(unknownValue) === false) {
-                return EventError.validation({ errors: schema.errors }) as U
+            const parsed = await safeParse(schema, unknownValue)
+            if (key !== undefined && !(parsed instanceof EventError)) {
+                return { ...event, [key]: parsed } as U
             }
-            return event as unknown as U
+            return parsed as U
         },
-        after: <
-            SO,
+        after: async <
+            SO extends MaybeGenericParser,
             Key extends keyof O | undefined = undefined,
-            U = Key extends string ? Try<MappedSchema<O, Key, SO>> : Try<SO>,
+            U = Key extends string ? Try<MappedSchema<O, Key, InferFromParser<SO>>> : Try<InferFromParser<SO>>,
         >(
-            schema: Schema<SO> | undefined,
+            schema: SO,
             event: O,
             key?: Key,
-        ): U => {
+        ): Promise<U> => {
             const unknownValue = key !== undefined ? event[key] : event
-            if (schema?.is(unknownValue) === false) {
-                return EventError.validation({ errors: schema.errors }) as U
+            const parsed = await safeParse(schema, unknownValue)
+            if (key !== undefined && !(parsed instanceof EventError)) {
+                return { ...event, [key]: parsed } as U
             }
-            return event as unknown as U
+            return parsed as U
         },
     }
 }

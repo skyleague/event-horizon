@@ -271,31 +271,27 @@ describe('eventHandler', () => {
     })
 
     it('eager init calls config and services, async - services fails', async () => {
-        await asyncForAll(
-            tuple(configArbitrary, unknown()),
-            async ([c, s]) => {
-                const config = vi.fn().mockResolvedValue(c)
-                const services = vi.fn().mockRejectedValue(s)
-                await expect(
-                    eventHandler(
-                        {
-                            config,
-                            services,
-                        },
-                        { eagerHandlerInitialization: true, handler: vi.fn() },
-                    ),
-                ).rejects.toEqual(s)
+        await asyncForAll(tuple(configArbitrary, unknown()), async ([c, s]) => {
+            const config = vi.fn().mockResolvedValue(c)
+            const services = vi.fn().mockRejectedValue(s)
+            await expect(
+                eventHandler(
+                    {
+                        config,
+                        services,
+                    },
+                    { eagerHandlerInitialization: true, handler: vi.fn() },
+                ),
+            ).rejects.toEqual(s)
 
-                expect(config).toHaveBeenCalledTimes(1)
-                expect(config).toHaveBeenCalledWith()
-                expect(services).toHaveBeenCalledTimes(1)
-                expect(services).toHaveBeenCalledWith(asConfig(c))
-                if (isObject(c)) {
-                    expect(services).toHaveBeenCalledWith({ [configTag]: c })
-                }
-            },
-            { counterExample: [0, 0] },
-        )
+            expect(config).toHaveBeenCalledTimes(1)
+            expect(config).toHaveBeenCalledWith()
+            expect(services).toHaveBeenCalledTimes(1)
+            expect(services).toHaveBeenCalledWith(asConfig(c))
+            if (isObject(c)) {
+                expect(services).toHaveBeenCalledWith({ [configTag]: c })
+            }
+        })
     })
 
     it('lazy init calls not config and not services, async', async () => {

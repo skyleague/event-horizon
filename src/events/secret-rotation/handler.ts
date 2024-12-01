@@ -1,18 +1,18 @@
+import type { Try } from '@skyleague/axioms'
+import { Nothing, isJust, mapTry } from '@skyleague/axioms'
+import type { SetRequired } from '@skyleague/axioms/types'
+import type { SecretsManagerRotationEvent } from 'aws-lambda'
+import type { MaybeGenericParser } from '../../parsers/types.js'
+import { ioLogger } from '../functions/io-logger.js'
+import type { DefaultServices, LambdaContext } from '../types.js'
 import { secretParseEvent } from './functions/parse-event.js'
 import { secretValidateEvent } from './functions/validate-event.js'
 import type { SecretRotationHandler } from './types.js'
 
-import { ioLogger } from '../functions/io-logger.js'
-import type { DefaultServices, LambdaContext } from '../types.js'
-
-import type { RequireKeys, Try } from '@skyleague/axioms'
-import { Nothing, isJust, mapTry } from '@skyleague/axioms'
-import type { SecretsManagerRotationEvent } from 'aws-lambda'
-
 export async function handleSecretRotationEvent<
     Configuration,
-    Service extends RequireKeys<DefaultServices, 'secretsManager'>,
-    Profile,
+    Service extends SetRequired<DefaultServices, 'secretsManager'>,
+    Profile extends MaybeGenericParser,
 >(
     handler: SecretRotationHandler<Configuration, Service, Profile>,
     event: SecretsManagerRotationEvent,

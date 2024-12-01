@@ -1,5 +1,327 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`buids the petstore openapi - zod 1`] = `
+{
+  "body": {
+    "components": {
+      "requestBodies": {
+        "--91-symbolName--": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/--91-symbolName--",
+              },
+            },
+          },
+          "description": "Pet object from the store",
+        },
+      },
+      "responses": {
+        "--113-symbolName--": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/--113-symbolName--",
+              },
+            },
+          },
+          "description": "Pet object from the store",
+        },
+        "--136-symbolName--": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/--136-symbolName--",
+              },
+            },
+          },
+          "description": "A list of Pet objects",
+        },
+        "ErrorResponse": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse",
+              },
+            },
+          },
+          "description": "The default error error response for both 400 & 500 type errors",
+        },
+      },
+      "schemas": {
+        "--113-symbolName--": {
+          "additionalProperties": true,
+          "description": "Pet object from the store",
+          "properties": {
+            "category": {
+              "additionalProperties": true,
+              "properties": {
+                "id": {
+                  "type": "integer",
+                },
+                "name": {
+                  "type": "string",
+                },
+              },
+              "required": [
+                "id",
+                "name",
+              ],
+              "type": "object",
+            },
+            "id": {
+              "type": "integer",
+            },
+            "name": {
+              "type": "string",
+            },
+            "photoUrls": {
+              "items": {
+                "type": "string",
+              },
+              "type": "array",
+            },
+            "status": {
+              "enum": [
+                "available",
+                "pending",
+                "sold",
+              ],
+            },
+            "tags": {
+              "items": {
+                "additionalProperties": true,
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                  },
+                  "name": {
+                    "type": "string",
+                  },
+                },
+                "type": "object",
+              },
+              "type": "array",
+            },
+          },
+          "required": [
+            "name",
+            "photoUrls",
+          ],
+          "title": "{{113:symbolName}}",
+          "type": "object",
+        },
+        "--136-symbolName--": {
+          "description": "A list of Pet objects",
+          "items": {
+            "additionalProperties": true,
+            "description": "Pet object from the store",
+            "properties": {
+              "category": {
+                "additionalProperties": true,
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                  },
+                  "name": {
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "id",
+                  "name",
+                ],
+                "type": "object",
+              },
+              "id": {
+                "type": "integer",
+              },
+              "name": {
+                "type": "string",
+              },
+              "photoUrls": {
+                "items": {
+                  "type": "string",
+                },
+                "type": "array",
+              },
+              "status": {
+                "enum": [
+                  "available",
+                  "pending",
+                  "sold",
+                ],
+              },
+              "tags": {
+                "items": {
+                  "additionalProperties": true,
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                    },
+                    "name": {
+                      "type": "string",
+                    },
+                  },
+                  "type": "object",
+                },
+                "type": "array",
+              },
+            },
+            "required": [
+              "name",
+              "photoUrls",
+            ],
+            "type": "object",
+          },
+          "title": "{{136:symbolName}}",
+          "type": "array",
+        },
+        "--91-symbolName--": {
+          "additionalProperties": true,
+          "description": "Pet object from the store",
+          "properties": {
+            "category": {
+              "additionalProperties": true,
+              "properties": {
+                "id": {
+                  "type": "integer",
+                },
+                "name": {
+                  "type": "string",
+                },
+              },
+              "required": [
+                "id",
+                "name",
+              ],
+              "type": "object",
+            },
+            "id": {
+              "type": "integer",
+            },
+            "name": {
+              "type": "string",
+            },
+            "photoUrls": {
+              "items": {
+                "type": "string",
+              },
+              "type": "array",
+            },
+            "status": {
+              "enum": [
+                "available",
+                "pending",
+                "sold",
+              ],
+            },
+            "tags": {
+              "items": {
+                "additionalProperties": true,
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                  },
+                  "name": {
+                    "type": "string",
+                  },
+                },
+                "type": "object",
+              },
+              "type": "array",
+            },
+          },
+          "required": [
+            "name",
+            "photoUrls",
+          ],
+          "title": "{{91:symbolName}}",
+          "type": "object",
+        },
+        "ErrorResponse": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "additionalProperties": true,
+          "description": "The default error error response for both 400 & 500 type errors",
+          "properties": {
+            "message": {
+              "description": "A detailed message of the error.",
+              "type": "string",
+            },
+            "statusCode": {
+              "description": "The status code of the response.",
+              "type": "integer",
+            },
+          },
+          "required": [
+            "message",
+            "statusCode",
+          ],
+          "title": "HttpError",
+          "type": "object",
+        },
+      },
+    },
+    "info": {
+      "title": "@skyleague/event-horizon",
+      "version": "6.1.0",
+    },
+    "openapi": "3.1.0",
+    "paths": {
+      "/pet": {
+        "post": {
+          "description": "Add a new pet to the store",
+          "parameters": [],
+          "requestBody": {
+            "$ref": "#/components/requestBodies/--91-symbolName--",
+          },
+          "responses": {
+            "200": {
+              "$ref": "#/components/responses/--113-symbolName--",
+            },
+            "404": {
+              "$ref": "#/components/responses/ErrorResponse",
+            },
+            "default": {
+              "$ref": "#/components/responses/ErrorResponse",
+            },
+          },
+        },
+      },
+      "/pet/findByStatus": {
+        "get": {
+          "description": "Multiple status values can be provided with comma separated strings",
+          "parameters": [
+            {
+              "in": "query",
+              "name": "status",
+              "required": true,
+              "schema": {
+                "enum": [
+                  "available",
+                  "pending",
+                  "sold",
+                ],
+              },
+            },
+          ],
+          "responses": {
+            "200": {
+              "$ref": "#/components/responses/--136-symbolName--",
+            },
+            "default": {
+              "$ref": "#/components/responses/ErrorResponse",
+            },
+          },
+          "summary": "Finds Pets by status",
+        },
+      },
+    },
+  },
+  "statusCode": 200,
+}
+`;
+
 exports[`buids the petstore openapi 1`] = `
 {
   "body": {
@@ -68,7 +390,6 @@ exports[`buids the petstore openapi 1`] = `
             "id",
             "name",
           ],
-          "title": "Category",
           "type": "object",
         },
         "ErrorResponse": {
@@ -112,11 +433,7 @@ exports[`buids the petstore openapi 1`] = `
               "type": "array",
             },
             "status": {
-              "enum": [
-                "available",
-                "pending",
-                "sold",
-              ],
+              "$ref": "#/components/schemas/Status",
             },
             "tags": {
               "items": {
@@ -146,7 +463,6 @@ exports[`buids the petstore openapi 1`] = `
             "pending",
             "sold",
           ],
-          "title": "Status",
         },
         "Tag": {
           "additionalProperties": true,
@@ -158,7 +474,6 @@ exports[`buids the petstore openapi 1`] = `
               "type": "string",
             },
           },
-          "title": "Tag",
           "type": "object",
         },
       },

@@ -4,6 +4,7 @@ import { arbitrary } from '@skyleague/therefore'
 import { $ref, $string, $unknown, type Node } from '@skyleague/therefore'
 import { EventBridgeSchema } from '../../../aws/eventbridge/eventbridge.type.js'
 import type { EventBridgeEvent, EventBridgeHandler } from '../../../events/eventbridge/types.js'
+import type { MaybeGenericParser } from '../../../parsers/types.js'
 
 export function $eventBridge({
     detailType = $string(),
@@ -18,7 +19,13 @@ export function $eventBridge({
     })
 }
 
-export function eventBridgeEvent<Configuration, Service, Profile, Payload, Result>(
+export function eventBridgeEvent<
+    Configuration,
+    Service,
+    Profile extends MaybeGenericParser,
+    Payload extends MaybeGenericParser,
+    Result extends MaybeGenericParser,
+>(
     { eventBridge }: EventBridgeHandler<Configuration, Service, Profile, Payload, Result>,
     { generation = 'fast' }: { generation?: 'full' | 'fast' } = {},
 ): Dependent<EventBridgeEvent<Payload>> {

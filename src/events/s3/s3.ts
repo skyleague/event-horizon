@@ -1,11 +1,17 @@
 import type { S3RecordSchema } from '../../aws/s3/s3.type.js'
 import { EventError } from '../../errors/event-error/event-error.js'
+import type { MaybeGenericParser } from '../../parsers/types.js'
 import { type EventHandlerFn, eventHandler } from '../common/event.js'
 import type { DefaultServices } from '../types.js'
 import { handleS3Event } from './handler.js'
 import type { S3Handler } from './types.js'
 
-export function s3Handler<Configuration, Service extends DefaultServices | undefined, Profile, D>(
+export function s3Handler<
+    D,
+    Configuration = undefined,
+    Service extends DefaultServices | undefined = undefined,
+    Profile extends MaybeGenericParser = undefined,
+>(
     definition: D & S3Handler<Configuration, Service, Profile>,
     { _kernel = handleS3Event }: { _kernel?: typeof handleS3Event } = {},
 ): D & EventHandlerFn<Configuration, Service, Profile> {

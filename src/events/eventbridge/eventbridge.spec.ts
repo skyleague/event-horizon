@@ -9,14 +9,16 @@ import { SecretRotationEvent } from '../../aws/secret-rotation/secret-rotation.t
 import { context } from '../../test/context/context.js'
 
 import { asyncForAll, oneOf, random, tuple, unknown } from '@skyleague/axioms'
-import { arbitrary } from '@skyleague/therefore'
+import { type Schema, arbitrary } from '@skyleague/therefore'
 import { expect, expectTypeOf, it, vi } from 'vitest'
+import { z } from 'zod'
 import { APIGatewayProxyEventV2Schema, APIGatewayRequestAuthorizerEventV2Schema } from '../../aws/apigateway/http.type.js'
 import { APIGatewayProxyEventSchema, APIGatewayRequestAuthorizerEventSchema } from '../../aws/apigateway/rest.type.js'
 import { EventBridgeSchema } from '../../aws/eventbridge/eventbridge.type.js'
 import { KinesisFirehoseSchema } from '../../aws/firehose/firehose.type.js'
 import { SnsSchema } from '../../aws/sns/sns.type.js'
 import { SqsSchema } from '../../aws/sqs/sqs.type.js'
+import type { LambdaContext } from '../types.js'
 
 it('handles eventbridge events', async () => {
     const eventBridge = vi.fn()
@@ -42,12 +44,188 @@ it('handles schema types', () => {
             schema: { payload: literalSchema<'payload'>(), result: literalSchema<'result'>() },
             handler: (request) => {
                 expectTypeOf(request).toEqualTypeOf<EventBridgeEvent<'payload'>>()
+                expectTypeOf(request.payload).toEqualTypeOf<'payload'>()
+                expectTypeOf(request.raw).toEqualTypeOf<EventBridgeSchema>()
 
                 return 'result' as const
             },
         },
     })
     expectTypeOf(handler.eventBridge.handler).toEqualTypeOf<(request: EventBridgeEvent<'payload'>) => 'result'>()
+})
+
+it('handles schema types - zod', () => {
+    const handler = eventBridgeHandler({
+        eventBridge: {
+            schema: { payload: z.literal('payload'), result: z.literal('result') },
+            handler: (request) => {
+                expectTypeOf(request).toEqualTypeOf<EventBridgeEvent<'payload'>>()
+                expectTypeOf(request.payload).toEqualTypeOf<'payload'>()
+                expectTypeOf(request.raw).toEqualTypeOf<EventBridgeSchema>()
+
+                return 'result' as const
+            },
+        },
+    })
+    expectTypeOf(handler.eventBridge.handler).toEqualTypeOf<(request: EventBridgeEvent<'payload'>) => 'result'>()
+})
+
+it('handles schema types - default', () => {
+    const handler = eventBridgeHandler({
+        eventBridge: {
+            schema: {},
+            handler: (request) => {
+                expectTypeOf(request).toEqualTypeOf<EventBridgeEvent<unknown>>()
+                expectTypeOf(request.payload).toEqualTypeOf<unknown>()
+                expectTypeOf(request.raw).toEqualTypeOf<EventBridgeSchema>()
+
+                return 'result' as const
+            },
+        },
+    })
+    expectTypeOf(handler.eventBridge.handler).toEqualTypeOf<(request: EventBridgeEvent<unknown>) => 'result'>()
+})
+
+it('handles service and config types', () => {
+    {
+        const handler = eventBridgeHandler({
+            eventBridge: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, undefined, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<never>()
+                    expectTypeOf(context.services).toEqualTypeOf<never>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+                },
+            },
+        })
+        expectTypeOf(handler.eventBridge.handler).toEqualTypeOf<
+            (request: EventBridgeEvent<unknown>, context: LambdaContext<undefined, undefined, undefined>) => void
+        >()
+    }
+    {
+        const handler = eventBridgeHandler({
+            config: 'config' as const,
+            eventBridge: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<'config', undefined, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<'config'>()
+                    expectTypeOf(context.services).toEqualTypeOf<never>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+                },
+            },
+        })
+        expectTypeOf(handler.eventBridge.handler).toEqualTypeOf<
+            (request: EventBridgeEvent<unknown>, context: LambdaContext<'config', undefined, undefined>) => void
+        >()
+    }
+    {
+        const handler = eventBridgeHandler({
+            config: () => 'config' as const,
+            eventBridge: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<'config', undefined, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<'config'>()
+                    expectTypeOf(context.services).toEqualTypeOf<never>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+                },
+            },
+        })
+        expectTypeOf(handler.eventBridge.handler).toEqualTypeOf<
+            (request: EventBridgeEvent<unknown>, context: LambdaContext<'config', undefined, undefined>) => void
+        >()
+    }
+    {
+        const handler = eventBridgeHandler({
+            services: { services: 'services' as const },
+            eventBridge: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, { services: 'services' }, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<never>()
+                    expectTypeOf(context.services).toEqualTypeOf<{ services: 'services' }>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+                },
+            },
+        })
+        expectTypeOf(handler.eventBridge.handler).toEqualTypeOf<
+            (request: EventBridgeEvent<unknown>, context: LambdaContext<undefined, { services: 'services' }, undefined>) => void
+        >()
+    }
+    {
+        const handler = eventBridgeHandler({
+            services: () => ({ services: 'services' as const }),
+            eventBridge: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, { services: 'services' }, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<never>()
+                    expectTypeOf(context.services).toEqualTypeOf<{ services: 'services' }>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+                },
+            },
+        })
+        expectTypeOf(handler.eventBridge.handler).toEqualTypeOf<
+            (request: EventBridgeEvent<unknown>, context: LambdaContext<undefined, { services: 'services' }, undefined>) => void
+        >()
+    }
+    {
+        const handler = eventBridgeHandler({
+            config: () => 'config' as const,
+            services: (config) => {
+                expectTypeOf(config).toEqualTypeOf<'config'>()
+                return { services: 'services' as const }
+            },
+            eventBridge: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<'config', { services: 'services' }, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<'config'>()
+                    expectTypeOf(context.services).toEqualTypeOf<{ services: 'services' }>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+                },
+            },
+        })
+        expectTypeOf(handler.eventBridge.handler).toEqualTypeOf<
+            (request: EventBridgeEvent<unknown>, context: LambdaContext<'config', { services: 'services' }, undefined>) => void
+        >()
+    }
+    {
+        const handler = eventBridgeHandler({
+            profile: { schema: literalSchema<'profile'>() },
+            eventBridge: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, undefined, Schema<'profile'>>>()
+                    expectTypeOf(context.config).toEqualTypeOf<never>()
+                    expectTypeOf(context.services).toEqualTypeOf<never>()
+                    expectTypeOf(context.profile).toEqualTypeOf<'profile'>()
+                },
+            },
+        })
+        expectTypeOf(handler.eventBridge.handler).toEqualTypeOf<
+            (request: EventBridgeEvent<unknown>, context: LambdaContext<undefined, undefined, Schema<'profile'>>) => void
+        >()
+    }
+    {
+        const handler = eventBridgeHandler({
+            profile: { schema: z.literal('profile') },
+            eventBridge: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, undefined, z.ZodLiteral<'profile'>>>()
+                    expectTypeOf(context.config).toEqualTypeOf<never>()
+                    expectTypeOf(context.services).toEqualTypeOf<never>()
+                    expectTypeOf(context.profile).toEqualTypeOf<'profile'>()
+                },
+            },
+        })
+        expectTypeOf(handler.eventBridge.handler).toEqualTypeOf<
+            (request: EventBridgeEvent<unknown>, context: LambdaContext<undefined, undefined, z.ZodLiteral<'profile'>>) => void
+        >()
+    }
 })
 
 it('handles schema types and gives errors', () => {

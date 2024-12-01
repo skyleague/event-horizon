@@ -4,8 +4,9 @@ import type { Dependent } from '@skyleague/axioms'
 import { alphaNumeric, array, constant, integer, object, tuple, unknown } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
 import { SqsRecordSchema } from '../../../aws/sqs/sqs.type.js'
+import type { MaybeGenericParser } from '../../../parsers/types.js'
 
-export function sqsEvent<Configuration, Service, Profile, Payload>(
+export function sqsEvent<Configuration, Service, Profile extends MaybeGenericParser, Payload extends MaybeGenericParser>(
     definition: SQSHandler<Configuration, Service, Profile, Payload>,
     { generation = 'fast' }: { generation?: 'full' | 'fast' } = {},
 ): Dependent<SQSEvent<Payload>> {
@@ -18,7 +19,7 @@ export function sqsEvent<Configuration, Service, Profile, Payload>(
     } satisfies { [k in keyof SQSEvent]: unknown }) as Dependent<SQSEvent<Payload>>
 }
 
-export function sqsGroupEvent<Configuration, Service, Profile, Payload>(
+export function sqsGroupEvent<Configuration, Service, Profile extends MaybeGenericParser, Payload extends MaybeGenericParser>(
     definition: SQSGroupHandler<Configuration, Service, Profile, Payload>,
     { generation = 'fast' }: { generation?: 'full' | 'fast' } = {},
 ): Dependent<SQSMessageGroup<Payload>> {

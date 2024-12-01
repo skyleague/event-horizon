@@ -3,15 +3,17 @@ import { arbitrary } from '@skyleague/therefore'
 import { APIGatewayProxyEventSchema } from '../../../../aws/apigateway/rest.type.js'
 import type { AuthorizerSchema, HTTPHandler, HTTPRequest, Responses } from '../../../../events/apigateway/event/types.js'
 import type { SecurityRequirements } from '../../../../events/apigateway/types.js'
+import type { MaybeGenericParser } from '../../../../parsers/types.js'
+import { coerce } from '../../coerce.js'
 
 export function restApiEvent<
     Configuration,
     Service,
-    Profile,
-    Body,
-    Path,
-    Query,
-    Headers,
+    Profile extends MaybeGenericParser,
+    Body extends MaybeGenericParser,
+    Path extends MaybeGenericParser,
+    Query extends MaybeGenericParser,
+    Headers extends MaybeGenericParser,
     Result extends Responses,
     Security extends SecurityRequirements,
     Authorizer extends AuthorizerSchema<'rest'>,
@@ -36,10 +38,10 @@ export function restApiEvent<
             raw: constant(r),
         }).map((event) => {
             // force coercion
-            http.schema.body?.is?.(event.body) ?? true
-            http.schema.headers?.is?.(event.headers) ?? true
-            http.schema.query?.is?.(event.query) ?? true
-            http.schema.path?.is?.(event.path) ?? true
+            event.body = coerce(http.schema.body, event.body)
+            event.headers = coerce(http.schema.headers, event.headers)
+            event.query = coerce(http.schema.query, event.query)
+            event.path = coerce(http.schema.path, event.path)
 
             if (bodyType !== 'binary') {
                 const eventBody = event.body ?? event.raw.body
