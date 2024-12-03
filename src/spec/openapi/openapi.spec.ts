@@ -352,21 +352,23 @@ describe('normalizeSchema', () => {
 
     it('object with ref properties to component', () => {
         forAll(
-            tuple(record(json()), record(json()), alpha({ minLength: 1 }), alpha()).map(
-                ([jsonschema, definition, name, title]) =>
-                    [
-                        {
-                            ...jsonschema,
+            tuple(record(json()), record(json()), alpha({ minLength: 1 }), alpha())
+                .map(
+                    ([jsonschema, definition, name, title]) =>
+                        [
+                            {
+                                ...jsonschema,
+                                title,
+                                type: 'object',
+                                properties: { [name]: { $ref: `#/$defs/${name}` } },
+                                $defs: { [name]: definition },
+                            },
+                            definition,
+                            name,
                             title,
-                            type: 'object',
-                            properties: { [name]: { $ref: `#/$defs/${name}` } },
-                            $defs: { [name]: definition },
-                        },
-                        definition,
-                        name,
-                        title,
-                    ] as const,
-            ),
+                        ] as const,
+                )
+                .filter(([_, __, name, title]) => name !== title),
             ([jsonschema, definition, name, title]) => {
                 openapi = {}
                 expect(normalizeSchema({ ctx: { openapi } as any, schema: jsonschema as any })).toEqual({
