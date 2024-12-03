@@ -1,8 +1,20 @@
 import type { APIGatewayRequestAuthorizerEventV2Schema } from '../../../../aws/apigateway/http.type.js'
 import type { APIGatewayRequestAuthorizerEventSchema } from '../../../../aws/apigateway/rest.type.js'
-import type { RequestAuthorizerEvent, RequestAuthorizerEventHandler } from '../types.js'
+import type { MaybeGenericParser } from '../../../../parsers/types.js'
+import type { GatewayVersion } from '../../event/types.js'
+import type { RequestAuthorizerEvent, RequestAuthorizerEventHandler, SecuritySchemes } from '../types.js'
 
-export function authorizerParseEvent<Handler extends RequestAuthorizerEventHandler>(handler: Handler) {
+export function authorizerParseEvent<
+    Configuration,
+    Service,
+    Profile extends MaybeGenericParser,
+    Path extends MaybeGenericParser,
+    Query extends MaybeGenericParser,
+    Headers extends MaybeGenericParser,
+    Context extends MaybeGenericParser,
+    Security extends SecuritySchemes | undefined,
+    GV extends GatewayVersion,
+>(handler: RequestAuthorizerEventHandler<Configuration, Service, Profile, Path, Query, Headers, Context, Security, GV>) {
     return {
         before: (
             event: APIGatewayRequestAuthorizerEventV2Schema | APIGatewayRequestAuthorizerEventSchema,

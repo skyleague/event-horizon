@@ -220,6 +220,16 @@ export class EventError extends Error implements HttpError {
                       location?: string
                   }
                 | {
+                      issues?:
+                          | {
+                                message: string
+                                path?: PropertyKey[]
+                            }[]
+                          | null
+                          | undefined
+                      location?: string
+                  }
+                | {
                       left?: ErrorObject[] | null | undefined
                       location?: string
                   }

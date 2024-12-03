@@ -3,8 +3,9 @@ import { tuple, unknown } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
 import { KinesisDataStreamRecord } from '../../../aws/kinesis/kinesis.type.js'
 import type { KinesisEvent, KinesisHandler } from '../../../events/kinesis/types.js'
+import type { MaybeGenericParser } from '../../../parsers/types.js'
 
-export function kinesisEvent<Configuration, Service, Profile, Payload>(
+export function kinesisEvent<Configuration, Service, Profile extends MaybeGenericParser, Payload extends MaybeGenericParser>(
     { kinesis }: KinesisHandler<Configuration, Service, Profile, Payload>,
     { generation = 'fast' }: { generation?: 'full' | 'fast' } = {},
 ): Dependent<KinesisEvent<Payload>> {

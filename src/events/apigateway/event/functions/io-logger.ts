@@ -1,17 +1,48 @@
 import type { Try } from '@skyleague/axioms'
 import { isSuccess, pick } from '@skyleague/axioms'
 import { loggingConstants } from '../../../../constants.js'
-import type { LambdaContext } from '../../../types.js'
-import type { HTTPEmptyResponse, HTTPEventHandler, HTTPRequest, HTTPResponse } from '../types.js'
-import type { HttpError } from './http-error.type.js'
+import type { MaybeGenericParser } from '../../../../parsers/types.js'
+import type { EventFromHandler, LambdaContext, ResponseFromHandler } from '../../../types.js'
+import type { SecurityRequirements } from '../../types.js'
+import type { AuthorizerSchema, GatewayVersion, HTTPEventHandler, Responses } from '../types.js'
 
-export function httpIOLogger<Handler extends HTTPEventHandler>(
-    { path }: Handler,
+export function httpIOLogger<
+    Configuration,
+    Service,
+    Profile extends MaybeGenericParser,
+    Body extends MaybeGenericParser,
+    Path extends MaybeGenericParser,
+    Query extends MaybeGenericParser,
+    Headers extends MaybeGenericParser,
+    Result extends Responses,
+    Security extends SecurityRequirements | undefined,
+    GV extends GatewayVersion,
+    Authorizer extends AuthorizerSchema<GV>,
+>(
+    { path }: HTTPEventHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, Security, GV, Authorizer>,
     { logger, isSensitive }: Pick<LambdaContext, 'logger' | 'isSensitive'>,
 ) {
     const pathPrefix = path !== undefined ? `${path} ` : ''
     return {
-        before: (request: Try<HTTPRequest>) => {
+        before: (
+            request: Try<
+                EventFromHandler<
+                    HTTPEventHandler<
+                        Configuration,
+                        Service,
+                        Profile,
+                        Body,
+                        Path,
+                        Query,
+                        Headers,
+                        Result,
+                        Security,
+                        GV,
+                        Authorizer
+                    >
+                >
+            >,
+        ) => {
             if (!isSensitive) {
                 logger.info(
                     `[http] ${pathPrefix}start`,
@@ -23,7 +54,25 @@ export function httpIOLogger<Handler extends HTTPEventHandler>(
                 )
             }
         },
-        after: (response: Try<HTTPResponse<number, HttpError | unknown> | HTTPEmptyResponse<number>>) => {
+        after: (
+            response: Awaited<
+                ResponseFromHandler<
+                    HTTPEventHandler<
+                        Configuration,
+                        Service,
+                        Profile,
+                        Body,
+                        Path,
+                        Query,
+                        Headers,
+                        Result,
+                        Security,
+                        GV,
+                        Authorizer
+                    >
+                >
+            >,
+        ) => {
             if (!isSensitive) {
                 if (isSuccess(response)) {
                     logger.info(

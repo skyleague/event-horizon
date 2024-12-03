@@ -71,7 +71,7 @@ export interface KafkaSelfManagedEventSchema {
     records: {
         [k: string]: KafkaRecordSchema[] | undefined
     }
-    eventSource: 'aws:SelfManagedKafka'
+    eventSource: 'SelfManagedKafka'
 }
 
 export const KafkaSelfManagedEventSchema = {

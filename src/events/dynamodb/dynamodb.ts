@@ -1,11 +1,17 @@
 import type { DynamoDBStreamRecord } from '../../aws/dynamodb/dynamodb.type.js'
 import { EventError } from '../../errors/event-error/event-error.js'
+import type { MaybeGenericParser } from '../../parsers/types.js'
 import { type EventHandlerFn, eventHandler } from '../common/event.js'
 import type { DefaultServices } from '../types.js'
 import { handleDynamoDBStreamEvent } from './handler.js'
 import type { DynamoDBStreamHandler } from './types.js'
 
-export function dynamodbHandler<Configuration, Service extends DefaultServices | undefined, Profile, D>(
+export function dynamodbHandler<
+    D,
+    Configuration = undefined,
+    Service extends DefaultServices | undefined = undefined,
+    Profile extends MaybeGenericParser = undefined,
+>(
     definition: D & DynamoDBStreamHandler<Configuration, Service, Profile>,
     { _kernel = handleDynamoDBStreamEvent }: { _kernel?: typeof handleDynamoDBStreamEvent } = {},
 ): D & EventHandlerFn<Configuration, Service, Profile> {

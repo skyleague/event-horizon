@@ -17,10 +17,11 @@ import type { Metrics } from '../../observability/metrics/metrics.js'
 import { metrics as globalMetrics } from '../../observability/metrics/metrics.js'
 import type { Tracer } from '../../observability/tracer/tracer.js'
 import { tracer as globalTracer } from '../../observability/tracer/tracer.js'
+import type { MaybeGenericParser } from '../../parsers/types.js'
 import { type AsConfig, asConfig } from './config.js'
 import type { RawRequest, RawResponse } from './raw-aws.js'
 
-export async function createLambdaContext<Configuration, Service, Profile>({
+export async function createLambdaContext<Configuration, Service, Profile extends MaybeGenericParser>({
     definition,
     context,
     services,
@@ -64,22 +65,30 @@ export async function createLambdaContext<Configuration, Service, Profile>({
 /**
  * @internal
  */
-export interface EventHandlerOptions<R, Configuration, Service, Profile> {
+export interface EventHandlerOptions<R, Configuration, Service, Profile extends MaybeGenericParser> {
     handler: (request: RawRequest | null | undefined, context: LambdaContext<Configuration, Service, Profile>) => Promise<Try<R>>
     traceId?: (request: RawRequest) => string | undefined
     requestId?: (request: RawRequest) => string | undefined
     eagerHandlerInitialization?: boolean
 }
 
-export type EventHandlerFn<Configuration, Service extends DefaultServices | undefined, Profile, R = unknown> = ((
-    request: RawRequest | null | undefined,
-    context: Context,
-) => Promise<Try<R>>) &
+export type EventHandlerFn<
+    Configuration,
+    Service extends DefaultServices | undefined,
+    Profile extends MaybeGenericParser,
+    R = unknown,
+> = ((request: RawRequest | null | undefined, context: Context) => Promise<Try<R>>) &
     EventHandlerDefinition<Configuration, Service, Profile> & {
         _options: EventHandlerOptions<R, Configuration, Service, Profile>
     }
 
-export function eventHandler<R, Configuration, Service extends DefaultServices | undefined, Profile, D>(
+export function eventHandler<
+    R,
+    Configuration,
+    Service extends DefaultServices | undefined,
+    Profile extends MaybeGenericParser,
+    D,
+>(
     definition: EventHandlerDefinition<Configuration, Service, Profile> & D,
     options: EventHandlerOptions<R, Configuration, Service, Profile>,
 ): D & EventHandlerFn<Configuration, Service, Profile, R> {
@@ -136,8 +145,10 @@ export function eventHandler<R, Configuration, Service extends DefaultServices |
         loggerContextFn.before(request, context)
 
         const ctx = await mapTry(lambdaContext, async (c) => {
-            c.profile = (await profileFn.before()) as never
-            return c
+            return mapTry(await profileFn.before(), (profile) => {
+                c.profile = profile
+                return c
+            })
         })
 
         const tryResponse = await mapTry(ctx, (c) => kernel(request, c))

@@ -3,8 +3,14 @@
  * Do not manually touch this
  */
 /* eslint-disable */
-import AjvValidator from 'ajv'
-import type { ValidateFunction } from 'ajv'
+
+import type { DefinedError, ValidateFunction } from 'ajv'
+
+import { validate as CategoryValidator } from './schemas/category.schema.js'
+import { validate as PetArrayValidator } from './schemas/pet-array.schema.js'
+import { validate as PetValidator } from './schemas/pet.schema.js'
+import { validate as StatusValidator } from './schemas/status.schema.js'
+import { validate as TagValidator } from './schemas/tag.schema.js'
 
 export interface Category {
     id: number
@@ -12,7 +18,7 @@ export interface Category {
 }
 
 export const Category = {
-    validate: (await import('./schemas/category.schema.js')).validate10 as unknown as ValidateFunction<Category>,
+    validate: CategoryValidator as ValidateFunction<Category>,
     get schema() {
         return Category.validate.schema
     },
@@ -20,10 +26,11 @@ export const Category = {
         return Category.validate.errors ?? undefined
     },
     is: (o: unknown): o is Category => Category.validate(o) === true,
-    assert: (o: unknown) => {
-        if (!Category.validate(o)) {
-            throw new AjvValidator.ValidationError(Category.errors ?? [])
+    parse: (o: unknown): { right: Category } | { left: DefinedError[] } => {
+        if (Category.is(o)) {
+            return { right: o }
         }
+        return { left: (Category.errors ?? []) as DefinedError[] }
     },
 } as const
 
@@ -31,16 +38,16 @@ export const Category = {
  * Pet object from the store
  */
 export interface Pet {
-    id?: number
-    category?: Category
+    id?: number | undefined
+    category?: Category | undefined
     name: string
     photoUrls: string[]
-    tags?: Tag[]
-    status?: 'available' | 'pending' | 'sold'
+    tags?: Tag[] | undefined
+    status?: Status | undefined
 }
 
 export const Pet = {
-    validate: (await import('./schemas/pet.schema.js')).validate10 as unknown as ValidateFunction<Pet>,
+    validate: PetValidator as ValidateFunction<Pet>,
     get schema() {
         return Pet.validate.schema
     },
@@ -48,10 +55,11 @@ export const Pet = {
         return Pet.validate.errors ?? undefined
     },
     is: (o: unknown): o is Pet => Pet.validate(o) === true,
-    assert: (o: unknown) => {
-        if (!Pet.validate(o)) {
-            throw new AjvValidator.ValidationError(Pet.errors ?? [])
+    parse: (o: unknown): { right: Pet } | { left: DefinedError[] } => {
+        if (Pet.is(o)) {
+            return { right: o }
         }
+        return { left: (Pet.errors ?? []) as DefinedError[] }
     },
 } as const
 
@@ -61,7 +69,7 @@ export const Pet = {
 export type PetArray = Pet[]
 
 export const PetArray = {
-    validate: (await import('./schemas/pet-array.schema.js')).validate10 as unknown as ValidateFunction<PetArray>,
+    validate: PetArrayValidator as ValidateFunction<PetArray>,
     get schema() {
         return PetArray.validate.schema
     },
@@ -69,17 +77,18 @@ export const PetArray = {
         return PetArray.validate.errors ?? undefined
     },
     is: (o: unknown): o is PetArray => PetArray.validate(o) === true,
-    assert: (o: unknown) => {
-        if (!PetArray.validate(o)) {
-            throw new AjvValidator.ValidationError(PetArray.errors ?? [])
+    parse: (o: unknown): { right: PetArray } | { left: DefinedError[] } => {
+        if (PetArray.is(o)) {
+            return { right: o }
         }
+        return { left: (PetArray.errors ?? []) as DefinedError[] }
     },
 } as const
 
 export type Status = 'available' | 'pending' | 'sold'
 
 export const Status = {
-    validate: (await import('./schemas/status.schema.js')).validate10 as unknown as ValidateFunction<Status>,
+    validate: StatusValidator as ValidateFunction<Status>,
     get schema() {
         return Status.validate.schema
     },
@@ -87,20 +96,21 @@ export const Status = {
         return Status.validate.errors ?? undefined
     },
     is: (o: unknown): o is Status => Status.validate(o) === true,
-    assert: (o: unknown) => {
-        if (!Status.validate(o)) {
-            throw new AjvValidator.ValidationError(Status.errors ?? [])
+    parse: (o: unknown): { right: Status } | { left: DefinedError[] } => {
+        if (Status.is(o)) {
+            return { right: o }
         }
+        return { left: (Status.errors ?? []) as DefinedError[] }
     },
 } as const
 
 export interface Tag {
-    id?: number
-    name?: string
+    id?: number | undefined
+    name?: string | undefined
 }
 
 export const Tag = {
-    validate: (await import('./schemas/tag.schema.js')).validate10 as unknown as ValidateFunction<Tag>,
+    validate: TagValidator as ValidateFunction<Tag>,
     get schema() {
         return Tag.validate.schema
     },
@@ -108,9 +118,10 @@ export const Tag = {
         return Tag.validate.errors ?? undefined
     },
     is: (o: unknown): o is Tag => Tag.validate(o) === true,
-    assert: (o: unknown) => {
-        if (!Tag.validate(o)) {
-            throw new AjvValidator.ValidationError(Tag.errors ?? [])
+    parse: (o: unknown): { right: Tag } | { left: DefinedError[] } => {
+        if (Tag.is(o)) {
+            return { right: o }
         }
+        return { left: (Tag.errors ?? []) as DefinedError[] }
     },
 } as const

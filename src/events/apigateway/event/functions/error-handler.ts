@@ -6,17 +6,18 @@ import type { HttpError } from './http-error.type.js'
 
 export function httpErrorHandler<Code extends number = number, HttpErrorType = HttpError>(
     { logger, isSensitive }: Pick<LambdaContext, 'isSensitive' | 'logger'>,
-    httpErrorSeralizer: (error: EventError) => HTTPResponse<Code, HttpErrorType> = (eventError) => ({
-        statusCode: eventError.statusCode as Code,
-        body: {
+    httpErrorSeralizer: (error: EventError) => HTTPResponse<Code, HttpErrorType> = (eventError) =>
+        ({
             statusCode: eventError.statusCode,
-            message: eventError.expose && !isSensitive ? eventError.message : eventError.name,
-            stack:
-                serviceConstants.isDebug && eventError.expose && eventError.isServerError && !isSensitive
-                    ? eventError.stack
-                    : undefined,
-        } as HttpErrorType,
-    }),
+            body: {
+                statusCode: eventError.statusCode,
+                message: eventError.expose && !isSensitive ? eventError.message : eventError.name,
+                stack:
+                    serviceConstants.isDebug && eventError.expose && eventError.isServerError && !isSensitive
+                        ? eventError.stack
+                        : undefined,
+            },
+        }) as HTTPResponse<Code, HttpErrorType>,
 ): { onError: (error: Error | unknown) => HTTPResponse<Code, HttpErrorType> } {
     return {
         onError: (error: Error | unknown): HTTPResponse<Code, HttpErrorType> => {

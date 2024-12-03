@@ -1,19 +1,21 @@
 import { asyncForAll, oneOf, random, tuple, unknown } from '@skyleague/axioms'
-import { arbitrary } from '@skyleague/therefore'
+import { type Schema, arbitrary } from '@skyleague/therefore'
 import { expect, expectTypeOf, it, vi } from 'vitest'
+import { z } from 'zod'
 import { literalSchema, warmerEvent } from '../../../test/schema.js'
 import { APIGatewayProxyEventV2Schema, APIGatewayRequestAuthorizerEventV2Schema } from '../../aws/apigateway/http.type.js'
 import { APIGatewayProxyEventSchema, APIGatewayRequestAuthorizerEventSchema } from '../../aws/apigateway/rest.type.js'
 import { DynamoDBStreamSchema } from '../../aws/dynamodb/dynamodb.type.js'
 import { EventBridgeSchema } from '../../aws/eventbridge/eventbridge.type.js'
 import { KinesisFirehoseSchema } from '../../aws/firehose/firehose.type.js'
-import { KinesisDataStreamSchema } from '../../aws/kinesis/kinesis.type.js'
+import { type KinesisDataStreamRecord, KinesisDataStreamSchema } from '../../aws/kinesis/kinesis.type.js'
 import { S3BatchEvent } from '../../aws/s3-batch/s3.type.js'
 import { S3Schema } from '../../aws/s3/s3.type.js'
 import { SecretRotationEvent } from '../../aws/secret-rotation/secret-rotation.type.js'
 import { SnsSchema } from '../../aws/sns/sns.type.js'
 import { SqsSchema } from '../../aws/sqs/sqs.type.js'
 import { context } from '../../test/context/context.js'
+import type { LambdaContext } from '../types.js'
 import { kinesisHandler } from './kinesis.js'
 import type { KinesisEvent } from './types.js'
 
@@ -41,10 +43,194 @@ it('handles schema types', () => {
             schema: { payload: literalSchema<'payload'>() },
             handler: (request) => {
                 expectTypeOf(request).toEqualTypeOf<KinesisEvent<'payload'>>()
+                expectTypeOf(request.payload).toEqualTypeOf<'payload'>()
+                expectTypeOf(request.raw).toEqualTypeOf<KinesisDataStreamRecord>()
             },
         },
     })
     expectTypeOf(handler.kinesis.handler).toEqualTypeOf<(request: KinesisEvent<'payload'>) => void>()
+})
+
+it('handles schema types - zod', () => {
+    const handler = kinesisHandler({
+        kinesis: {
+            schema: { payload: z.literal('payload') },
+            handler: (request) => {
+                expectTypeOf(request).toEqualTypeOf<KinesisEvent<'payload'>>()
+                expectTypeOf(request.payload).toEqualTypeOf<'payload'>()
+                expectTypeOf(request.raw).toEqualTypeOf<KinesisDataStreamRecord>()
+            },
+        },
+    })
+    expectTypeOf(handler.kinesis.handler).toEqualTypeOf<(request: KinesisEvent<'payload'>) => void>()
+})
+
+it('handles schema types - default', () => {
+    const handler = kinesisHandler({
+        kinesis: {
+            schema: {},
+            handler: (request) => {
+                expectTypeOf(request).toEqualTypeOf<KinesisEvent<unknown>>()
+                expectTypeOf(request.payload).toEqualTypeOf<unknown>()
+                expectTypeOf(request.raw).toEqualTypeOf<KinesisDataStreamRecord>()
+            },
+        },
+    })
+    expectTypeOf(handler.kinesis.handler).toEqualTypeOf<(request: KinesisEvent<unknown>) => void>()
+})
+
+it('handles service and config types', () => {
+    {
+        const handler = kinesisHandler({
+            kinesis: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, undefined, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<never>()
+                    expectTypeOf(context.services).toEqualTypeOf<never>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+                },
+            },
+        })
+        expectTypeOf(handler.kinesis.handler).toEqualTypeOf<
+            (request: NoInfer<KinesisEvent<unknown>>, context: LambdaContext<undefined, undefined, undefined>) => void
+        >()
+    }
+    {
+        const handler = kinesisHandler({
+            config: 'config' as const,
+            kinesis: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<'config', undefined, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<'config'>()
+                    expectTypeOf(context.services).toEqualTypeOf<never>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+                },
+            },
+        })
+        expectTypeOf(handler.kinesis.handler).toEqualTypeOf<
+            (request: NoInfer<KinesisEvent<unknown>>, context: LambdaContext<'config', undefined, undefined>) => void
+        >()
+    }
+    {
+        const handler = kinesisHandler({
+            config: () => 'config' as const,
+            kinesis: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<'config', undefined, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<'config'>()
+                    expectTypeOf(context.services).toEqualTypeOf<never>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+                },
+            },
+        })
+        expectTypeOf(handler.kinesis.handler).toEqualTypeOf<
+            (request: NoInfer<KinesisEvent<unknown>>, context: LambdaContext<'config', undefined, undefined>) => void
+        >()
+    }
+    {
+        const handler = kinesisHandler({
+            services: { services: 'services' as const },
+            kinesis: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, { services: 'services' }, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<never>()
+                    expectTypeOf(context.services).toEqualTypeOf<{ services: 'services' }>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+                },
+            },
+        })
+        expectTypeOf(handler.kinesis.handler).toEqualTypeOf<
+            (
+                request: NoInfer<KinesisEvent<unknown>>,
+                context: LambdaContext<undefined, { services: 'services' }, undefined>,
+            ) => void
+        >()
+    }
+    {
+        const handler = kinesisHandler({
+            services: () => ({ services: 'services' as const }),
+            kinesis: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, { services: 'services' }, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<never>()
+                    expectTypeOf(context.services).toEqualTypeOf<{ services: 'services' }>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+                },
+            },
+        })
+        expectTypeOf(handler.kinesis.handler).toEqualTypeOf<
+            (
+                request: NoInfer<KinesisEvent<unknown>>,
+                context: LambdaContext<undefined, { services: 'services' }, undefined>,
+            ) => void
+        >()
+    }
+    {
+        const handler = kinesisHandler({
+            config: () => 'config' as const,
+            services: (config) => {
+                expectTypeOf(config).toEqualTypeOf<'config'>()
+                return { services: 'services' as const }
+            },
+            kinesis: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<'config', { services: 'services' }, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<'config'>()
+                    expectTypeOf(context.services).toEqualTypeOf<{ services: 'services' }>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+                },
+            },
+        })
+        expectTypeOf(handler.kinesis.handler).toEqualTypeOf<
+            (
+                request: NoInfer<KinesisEvent<unknown>>,
+                context: LambdaContext<'config', { services: 'services' }, undefined>,
+            ) => void
+        >()
+    }
+    {
+        const handler = kinesisHandler({
+            profile: { schema: literalSchema<'profile'>() },
+            kinesis: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, undefined, Schema<'profile'>>>()
+                    expectTypeOf(context.config).toEqualTypeOf<never>()
+                    expectTypeOf(context.services).toEqualTypeOf<never>()
+                    expectTypeOf(context.profile).toEqualTypeOf<'profile'>()
+                },
+            },
+        })
+        expectTypeOf(handler.kinesis.handler).toEqualTypeOf<
+            (request: NoInfer<KinesisEvent<unknown>>, context: LambdaContext<undefined, undefined, Schema<'profile'>>) => void
+        >()
+    }
+    {
+        const handler = kinesisHandler({
+            profile: { schema: z.literal('profile') },
+            kinesis: {
+                schema: {},
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, undefined, z.ZodLiteral<'profile'>>>()
+                    expectTypeOf(context.config).toEqualTypeOf<never>()
+                    expectTypeOf(context.services).toEqualTypeOf<never>()
+                    expectTypeOf(context.profile).toEqualTypeOf<'profile'>()
+                },
+            },
+        })
+        expectTypeOf(handler.kinesis.handler).toEqualTypeOf<
+            (
+                request: NoInfer<KinesisEvent<unknown>>,
+                context: LambdaContext<undefined, undefined, z.ZodLiteral<'profile'>>,
+            ) => void
+        >()
+    }
 })
 
 it('does not handle non kinesis events', async () => {

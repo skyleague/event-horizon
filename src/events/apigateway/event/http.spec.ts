@@ -1,7 +1,9 @@
 import { constants, alpha, asyncForAll, oneOf, random, tuple, unknown } from '@skyleague/axioms'
 import { type Schema, arbitrary } from '@skyleague/therefore'
 import { expect, expectTypeOf, it, vi } from 'vitest'
+import { z } from 'zod'
 import { literalSchema, warmerEvent } from '../../../../test/schema.js'
+import type { APIGatewayProxyEventV2Schema } from '../../../aws/apigateway/http.type.js'
 import { APIGatewayProxyEventSchema } from '../../../aws/apigateway/rest.type.js'
 import { DynamoDBStreamSchema } from '../../../aws/dynamodb/dynamodb.type.js'
 import { EventBridgeSchema } from '../../../aws/eventbridge/eventbridge.type.js'
@@ -13,7 +15,8 @@ import { SecretRotationEvent } from '../../../aws/secret-rotation/secret-rotatio
 import { SnsSchema } from '../../../aws/sns/sns.type.js'
 import { SqsSchema } from '../../../aws/sqs/sqs.type.js'
 import { context } from '../../../test/context/context.js'
-import type { SecurityRequirements } from '../types.js'
+import type { LambdaContext } from '../../types.js'
+import type { HTTPHeaders, HTTPPathParameters, HTTPQueryParameters } from '../types.js'
 import { httpApiHandler } from './http.js'
 import type { AnyAuthorizerContext, AuthorizerSchema, HTTPIamAuthorizer, HTTPRequest } from './types.js'
 
@@ -81,6 +84,12 @@ it('handles schema types', () => {
                     >
                 >()
                 expectTypeOf(request.authorizer).toEqualTypeOf<AnyAuthorizerContext<'http'>>()
+                expectTypeOf(request.body).toEqualTypeOf<'body'>()
+                expectTypeOf(request.path).toEqualTypeOf<'path'>()
+                expectTypeOf(request.query).toEqualTypeOf<'query'>()
+                expectTypeOf(request.headers).toEqualTypeOf<'headers'>()
+                expectTypeOf(request.security).toEqualTypeOf<{ readonly foo: []; readonly bar: [] }>()
+                expectTypeOf(request.raw).toEqualTypeOf<APIGatewayProxyEventV2Schema>()
 
                 return {
                     statusCode: 200,
@@ -110,6 +119,358 @@ it('handles schema types', () => {
     >()
 })
 
+it('handles schema types - zod', () => {
+    const handler = httpApiHandler({
+        http: {
+            method,
+            path,
+            security: {
+                foo: [],
+                bar: [],
+            },
+            schema: {
+                body: z.object({ body: z.string() }),
+                path: z.object({ path: z.string() }),
+                query: z.object({ query: z.string() }),
+                headers: z.object({ headers: z.string() }),
+                responses: { 200: z.object({ '200-response': z.string() }) },
+            },
+            bodyType: 'plaintext',
+            handler: (request) => {
+                expectTypeOf(request).toEqualTypeOf<
+                    HTTPRequest<
+                        { body: string },
+                        { path: string },
+                        { query: string },
+                        { headers: string },
+                        {
+                            readonly foo: []
+                            readonly bar: []
+                        },
+                        'http',
+                        AuthorizerSchema<'http'>
+                    >
+                >()
+                expectTypeOf(request.authorizer).toEqualTypeOf<AnyAuthorizerContext<'http'>>()
+                expectTypeOf(request.body).toEqualTypeOf<{ body: string }>()
+                expectTypeOf(request.path).toEqualTypeOf<{ path: string }>()
+                expectTypeOf(request.query).toEqualTypeOf<{ query: string }>()
+                expectTypeOf(request.headers).toEqualTypeOf<{ headers: string }>()
+                expectTypeOf(request.security).toEqualTypeOf<{ readonly foo: []; readonly bar: [] }>()
+                expectTypeOf(request.raw).toEqualTypeOf<APIGatewayProxyEventV2Schema>()
+
+                return {
+                    statusCode: 200,
+                    body: { '200-response': 'bar' },
+                }
+            },
+        },
+    })
+
+    expectTypeOf(handler.http.handler).toEqualTypeOf<
+        (
+            request: HTTPRequest<
+                { body: string },
+                { path: string },
+                { query: string },
+                { headers: string },
+                {
+                    readonly foo: []
+                    readonly bar: []
+                },
+                'http',
+                AuthorizerSchema<'http'>
+            >,
+        ) => {
+            statusCode: 200
+            body: { '200-response': string }
+        }
+    >()
+})
+
+it('handles schema types - default', () => {
+    const handler = httpApiHandler({
+        http: {
+            method,
+            path,
+            schema: {
+                responses: {},
+            },
+            bodyType: 'plaintext',
+            handler: (request) => {
+                expectTypeOf(request).toEqualTypeOf<
+                    HTTPRequest<undefined, undefined, undefined, undefined, undefined, 'http', AuthorizerSchema<'http'>>
+                >()
+                expectTypeOf(request.authorizer).toEqualTypeOf<AnyAuthorizerContext<'http'>>()
+                expectTypeOf(request.body).toEqualTypeOf<unknown>()
+                expectTypeOf(request.path).toEqualTypeOf<HTTPPathParameters>()
+                expectTypeOf(request.query).toEqualTypeOf<HTTPQueryParameters>()
+                expectTypeOf(request.headers).toEqualTypeOf<HTTPHeaders>()
+                expectTypeOf(request.security).toEqualTypeOf<[]>()
+                expectTypeOf(request.raw).toEqualTypeOf<APIGatewayProxyEventV2Schema>()
+
+                return {
+                    statusCode: 200 as number,
+                    body: '200-response',
+                }
+            },
+        },
+    })
+
+    expectTypeOf(handler.http.handler).toEqualTypeOf<
+        (request: HTTPRequest<undefined, undefined, undefined, undefined, undefined, 'http', AuthorizerSchema<'http'>>) => {
+            statusCode: number
+            body: string
+        }
+    >()
+})
+
+it('handles service and config types', () => {
+    {
+        const handler = httpApiHandler({
+            http: {
+                method,
+                path,
+                schema: { responses: {} },
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, undefined, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<never>()
+                    expectTypeOf(context.services).toEqualTypeOf<never>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+
+                    return {
+                        statusCode: 200 as number,
+                        body: '200-response',
+                    }
+                },
+            },
+        })
+        expectTypeOf(handler.http.handler).toEqualTypeOf<
+            (
+                request: HTTPRequest<undefined, undefined, undefined, undefined, undefined, 'http', AuthorizerSchema<'http'>>,
+                context: LambdaContext<undefined, undefined, undefined>,
+            ) => {
+                statusCode: number
+                body: string
+            }
+        >()
+    }
+    {
+        const handler = httpApiHandler({
+            config: 'config' as const,
+            http: {
+                method,
+                path,
+                schema: { responses: {} },
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<'config', undefined, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<'config'>()
+                    expectTypeOf(context.services).toEqualTypeOf<never>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+
+                    return {
+                        statusCode: 200 as number,
+                        body: '200-response',
+                    }
+                },
+            },
+        })
+        expectTypeOf(handler.http.handler).toEqualTypeOf<
+            (
+                request: HTTPRequest<undefined, undefined, undefined, undefined, undefined, 'http', AuthorizerSchema<'http'>>,
+                context: LambdaContext<'config', undefined, undefined>,
+            ) => {
+                statusCode: number
+                body: string
+            }
+        >()
+    }
+    {
+        const handler = httpApiHandler({
+            config: () => 'config' as const,
+            http: {
+                method,
+                path,
+                schema: { responses: {} },
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<'config', undefined, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<'config'>()
+                    expectTypeOf(context.services).toEqualTypeOf<never>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+
+                    return {
+                        statusCode: 200 as number,
+                        body: '200-response',
+                    }
+                },
+            },
+        })
+        expectTypeOf(handler.http.handler).toEqualTypeOf<
+            (
+                request: HTTPRequest<undefined, undefined, undefined, undefined, undefined, 'http', AuthorizerSchema<'http'>>,
+                context: LambdaContext<'config', undefined, undefined>,
+            ) => {
+                statusCode: number
+                body: string
+            }
+        >()
+    }
+    {
+        const handler = httpApiHandler({
+            services: { services: 'services' as const },
+            http: {
+                method,
+                path,
+                schema: { responses: {} },
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, { services: 'services' }, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<never>()
+                    expectTypeOf(context.services).toEqualTypeOf<{ services: 'services' }>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+
+                    return {
+                        statusCode: 200 as number,
+                        body: '200-response',
+                    }
+                },
+            },
+        })
+        expectTypeOf(handler.http.handler).toEqualTypeOf<
+            (
+                request: HTTPRequest<undefined, undefined, undefined, undefined, undefined, 'http', AuthorizerSchema<'http'>>,
+                context: LambdaContext<undefined, { services: 'services' }, undefined>,
+            ) => {
+                statusCode: number
+                body: string
+            }
+        >()
+    }
+    {
+        const handler = httpApiHandler({
+            services: () => ({ services: 'services' as const }),
+            http: {
+                method,
+                path,
+                schema: { responses: {} },
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, { services: 'services' }, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<never>()
+                    expectTypeOf(context.services).toEqualTypeOf<{ services: 'services' }>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+
+                    return {
+                        statusCode: 200 as number,
+                        body: '200-response',
+                    }
+                },
+            },
+        })
+        expectTypeOf(handler.http.handler).toEqualTypeOf<
+            (
+                request: HTTPRequest<undefined, undefined, undefined, undefined, undefined, 'http', AuthorizerSchema<'http'>>,
+                context: LambdaContext<undefined, { services: 'services' }, undefined>,
+            ) => {
+                statusCode: number
+                body: string
+            }
+        >()
+    }
+    {
+        const handler = httpApiHandler({
+            config: () => 'config' as const,
+            services: (config) => {
+                expectTypeOf(config).toEqualTypeOf<'config'>()
+                return { services: 'services' as const }
+            },
+            http: {
+                method,
+                path,
+                schema: { responses: {} },
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<'config', { services: 'services' }, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<'config'>()
+                    expectTypeOf(context.services).toEqualTypeOf<{ services: 'services' }>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+
+                    return {
+                        statusCode: 200 as number,
+                        body: '200-response',
+                    }
+                },
+            },
+        })
+        expectTypeOf(handler.http.handler).toEqualTypeOf<
+            (
+                request: HTTPRequest<undefined, undefined, undefined, undefined, undefined, 'http', AuthorizerSchema<'http'>>,
+                context: LambdaContext<'config', { services: 'services' }, undefined>,
+            ) => {
+                statusCode: number
+                body: string
+            }
+        >()
+    }
+    {
+        const handler = httpApiHandler({
+            profile: { schema: literalSchema<'profile'>() },
+            http: {
+                method,
+                path,
+                schema: { responses: {} },
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, undefined, Schema<'profile'>>>()
+                    expectTypeOf(context.config).toEqualTypeOf<never>()
+                    expectTypeOf(context.services).toEqualTypeOf<never>()
+                    expectTypeOf(context.profile).toEqualTypeOf<'profile'>()
+
+                    return {
+                        statusCode: 200 as number,
+                        body: '200-response',
+                    }
+                },
+            },
+        })
+        expectTypeOf(handler.http.handler).toEqualTypeOf<
+            (
+                request: HTTPRequest<undefined, undefined, undefined, undefined, undefined, 'http', AuthorizerSchema<'http'>>,
+                context: LambdaContext<undefined, undefined, Schema<'profile'>>,
+            ) => {
+                statusCode: number
+                body: string
+            }
+        >()
+    }
+    {
+        const handler = httpApiHandler({
+            profile: { schema: z.literal('profile') },
+            http: {
+                method,
+                path,
+                schema: { responses: {} },
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, undefined, z.ZodLiteral<'profile'>>>()
+                    expectTypeOf(context.config).toEqualTypeOf<never>()
+                    expectTypeOf(context.services).toEqualTypeOf<never>()
+                    expectTypeOf(context.profile).toEqualTypeOf<'profile'>()
+
+                    return {
+                        statusCode: 200 as number,
+                        body: '200-response',
+                    }
+                },
+            },
+        })
+        expectTypeOf(handler.http.handler).toEqualTypeOf<
+            (
+                request: HTTPRequest<undefined, undefined, undefined, undefined, undefined, 'http', AuthorizerSchema<'http'>>,
+                context: LambdaContext<undefined, undefined, z.ZodLiteral<'profile'>>,
+            ) => {
+                statusCode: number
+                body: string
+            }
+        >()
+    }
+})
+
 it('handles distributed schema types', () => {
     const handler = httpApiHandler({
         http: {
@@ -125,8 +486,15 @@ it('handles distributed schema types', () => {
             bodyType: 'plaintext',
             handler: (request) => {
                 expectTypeOf(request).toEqualTypeOf<
-                    HTTPRequest<'body', 'path', 'query', 'headers', SecurityRequirements, 'http', AuthorizerSchema<'http'>>
+                    HTTPRequest<'body', 'path', 'query', 'headers', undefined, 'http', AuthorizerSchema<'http'>>
                 >()
+                expectTypeOf(request.authorizer).toEqualTypeOf<AnyAuthorizerContext<'http'>>()
+                expectTypeOf(request.body).toEqualTypeOf<'body'>()
+                expectTypeOf(request.path).toEqualTypeOf<'path'>()
+                expectTypeOf(request.query).toEqualTypeOf<'query'>()
+                expectTypeOf(request.headers).toEqualTypeOf<'headers'>()
+                expectTypeOf(request.security).toEqualTypeOf<[]>()
+                expectTypeOf(request.raw).toEqualTypeOf<APIGatewayProxyEventV2Schema>()
 
                 if (request.body.length === 0) {
                     return {
@@ -142,7 +510,7 @@ it('handles distributed schema types', () => {
         },
     })
     expectTypeOf(handler.http.handler).toEqualTypeOf<
-        (request: HTTPRequest<'body', 'path', 'query', 'headers', SecurityRequirements, 'http', AuthorizerSchema<'http'>>) =>
+        (request: HTTPRequest<'body', 'path', 'query', 'headers', undefined, 'http', AuthorizerSchema<'http'>>) =>
             | {
                   statusCode: 400
                   body: '400-response'
@@ -150,6 +518,78 @@ it('handles distributed schema types', () => {
             | {
                   statusCode: 200
                   body: '200-response'
+              }
+    >()
+})
+
+it('handles distributed schema types - zod', () => {
+    const handler = httpApiHandler({
+        http: {
+            method,
+            path,
+            schema: {
+                body: z.object({ body: z.string() }),
+                path: z.object({ path: z.string() }),
+                query: z.object({ query: z.string() }),
+                headers: z.object({ headers: z.string() }),
+                responses: {
+                    200: z.object({ '200-response': z.string() }),
+                    400: z.object({ '400-response': z.string() }),
+                },
+            },
+            bodyType: 'plaintext',
+            handler: (request) => {
+                expectTypeOf(request).toEqualTypeOf<
+                    HTTPRequest<
+                        { body: string },
+                        { path: string },
+                        { query: string },
+                        { headers: string },
+                        undefined,
+                        'http',
+                        AuthorizerSchema<'http'>
+                    >
+                >()
+                expectTypeOf(request.authorizer).toEqualTypeOf<AnyAuthorizerContext<'http'>>()
+                expectTypeOf(request.body).toEqualTypeOf<{ body: string }>()
+                expectTypeOf(request.path).toEqualTypeOf<{ path: string }>()
+                expectTypeOf(request.query).toEqualTypeOf<{ query: string }>()
+                expectTypeOf(request.headers).toEqualTypeOf<{ headers: string }>()
+                expectTypeOf(request.security).toEqualTypeOf<[]>()
+                expectTypeOf(request.raw).toEqualTypeOf<APIGatewayProxyEventV2Schema>()
+
+                if (request.body.body.length === 0) {
+                    return {
+                        statusCode: 400,
+                        body: { '400-response': 'error' },
+                    }
+                }
+                return {
+                    statusCode: 200,
+                    body: { '200-response': 'success' },
+                }
+            },
+        },
+    })
+    expectTypeOf(handler.http.handler).toEqualTypeOf<
+        (
+            request: HTTPRequest<
+                { body: string },
+                { path: string },
+                { query: string },
+                { headers: string },
+                undefined,
+                'http',
+                AuthorizerSchema<'http'>
+            >,
+        ) =>
+            | {
+                  statusCode: 400
+                  body: { '400-response': string; '200-response'?: never }
+              }
+            | {
+                  statusCode: 200
+                  body: { '200-response': string; '400-response'?: never }
               }
     >()
 })
@@ -169,8 +609,15 @@ it('handles null response types', () => {
             bodyType: 'plaintext',
             handler: (request) => {
                 expectTypeOf(request).toEqualTypeOf<
-                    HTTPRequest<'body', 'path', 'query', 'headers', SecurityRequirements, 'http', AuthorizerSchema<'http'>>
+                    HTTPRequest<'body', 'path', 'query', 'headers', undefined, 'http', AuthorizerSchema<'http'>>
                 >()
+                expectTypeOf(request.authorizer).toEqualTypeOf<AnyAuthorizerContext<'http'>>()
+                expectTypeOf(request.body).toEqualTypeOf<'body'>()
+                expectTypeOf(request.path).toEqualTypeOf<'path'>()
+                expectTypeOf(request.query).toEqualTypeOf<'query'>()
+                expectTypeOf(request.headers).toEqualTypeOf<'headers'>()
+                expectTypeOf(request.security).toEqualTypeOf<[]>()
+                expectTypeOf(request.raw).toEqualTypeOf<APIGatewayProxyEventV2Schema>()
 
                 if (request.body.length === 0) {
                     return {
@@ -185,10 +632,81 @@ it('handles null response types', () => {
         },
     })
     expectTypeOf(handler.http.handler).toEqualTypeOf<
-        (request: HTTPRequest<'body', 'path', 'query', 'headers', SecurityRequirements, 'http', AuthorizerSchema<'http'>>) =>
+        (request: HTTPRequest<'body', 'path', 'query', 'headers', undefined, 'http', AuthorizerSchema<'http'>>) =>
             | {
                   statusCode: 400
                   body: '400-response'
+              }
+            | {
+                  statusCode: 200
+                  body?: never
+              }
+    >()
+})
+
+it('handles null response types - zod', () => {
+    const handler = httpApiHandler({
+        http: {
+            method,
+            path,
+            schema: {
+                body: z.object({ body: z.string() }),
+                path: z.object({ path: z.string() }),
+                query: z.object({ query: z.string() }),
+                headers: z.object({ headers: z.string() }),
+                responses: {
+                    200: null,
+                    400: z.object({ '400-response': z.string() }),
+                },
+            },
+            bodyType: 'plaintext',
+            handler: (request) => {
+                expectTypeOf(request).toEqualTypeOf<
+                    HTTPRequest<
+                        { body: string },
+                        { path: string },
+                        { query: string },
+                        { headers: string },
+                        undefined,
+                        'http',
+                        AuthorizerSchema<'http'>
+                    >
+                >()
+                expectTypeOf(request.authorizer).toEqualTypeOf<AnyAuthorizerContext<'http'>>()
+                expectTypeOf(request.body).toEqualTypeOf<{ body: string }>()
+                expectTypeOf(request.path).toEqualTypeOf<{ path: string }>()
+                expectTypeOf(request.query).toEqualTypeOf<{ query: string }>()
+                expectTypeOf(request.headers).toEqualTypeOf<{ headers: string }>()
+                expectTypeOf(request.security).toEqualTypeOf<[]>()
+                expectTypeOf(request.raw).toEqualTypeOf<APIGatewayProxyEventV2Schema>()
+
+                if (request.body.body.length === 0) {
+                    return {
+                        statusCode: 400,
+                        body: { '400-response': 'error' },
+                    }
+                }
+                return {
+                    statusCode: 200,
+                }
+            },
+        },
+    })
+    expectTypeOf(handler.http.handler).toEqualTypeOf<
+        (
+            request: HTTPRequest<
+                { body: string },
+                { path: string },
+                { query: string },
+                { headers: string },
+                undefined,
+                'http',
+                AuthorizerSchema<'http'>
+            >,
+        ) =>
+            | {
+                  statusCode: 400
+                  body: { '400-response': string }
               }
             | {
                   statusCode: 200
@@ -216,8 +734,15 @@ it('handles full response type', () => {
             bodyType: 'plaintext',
             handler: (request) => {
                 expectTypeOf(request).toEqualTypeOf<
-                    HTTPRequest<'body', 'path', 'query', 'headers', SecurityRequirements, 'http', AuthorizerSchema<'http'>>
+                    HTTPRequest<'body', 'path', 'query', 'headers', undefined, 'http', AuthorizerSchema<'http'>>
                 >()
+                expectTypeOf(request.authorizer).toEqualTypeOf<AnyAuthorizerContext<'http'>>()
+                expectTypeOf(request.body).toEqualTypeOf<'body'>()
+                expectTypeOf(request.path).toEqualTypeOf<'path'>()
+                expectTypeOf(request.query).toEqualTypeOf<'query'>()
+                expectTypeOf(request.headers).toEqualTypeOf<'headers'>()
+                expectTypeOf(request.security).toEqualTypeOf<[]>()
+                expectTypeOf(request.raw).toEqualTypeOf<APIGatewayProxyEventV2Schema>()
 
                 if (request.body.length === 0) {
                     return {
@@ -240,7 +765,7 @@ it('handles full response type', () => {
         },
     })
     expectTypeOf(handler.http.handler).toEqualTypeOf<
-        (request: HTTPRequest<'body', 'path', 'query', 'headers', SecurityRequirements, 'http', AuthorizerSchema<'http'>>) =>
+        (request: HTTPRequest<'body', 'path', 'query', 'headers', undefined, 'http', AuthorizerSchema<'http'>>) =>
             | { statusCode: 400; body: '400-response'; headers?: never }
             | {
                   statusCode: 200
@@ -250,6 +775,105 @@ it('handles full response type', () => {
             | {
                   statusCode: 204
                   headers: { Location: 'location-response'; foo?: never }
+                  body?: never
+              }
+    >()
+})
+
+it('handles full response type - zod', () => {
+    const handler = httpApiHandler({
+        http: {
+            method,
+            path,
+            schema: {
+                body: z.object({ body: z.string() }),
+                path: z.object({ path: z.string() }),
+                query: z.object({ query: z.string() }),
+                headers: z.object({ headers: z.string() }),
+                responses: {
+                    200: { body: z.object({ '200-response': z.string() }) },
+                    204: { body: null, headers: z.object({ Location: z.literal('location-response') }) },
+                    400: z.object({ '400-response': z.string() }),
+                },
+            },
+            bodyType: 'plaintext',
+            handler: (request) => {
+                expectTypeOf(request).toEqualTypeOf<
+                    HTTPRequest<
+                        { body: string },
+                        { path: string },
+                        { query: string },
+                        { headers: string },
+                        undefined,
+                        'http',
+                        AuthorizerSchema<'http'>
+                    >
+                >()
+                expectTypeOf(request.authorizer).toEqualTypeOf<AnyAuthorizerContext<'http'>>()
+                expectTypeOf(request.body).toEqualTypeOf<{ body: string }>()
+                expectTypeOf(request.path).toEqualTypeOf<{ path: string }>()
+                expectTypeOf(request.query).toEqualTypeOf<{ query: string }>()
+                expectTypeOf(request.headers).toEqualTypeOf<{ headers: string }>()
+                expectTypeOf(request.security).toEqualTypeOf<[]>()
+                expectTypeOf(request.raw).toEqualTypeOf<APIGatewayProxyEventV2Schema>()
+
+                if (request.body.body.length === 0) {
+                    return {
+                        statusCode: 400,
+                        body: { '400-response': 'error' },
+                    }
+                }
+                if (request.body.body.length === 1) {
+                    return {
+                        statusCode: 204,
+                        headers: { Location: 'location-response' as const },
+                    }
+                }
+                return {
+                    statusCode: 200,
+                    body: { '200-response': 'success' },
+                    headers: { foo: 'foo-response' },
+                }
+            },
+        },
+    })
+    expectTypeOf(handler.http.handler).toEqualTypeOf<
+        (
+            request: HTTPRequest<
+                { body: string },
+                { path: string },
+                { query: string },
+                { headers: string },
+                undefined,
+                'http',
+                AuthorizerSchema<'http'>
+            >,
+        ) =>
+            | {
+                  statusCode: 400
+                  body: {
+                      '400-response': string
+                      '200-response'?: never
+                  }
+                  headers?: never
+              }
+            | {
+                  statusCode: 200
+                  body: {
+                      '200-response': string
+                      '400-response'?: never
+                  }
+                  headers: {
+                      foo: string
+                      Location?: never
+                  }
+              }
+            | {
+                  statusCode: 204
+                  headers: {
+                      Location: 'location-response'
+                      foo?: never
+                  }
                   body?: never
               }
     >()
@@ -358,10 +982,10 @@ it('handles authorizer schema types - lambda', () => {
             handler: (request) => {
                 expectTypeOf(request).toEqualTypeOf<
                     HTTPRequest<
-                        unknown,
-                        unknown,
-                        unknown,
-                        unknown,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
                         {
                             readonly foo: []
                             readonly bar: []
@@ -371,6 +995,15 @@ it('handles authorizer schema types - lambda', () => {
                     >
                 >()
                 expectTypeOf(request.authorizer).toEqualTypeOf<{ foo: 'jwt' }>()
+                expectTypeOf(request.body).toEqualTypeOf<unknown>()
+                expectTypeOf(request.path).toEqualTypeOf<HTTPPathParameters>()
+                expectTypeOf(request.query).toEqualTypeOf<HTTPQueryParameters>()
+                expectTypeOf(request.headers).toEqualTypeOf<HTTPHeaders>()
+                expectTypeOf(request.security).toEqualTypeOf<{
+                    readonly foo: []
+                    readonly bar: []
+                }>()
+                expectTypeOf(request.raw).toEqualTypeOf<APIGatewayProxyEventV2Schema>()
 
                 return {
                     statusCode: 200,
@@ -382,16 +1015,114 @@ it('handles authorizer schema types - lambda', () => {
     expectTypeOf(handler.http.handler).toEqualTypeOf<
         (
             request: HTTPRequest<
-                unknown,
-                unknown,
-                unknown,
-                unknown,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
                 {
                     readonly foo: []
                     readonly bar: []
                 },
                 'http',
                 { lambda: Schema<{ foo: 'jwt' }> }
+            >,
+        ) => {
+            statusCode: 200
+            body: '200-response'
+        }
+    >()
+})
+
+it('handles authorizer schema types - lambda - zod', () => {
+    const handler = httpApiHandler({
+        http: {
+            method,
+            path,
+            security: {
+                foo: [],
+                bar: [],
+            },
+            schema: {
+                authorizer: {
+                    lambda: z.object({ foo: z.literal('jwt') }),
+                },
+                responses: {},
+            },
+            bodyType: 'plaintext',
+            handler: (request) => {
+                expectTypeOf(request).toEqualTypeOf<
+                    HTTPRequest<
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        {
+                            readonly foo: []
+                            readonly bar: []
+                        },
+                        'http',
+                        {
+                            lambda: z.ZodObject<
+                                {
+                                    foo: z.ZodLiteral<'jwt'>
+                                },
+                                'strip',
+                                z.ZodTypeAny,
+                                {
+                                    foo: 'jwt'
+                                },
+                                {
+                                    foo: 'jwt'
+                                }
+                            >
+                        }
+                    >
+                >()
+                expectTypeOf(request.authorizer).toEqualTypeOf<{ foo: 'jwt' }>()
+                expectTypeOf(request.body).toEqualTypeOf<unknown>()
+                expectTypeOf(request.path).toEqualTypeOf<HTTPPathParameters>()
+                expectTypeOf(request.query).toEqualTypeOf<HTTPQueryParameters>()
+                expectTypeOf(request.headers).toEqualTypeOf<HTTPHeaders>()
+                expectTypeOf(request.security).toEqualTypeOf<{
+                    readonly foo: []
+                    readonly bar: []
+                }>()
+                expectTypeOf(request.raw).toEqualTypeOf<APIGatewayProxyEventV2Schema>()
+
+                return {
+                    statusCode: 200,
+                    body: '200-response' as const,
+                }
+            },
+        },
+    })
+    expectTypeOf(handler.http.handler).toEqualTypeOf<
+        (
+            request: HTTPRequest<
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                {
+                    readonly foo: []
+                    readonly bar: []
+                },
+                'http',
+                {
+                    lambda: z.ZodObject<
+                        {
+                            foo: z.ZodLiteral<'jwt'>
+                        },
+                        'strip',
+                        z.ZodTypeAny,
+                        {
+                            foo: 'jwt'
+                        },
+                        {
+                            foo: 'jwt'
+                        }
+                    >
+                }
             >,
         ) => {
             statusCode: 200
@@ -419,10 +1150,10 @@ it('handles authorizer schema types - lambda - true', () => {
             handler: (request) => {
                 expectTypeOf(request).toEqualTypeOf<
                     HTTPRequest<
-                        unknown,
-                        unknown,
-                        unknown,
-                        unknown,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
                         {
                             readonly foo: []
                             readonly bar: []
@@ -431,9 +1162,16 @@ it('handles authorizer schema types - lambda - true', () => {
                         { lambda: true }
                     >
                 >()
-                expectTypeOf(request.authorizer).toEqualTypeOf<{
-                    lambda: Record<string, unknown>
+                expectTypeOf(request.authorizer).toEqualTypeOf<Record<string, unknown>>()
+                expectTypeOf(request.body).toEqualTypeOf<unknown>()
+                expectTypeOf(request.path).toEqualTypeOf<HTTPPathParameters>()
+                expectTypeOf(request.query).toEqualTypeOf<HTTPQueryParameters>()
+                expectTypeOf(request.headers).toEqualTypeOf<HTTPHeaders>()
+                expectTypeOf(request.security).toEqualTypeOf<{
+                    readonly foo: []
+                    readonly bar: []
                 }>()
+                expectTypeOf(request.raw).toEqualTypeOf<APIGatewayProxyEventV2Schema>()
 
                 return {
                     statusCode: 200,
@@ -445,10 +1183,10 @@ it('handles authorizer schema types - lambda - true', () => {
     expectTypeOf(handler.http.handler).toEqualTypeOf<
         (
             request: HTTPRequest<
-                unknown,
-                unknown,
-                unknown,
-                unknown,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
                 {
                     readonly foo: []
                     readonly bar: []
@@ -482,10 +1220,10 @@ it('handles authorizer schema types - iam', () => {
             handler: (request) => {
                 expectTypeOf(request).toEqualTypeOf<
                     HTTPRequest<
-                        unknown,
-                        unknown,
-                        unknown,
-                        unknown,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
                         {
                             readonly foo: []
                             readonly bar: []
@@ -495,7 +1233,15 @@ it('handles authorizer schema types - iam', () => {
                     >
                 >()
                 expectTypeOf(request.authorizer).toEqualTypeOf<HTTPIamAuthorizer>()
-
+                expectTypeOf(request.body).toEqualTypeOf<unknown>()
+                expectTypeOf(request.path).toEqualTypeOf<HTTPPathParameters>()
+                expectTypeOf(request.query).toEqualTypeOf<HTTPQueryParameters>()
+                expectTypeOf(request.headers).toEqualTypeOf<HTTPHeaders>()
+                expectTypeOf(request.security).toEqualTypeOf<{
+                    readonly foo: []
+                    readonly bar: []
+                }>()
+                expectTypeOf(request.raw).toEqualTypeOf<APIGatewayProxyEventV2Schema>()
                 return {
                     statusCode: 200,
                     body: '200-response' as const,
@@ -506,10 +1252,10 @@ it('handles authorizer schema types - iam', () => {
     expectTypeOf(handler.http.handler).toEqualTypeOf<
         (
             request: HTTPRequest<
-                unknown,
-                unknown,
-                unknown,
-                unknown,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
                 {
                     readonly foo: []
                     readonly bar: []

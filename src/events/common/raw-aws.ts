@@ -12,6 +12,7 @@ import type {
     DynamoDBStreamHandler,
     EventBridgeEvent,
     EventBridgeHandler,
+    FirehoseTransformationEvent,
     FirehoseTransformationHandler,
     KinesisStreamEvent,
     KinesisStreamHandler,
@@ -29,6 +30,7 @@ import type { APIGatewayProxyEventV2Schema, APIGatewayRequestAuthorizerEventV2Sc
 import type { APIGatewayProxyEventSchema, APIGatewayRequestAuthorizerEventSchema } from '../../aws/apigateway/rest.type.js'
 import type { DynamoDBStreamSchema } from '../../aws/dynamodb/dynamodb.type.js'
 import type { EventBridgeSchema } from '../../aws/eventbridge/eventbridge.type.js'
+import type { KinesisFirehoseSchema } from '../../aws/firehose/firehose.type.js'
 import type { KinesisDataStreamSchema } from '../../aws/kinesis/kinesis.type.js'
 import type { S3Schema } from '../../aws/s3/s3.type.js'
 import type { SnsSchema } from '../../aws/sns/sns.type.js'
@@ -66,6 +68,7 @@ export type RawRequest =
           | S3Event
           | SNSEvent
           | DynamoDBStreamEvent
+          | FirehoseTransformationEvent
       >
     | EventBridgeSchema
     | SqsSchema
@@ -77,5 +80,6 @@ export type RawRequest =
     | S3Schema
     | SnsSchema
     | DynamoDBStreamSchema
+    | KinesisFirehoseSchema
     | string
 export type RawResponse = ReturnType<AWSLambdaHandler> | unknown

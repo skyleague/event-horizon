@@ -1,6 +1,6 @@
 import type { Promisable, Try } from '@skyleague/axioms'
-import type { Schema } from '@skyleague/therefore'
 import type { S3BatchEvent, S3BatchEventTask, S3BatchResultResultCode } from 'aws-lambda'
+import type { InferFromParser, MaybeGenericParser } from '../../parsers/types.js'
 import type { EventHandlerDefinition, LambdaContext } from '../types.js'
 
 export interface S3BatchTaskResult<Result = unknown> {
@@ -16,19 +16,28 @@ export interface S3BatchTask {
     readonly raw: { task: S3BatchEventTask; job: Omit<S3BatchEvent, 'tasks'> }
 }
 
-export interface S3BatchEventHandler<Configuration = unknown, Service = unknown, Profile = unknown, Result = unknown> {
+export interface S3BatchEventHandler<
+    Configuration = unknown,
+    Service = unknown,
+    Profile extends MaybeGenericParser = MaybeGenericParser,
+    Result extends MaybeGenericParser = MaybeGenericParser,
+> {
     schema: {
-        result?: Schema<Result>
+        result?: Result
     }
     handler: (
         request: NoInfer<S3BatchTask>,
         context: LambdaContext<Configuration, Service, Profile>,
-    ) => Promisable<Try<NoInfer<S3BatchTaskResult<Result>>>>
+    ) => Promisable<Try<NoInfer<S3BatchTaskResult<InferFromParser<Result, unknown>>>>>
     treatMissingKeysAs?: S3BatchResultResultCode
     treatErrorsAs?: S3BatchResultResultCode
 }
 
-export interface S3BatchHandler<Configuration = unknown, Service = unknown, Profile = unknown, Result = unknown>
-    extends EventHandlerDefinition<Configuration, Service, Profile> {
+export interface S3BatchHandler<
+    Configuration = unknown,
+    Service = unknown,
+    Profile extends MaybeGenericParser = MaybeGenericParser,
+    Result extends MaybeGenericParser = MaybeGenericParser,
+> extends EventHandlerDefinition<Configuration, Service, Profile> {
     s3Batch: S3BatchEventHandler<Configuration, Service, Profile, Result>
 }

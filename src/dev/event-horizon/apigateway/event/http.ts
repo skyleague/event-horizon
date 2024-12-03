@@ -4,22 +4,34 @@ import { arbitrary } from '@skyleague/therefore'
 import { APIGatewayProxyEventV2Schema } from '../../../../aws/apigateway/http.type.js'
 import type { AuthorizerSchema, HTTPHandler, HTTPRequest, Responses } from '../../../../events/apigateway/event/types.js'
 import type { SecurityRequirements } from '../../../../events/apigateway/types.js'
+import type { InferFromParser, MaybeGenericParser } from '../../../../parsers/types.js'
+import { coerce } from '../../coerce.js'
 
 export function httpApiEvent<
     Configuration,
     Service,
-    Profile,
-    Body,
-    Path,
-    Query,
-    Headers,
+    Profile extends MaybeGenericParser,
+    Body extends MaybeGenericParser,
+    Path extends MaybeGenericParser,
+    Query extends MaybeGenericParser,
+    Headers extends MaybeGenericParser,
     Result extends Responses,
     Security extends SecurityRequirements,
     Authorizer extends AuthorizerSchema<'http'>,
 >(
     { http }: HTTPHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, Security, 'http', Authorizer>,
     { generation = 'fast' }: { generation?: 'full' | 'fast' } = {},
-): Dependent<HTTPRequest<Body, Path, Query, Headers, Security, 'http', Authorizer>> {
+): Dependent<
+    HTTPRequest<
+        InferFromParser<Body, undefined>,
+        InferFromParser<Path, undefined>,
+        InferFromParser<Query, undefined>,
+        InferFromParser<Headers, undefined>,
+        Security,
+        'http',
+        Authorizer
+    >
+> {
     const { bodyType = 'json' } = http
 
     const body = http.schema.body !== undefined ? arbitrary(http.schema.body) : constant(undefined)
@@ -37,10 +49,10 @@ export function httpApiEvent<
             raw: constant(r),
         }).map((event) => {
             // force coercion
-            http.schema.body?.is?.(event.body) ?? true
-            http.schema.headers?.is?.(event.headers) ?? true
-            http.schema.query?.is?.(event.query) ?? true
-            http.schema.path?.is?.(event.path) ?? true
+            event.body = coerce(http.schema.body, event.body)
+            event.headers = coerce(http.schema.headers, event.headers)
+            event.query = coerce(http.schema.query, event.query)
+            event.path = coerce(http.schema.path, event.path)
 
             if (bodyType !== 'binary') {
                 const eventBody = event.body ?? event.raw.body
@@ -59,7 +71,15 @@ export function httpApiEvent<
                 get raw() {
                     return event.raw
                 },
-            } as HTTPRequest<Body, Path, Query, Headers, Security, 'http', Authorizer>
+            } as HTTPRequest<
+                InferFromParser<Body, undefined>,
+                InferFromParser<Path, undefined>,
+                InferFromParser<Query, undefined>,
+                InferFromParser<Headers, undefined>,
+                Security,
+                'http',
+                Authorizer
+            >
         })
     })
 }

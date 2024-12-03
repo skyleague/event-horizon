@@ -14,6 +14,7 @@ export interface KinesisDataStreamRecord {
     eventVersion: string
     eventID: string
     eventName: 'aws:kinesis:record'
+    awsRegion: string
     invokeIdentityArn: string
     eventSourceARN: string
     kinesis: KinesisDataStreamRecordPayload

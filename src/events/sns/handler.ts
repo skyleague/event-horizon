@@ -1,6 +1,7 @@
 import type { Try } from '@skyleague/axioms'
 import { isFailure, mapTry } from '@skyleague/axioms'
 import type { SnsRecordSchema } from '../../aws/sns/sns.type.js'
+import type { MaybeGenericParser } from '../../parsers/types.js'
 import { ioLoggerChild } from '../functions/io-logger-child.js'
 import { ioLogger } from '../functions/io-logger.js'
 import { ioValidate } from '../functions/io-validate.js'
@@ -8,7 +9,12 @@ import type { LambdaContext } from '../types.js'
 import { snsParseEvent } from './functions/parse-event.js'
 import type { SNSEvent, SNSHandler } from './types.js'
 
-export async function handleSNSEvent<Configuration, Service, Profile, Payload>(
+export async function handleSNSEvent<
+    Configuration,
+    Service,
+    Profile extends MaybeGenericParser,
+    Payload extends MaybeGenericParser,
+>(
     handler: SNSHandler<Configuration, Service, Profile, Payload>,
     events: SnsRecordSchema[],
     context: LambdaContext<Configuration, Service, Profile>,
@@ -22,7 +28,7 @@ export async function handleSNSEvent<Configuration, Service, Profile, Payload>(
     for (const [i, event] of events.entries()) {
         const item = { item: i }
 
-        const snsEvent = mapTry(event, (e) => {
+        const snsEvent = await mapTry(event, (e) => {
             const unvalidatedSnsEvent = parseEventFn.before(e)
 
             ioLoggerChildFn.before({

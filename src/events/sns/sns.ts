@@ -1,11 +1,18 @@
 import type { SnsRecordSchema } from '../../aws/sns/sns.type.js'
 import { EventError } from '../../errors/event-error/event-error.js'
+import type { MaybeGenericParser } from '../../parsers/types.js'
 import { type EventHandlerFn, eventHandler } from '../common/event.js'
 import type { DefaultServices } from '../types.js'
 import { handleSNSEvent } from './handler.js'
 import type { SNSHandler } from './types.js'
 
-export function snsHandler<Configuration, Service extends DefaultServices | undefined, Profile, Payload, D>(
+export function snsHandler<
+    D,
+    Configuration = undefined,
+    Service extends DefaultServices | undefined = undefined,
+    Profile extends MaybeGenericParser = undefined,
+    Payload extends MaybeGenericParser = undefined,
+>(
     definition: D & SNSHandler<Configuration, Service, Profile, Payload>,
     { _kernel = handleSNSEvent }: { _kernel?: typeof handleSNSEvent } = {},
 ): D & EventHandlerFn<Configuration, Service, Profile> {

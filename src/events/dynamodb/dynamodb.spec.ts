@@ -1,6 +1,6 @@
 import { dynamodbHandler } from './dynamodb.js'
 
-import { warmerEvent } from '../../../test/schema.js'
+import { literalSchema, warmerEvent } from '../../../test/schema.js'
 import { KinesisDataStreamSchema } from '../../aws/kinesis/kinesis.type.js'
 import { S3BatchEvent } from '../../aws/s3-batch/s3.type.js'
 import { S3Schema } from '../../aws/s3/s3.type.js'
@@ -8,8 +8,9 @@ import { SecretRotationEvent } from '../../aws/secret-rotation/secret-rotation.t
 import { context } from '../../test/context/context.js'
 
 import { asyncForAll, oneOf, random, tuple, unknown } from '@skyleague/axioms'
-import { arbitrary } from '@skyleague/therefore'
-import { expect, it, vi } from 'vitest'
+import { type Schema, arbitrary } from '@skyleague/therefore'
+import { expect, expectTypeOf, it, vi } from 'vitest'
+import { z } from 'zod'
 import { APIGatewayProxyEventV2Schema, APIGatewayRequestAuthorizerEventV2Schema } from '../../aws/apigateway/http.type.js'
 import { APIGatewayProxyEventSchema, APIGatewayRequestAuthorizerEventSchema } from '../../aws/apigateway/rest.type.js'
 import { DynamoDBStreamSchema } from '../../aws/dynamodb/dynamodb.type.js'
@@ -17,6 +18,148 @@ import { EventBridgeSchema } from '../../aws/eventbridge/eventbridge.type.js'
 import { KinesisFirehoseSchema } from '../../aws/firehose/firehose.type.js'
 import { SnsSchema } from '../../aws/sns/sns.type.js'
 import { SqsSchema } from '../../aws/sqs/sqs.type.js'
+import type { LambdaContext } from '../types.js'
+import type { DynamoDBStreamEvent } from './types.js'
+
+it('handles service and config types', () => {
+    {
+        const handler = dynamodbHandler({
+            dynamodb: {
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, undefined, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<never>()
+                    expectTypeOf(context.services).toEqualTypeOf<never>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+                },
+            },
+        })
+        expectTypeOf(handler.dynamodb.handler).toEqualTypeOf<
+            (request: NoInfer<DynamoDBStreamEvent>, context: LambdaContext<undefined, undefined, undefined>) => void
+        >()
+    }
+    {
+        const handler = dynamodbHandler({
+            config: 'config' as const,
+            dynamodb: {
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<'config', undefined, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<'config'>()
+                    expectTypeOf(context.services).toEqualTypeOf<never>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+                },
+            },
+        })
+        expectTypeOf(handler.dynamodb.handler).toEqualTypeOf<
+            (request: NoInfer<DynamoDBStreamEvent>, context: LambdaContext<'config', undefined, undefined>) => void
+        >()
+    }
+    {
+        const handler = dynamodbHandler({
+            config: () => 'config' as const,
+            dynamodb: {
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<'config', undefined, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<'config'>()
+                    expectTypeOf(context.services).toEqualTypeOf<never>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+                },
+            },
+        })
+        expectTypeOf(handler.dynamodb.handler).toEqualTypeOf<
+            (request: NoInfer<DynamoDBStreamEvent>, context: LambdaContext<'config', undefined, undefined>) => void
+        >()
+    }
+    {
+        const handler = dynamodbHandler({
+            services: { services: 'services' as const },
+            dynamodb: {
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, { services: 'services' }, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<never>()
+                    expectTypeOf(context.services).toEqualTypeOf<{ services: 'services' }>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+                },
+            },
+        })
+        expectTypeOf(handler.dynamodb.handler).toEqualTypeOf<
+            (
+                request: NoInfer<DynamoDBStreamEvent>,
+                context: LambdaContext<undefined, { services: 'services' }, undefined>,
+            ) => void
+        >()
+    }
+    {
+        const handler = dynamodbHandler({
+            services: () => ({ services: 'services' as const }),
+            dynamodb: {
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, { services: 'services' }, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<never>()
+                    expectTypeOf(context.services).toEqualTypeOf<{ services: 'services' }>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+                },
+            },
+        })
+        expectTypeOf(handler.dynamodb.handler).toEqualTypeOf<
+            (
+                request: NoInfer<DynamoDBStreamEvent>,
+                context: LambdaContext<undefined, { services: 'services' }, undefined>,
+            ) => void
+        >()
+    }
+    {
+        const handler = dynamodbHandler({
+            config: () => 'config' as const,
+            services: (config) => {
+                expectTypeOf(config).toEqualTypeOf<'config'>()
+                return { services: 'services' as const }
+            },
+            dynamodb: {
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<'config', { services: 'services' }, undefined>>()
+                    expectTypeOf(context.config).toEqualTypeOf<'config'>()
+                    expectTypeOf(context.services).toEqualTypeOf<{ services: 'services' }>()
+                    expectTypeOf(context.profile).toEqualTypeOf<never>()
+                },
+            },
+        })
+        expectTypeOf(handler.dynamodb.handler).toEqualTypeOf<
+            (request: NoInfer<DynamoDBStreamEvent>, context: LambdaContext<'config', { services: 'services' }, undefined>) => void
+        >()
+    }
+    {
+        const handler = dynamodbHandler({
+            profile: { schema: literalSchema<'profile'>() },
+            dynamodb: {
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, undefined, Schema<'profile'>>>()
+                    expectTypeOf(context.config).toEqualTypeOf<never>()
+                    expectTypeOf(context.services).toEqualTypeOf<never>()
+                    expectTypeOf(context.profile).toEqualTypeOf<'profile'>()
+                },
+            },
+        })
+        expectTypeOf(handler.dynamodb.handler).toEqualTypeOf<
+            (request: NoInfer<DynamoDBStreamEvent>, context: LambdaContext<undefined, undefined, Schema<'profile'>>) => void
+        >()
+    }
+    {
+        const handler = dynamodbHandler({
+            profile: { schema: z.literal('profile') },
+            dynamodb: {
+                handler: (_, context) => {
+                    expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, undefined, z.ZodLiteral<'profile'>>>()
+                    expectTypeOf(context.config).toEqualTypeOf<never>()
+                    expectTypeOf(context.services).toEqualTypeOf<never>()
+                    expectTypeOf(context.profile).toEqualTypeOf<'profile'>()
+                },
+            },
+        })
+        expectTypeOf(handler.dynamodb.handler).toEqualTypeOf<
+            (request: NoInfer<DynamoDBStreamEvent>, context: LambdaContext<undefined, undefined, z.ZodLiteral<'profile'>>) => void
+        >()
+    }
+})
 
 it('handles dynamodb events', async () => {
     const dynamodb = vi.fn()

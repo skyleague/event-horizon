@@ -1,7 +1,7 @@
 import type { Promisable, Try } from '@skyleague/axioms'
-import type { Schema } from '@skyleague/therefore'
 import type { APIGatewayRequestAuthorizerEventV2Schema } from '../../../aws/apigateway/http.type.js'
 import type { APIGatewayRequestAuthorizerEventSchema } from '../../../aws/apigateway/rest.type.js'
+import type { InferFromParser, MaybeGenericParser } from '../../../parsers/types.js'
 import type { EventHandlerDefinition, LambdaContext } from '../../types.js'
 import type { GatewayVersion } from '../event/types.js'
 import type { HTTPHeaders, HTTPPathParameters, HTTPQueryParameters } from '../types.js'
@@ -25,52 +25,60 @@ export interface AuthorizerReponse<Context = unknown> {
 }
 
 export interface RequestAuthorizerEvent<
-    Path = HTTPPathParameters | undefined,
-    Query = HTTPQueryParameters | undefined,
-    Headers = HTTPHeaders | undefined,
-    Security extends SecuritySchemes = SecuritySchemes,
+    Path = undefined,
+    Query = undefined,
+    Headers = undefined,
+    Security extends SecuritySchemes | undefined = SecuritySchemes | undefined,
     GV extends GatewayVersion = 'http' | 'rest',
 > {
-    headers: Headers
-    query: Query
-    path: Path
-    security: Security
+    headers: [Headers] extends [undefined] ? HTTPHeaders : Headers
+    query: [Query] extends [undefined] ? HTTPQueryParameters : Query
+    path: [Path] extends [undefined] ? HTTPPathParameters : Path
+    security: [Security] extends [undefined] ? [] : Security
     readonly raw: GV extends 'http' ? APIGatewayRequestAuthorizerEventV2Schema : APIGatewayRequestAuthorizerEventSchema
 }
 
 export interface RequestAuthorizerEventHandler<
     Configuration = unknown,
     Service = unknown,
-    Profile = unknown,
-    Path = HTTPPathParameters,
-    Query = HTTPQueryParameters,
-    Headers = HTTPHeaders,
-    Context = unknown,
-    Security extends SecuritySchemes = SecuritySchemes,
+    Profile extends MaybeGenericParser = undefined,
+    Path extends MaybeGenericParser = undefined,
+    Query extends MaybeGenericParser = undefined,
+    Headers extends MaybeGenericParser = undefined,
+    Context extends MaybeGenericParser = undefined,
+    Security extends SecuritySchemes | undefined = undefined,
     GV extends GatewayVersion = 'http' | 'rest',
 > {
     schema?: {
-        path?: Schema<Path>
-        query?: Schema<Query>
-        headers?: Schema<Headers>
-        context?: Schema<Context>
+        path?: Path
+        query?: Query
+        headers?: Headers
+        context?: Context
     }
     security?: Security
     handler: (
-        request: NoInfer<RequestAuthorizerEvent<Path, Query, Headers, Security, GV>>,
+        request: NoInfer<
+            RequestAuthorizerEvent<
+                InferFromParser<Path, undefined>,
+                InferFromParser<Query, undefined>,
+                InferFromParser<Headers, undefined>,
+                Security,
+                GV
+            >
+        >,
         context: LambdaContext<Configuration, Service, Profile>,
-    ) => Promisable<Try<AuthorizerReponse<NoInfer<Context>>>>
+    ) => Promisable<Try<AuthorizerReponse<NoInfer<InferFromParser<Context, unknown>>>>>
 }
 
 export interface RequestAuthorizerHandler<
     Configuration = unknown,
     Service = unknown,
-    Profile = unknown,
-    Path = HTTPPathParameters,
-    Query = HTTPQueryParameters,
-    Headers = HTTPHeaders,
-    Context = unknown,
-    Security extends SecuritySchemes = SecuritySchemes,
+    Profile extends MaybeGenericParser = undefined,
+    Path extends MaybeGenericParser = undefined,
+    Query extends MaybeGenericParser = undefined,
+    Headers extends MaybeGenericParser = undefined,
+    Context extends MaybeGenericParser = undefined,
+    Security extends SecuritySchemes | undefined = undefined,
     GV extends GatewayVersion = 'http' | 'rest',
 > extends EventHandlerDefinition<Configuration, Service, Profile> {
     request: RequestAuthorizerEventHandler<Configuration, Service, Profile, Path, Query, Headers, Context, Security, GV>

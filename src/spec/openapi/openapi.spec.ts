@@ -460,38 +460,46 @@ describe('openapiFromHandlers', () => {
 
     it('request body', () => {
         const h = vi.fn()
-        forAll(tuple(string(), string(), record(json())), ([method, path, schema]) => {
-            const helloWorld = httpApiHandler({
-                http: {
-                    method,
-                    path,
-                    schema: { responses: {}, body: { schema } },
-                    handler: h,
-                } as any,
-            })
+        forAll(
+            tuple(string(), string(), record(json())),
+            ([method, path, schema]) => {
+                const helloWorld = httpApiHandler({
+                    http: {
+                        method,
+                        path,
+                        schema: { responses: {}, body: { schema } },
+                        handler: h,
+                    } as any,
+                })
 
-            expect(openapiFromHandlers({ helloWorld }, { info: { title, version } })).toEqual({
-                components: {
-                    requestBodies: {},
-                    responses: {
-                        ErrorResponse: {
-                            content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } },
-                            description: (HttpError.schema as { description: string }).description,
+                expect(openapiFromHandlers({ helloWorld }, { info: { title, version } })).toEqual({
+                    components: {
+                        requestBodies: {},
+                        responses: {
+                            ErrorResponse: {
+                                content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } },
+                                description: (HttpError.schema as { description: string }).description,
+                            },
+                        },
+                        schemas: {
+                            ErrorResponse: HttpError.schema,
                         },
                     },
-                    schemas: {
-                        ErrorResponse: HttpError.schema,
+                    info: { title, version },
+                    openapi: '3.1.0',
+                    paths: {
+                        [path]: {
+                            [method]: {
+                                parameters: [],
+                                responses: {},
+                                requestBody: { content: { 'application/json': { schema } } },
+                            },
+                        },
                     },
-                },
-                info: { title, version },
-                openapi: '3.1.0',
-                paths: {
-                    [path]: {
-                        [method]: { parameters: [], responses: {}, requestBody: { content: { 'application/json': { schema } } } },
-                    },
-                },
-            })
-        })
+                })
+            },
+            { counterExample: ['', '', {}] },
+        )
     })
 
     it('response', () => {

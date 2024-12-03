@@ -1,7 +1,8 @@
-import { asyncForAll, oneOf, random, tuple, unknown } from '@skyleague/axioms'
-import { arbitrary } from '@skyleague/therefore'
+import { type Try, asyncForAll, oneOf, random, tuple, unknown } from '@skyleague/axioms'
+import { type Schema, arbitrary } from '@skyleague/therefore'
 import type { SQSBatchItemFailure } from 'aws-lambda'
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
+import { z } from 'zod'
 import { literalSchema, warmerEvent } from '../../../test/schema.js'
 import { APIGatewayProxyEventV2Schema, APIGatewayRequestAuthorizerEventV2Schema } from '../../aws/apigateway/http.type.js'
 import { APIGatewayProxyEventSchema, APIGatewayRequestAuthorizerEventSchema } from '../../aws/apigateway/rest.type.js'
@@ -13,8 +14,9 @@ import { S3BatchEvent } from '../../aws/s3-batch/s3.type.js'
 import { S3Schema } from '../../aws/s3/s3.type.js'
 import { SecretRotationEvent } from '../../aws/secret-rotation/secret-rotation.type.js'
 import { SnsSchema } from '../../aws/sns/sns.type.js'
-import { SqsSchema } from '../../aws/sqs/sqs.type.js'
+import { type SqsRecordSchema, SqsSchema } from '../../aws/sqs/sqs.type.js'
 import { context } from '../../test/context/context.js'
+import type { LambdaContext } from '../types.js'
 import { sqsGroupHandler, sqsHandler } from './sqs.js'
 import type { SQSEvent, SQSMessageGroup } from './types.js'
 
@@ -43,10 +45,182 @@ describe('sqsHandler', () => {
                 schema: { payload: literalSchema<'payload'>() },
                 handler: (request) => {
                     expectTypeOf(request).toEqualTypeOf<SQSEvent<'payload'>>()
+                    expectTypeOf(request.payload).toEqualTypeOf<'payload'>()
+                    expectTypeOf(request.raw).toEqualTypeOf<SqsRecordSchema>()
                 },
             },
         })
         expectTypeOf(handler.sqs.handler).toEqualTypeOf<(request: SQSEvent<'payload'>) => void>()
+    })
+
+    it('handles schema types - zod', () => {
+        const handler = sqsHandler({
+            sqs: {
+                schema: { payload: z.literal('payload') },
+                handler: (request) => {
+                    expectTypeOf(request).toEqualTypeOf<SQSEvent<'payload'>>()
+                    expectTypeOf(request.payload).toEqualTypeOf<'payload'>()
+                    expectTypeOf(request.raw).toEqualTypeOf<SqsRecordSchema>()
+                },
+            },
+        })
+        expectTypeOf(handler.sqs.handler).toEqualTypeOf<(request: SQSEvent<'payload'>) => void>()
+    })
+
+    it('handles schema types - default', () => {
+        const handler = sqsHandler({
+            sqs: {
+                schema: {},
+                handler: (request) => {
+                    expectTypeOf(request).toEqualTypeOf<SQSEvent<unknown>>()
+                    expectTypeOf(request.payload).toEqualTypeOf<unknown>()
+                    expectTypeOf(request.raw).toEqualTypeOf<SqsRecordSchema>()
+                },
+            },
+        })
+        expectTypeOf(handler.sqs.handler).toEqualTypeOf<(request: SQSEvent<unknown>) => void>()
+    })
+
+    it('handles service and config types', () => {
+        {
+            const handler = sqsHandler({
+                sqs: {
+                    schema: {},
+                    handler: (_, context) => {
+                        expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, undefined, undefined>>()
+                        expectTypeOf(context.config).toEqualTypeOf<never>()
+                        expectTypeOf(context.services).toEqualTypeOf<never>()
+                        expectTypeOf(context.profile).toEqualTypeOf<never>()
+                    },
+                },
+            })
+            expectTypeOf(handler.sqs.handler).toEqualTypeOf<
+                (request: SQSEvent<unknown>, context: LambdaContext<undefined, undefined, undefined>) => void
+            >()
+        }
+        {
+            const handler = sqsHandler({
+                config: 'config' as const,
+                sqs: {
+                    schema: {},
+                    handler: (_, context) => {
+                        expectTypeOf(context).toEqualTypeOf<LambdaContext<'config', undefined, undefined>>()
+                        expectTypeOf(context.config).toEqualTypeOf<'config'>()
+                        expectTypeOf(context.services).toEqualTypeOf<never>()
+                        expectTypeOf(context.profile).toEqualTypeOf<never>()
+                    },
+                },
+            })
+            expectTypeOf(handler.sqs.handler).toEqualTypeOf<
+                (request: SQSEvent<unknown>, context: LambdaContext<'config', undefined, undefined>) => void
+            >()
+        }
+        {
+            const handler = sqsHandler({
+                config: () => 'config' as const,
+                sqs: {
+                    schema: {},
+                    handler: (_, context) => {
+                        expectTypeOf(context).toEqualTypeOf<LambdaContext<'config', undefined, undefined>>()
+                        expectTypeOf(context.config).toEqualTypeOf<'config'>()
+                        expectTypeOf(context.services).toEqualTypeOf<never>()
+                        expectTypeOf(context.profile).toEqualTypeOf<never>()
+                    },
+                },
+            })
+            expectTypeOf(handler.sqs.handler).toEqualTypeOf<
+                (request: SQSEvent<unknown>, context: LambdaContext<'config', undefined, undefined>) => void
+            >()
+        }
+        {
+            const handler = sqsHandler({
+                services: { services: 'services' as const },
+                sqs: {
+                    schema: {},
+                    handler: (_, context) => {
+                        expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, { services: 'services' }, undefined>>()
+                        expectTypeOf(context.config).toEqualTypeOf<never>()
+                        expectTypeOf(context.services).toEqualTypeOf<{ services: 'services' }>()
+                        expectTypeOf(context.profile).toEqualTypeOf<never>()
+                    },
+                },
+            })
+            expectTypeOf(handler.sqs.handler).toEqualTypeOf<
+                (request: SQSEvent<unknown>, context: LambdaContext<undefined, { services: 'services' }, undefined>) => void
+            >()
+        }
+        {
+            const handler = sqsHandler({
+                services: () => ({ services: 'services' as const }),
+                sqs: {
+                    schema: {},
+                    handler: (_, context) => {
+                        expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, { services: 'services' }, undefined>>()
+                        expectTypeOf(context.config).toEqualTypeOf<never>()
+                        expectTypeOf(context.services).toEqualTypeOf<{ services: 'services' }>()
+                        expectTypeOf(context.profile).toEqualTypeOf<never>()
+                    },
+                },
+            })
+            expectTypeOf(handler.sqs.handler).toEqualTypeOf<
+                (request: SQSEvent<unknown>, context: LambdaContext<undefined, { services: 'services' }, undefined>) => void
+            >()
+        }
+        {
+            const handler = sqsHandler({
+                config: () => 'config' as const,
+                services: (config) => {
+                    expectTypeOf(config).toEqualTypeOf<'config'>()
+                    return { services: 'services' as const }
+                },
+                sqs: {
+                    schema: {},
+                    handler: (_, context) => {
+                        expectTypeOf(context).toEqualTypeOf<LambdaContext<'config', { services: 'services' }, undefined>>()
+                        expectTypeOf(context.config).toEqualTypeOf<'config'>()
+                        expectTypeOf(context.services).toEqualTypeOf<{ services: 'services' }>()
+                        expectTypeOf(context.profile).toEqualTypeOf<never>()
+                    },
+                },
+            })
+            expectTypeOf(handler.sqs.handler).toEqualTypeOf<
+                (request: SQSEvent<unknown>, context: LambdaContext<'config', { services: 'services' }, undefined>) => void
+            >()
+        }
+        {
+            const handler = sqsHandler({
+                profile: { schema: literalSchema<'profile'>() },
+                sqs: {
+                    schema: {},
+                    handler: (_, context) => {
+                        expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, undefined, Schema<'profile'>>>()
+                        expectTypeOf(context.config).toEqualTypeOf<never>()
+                        expectTypeOf(context.services).toEqualTypeOf<never>()
+                        expectTypeOf(context.profile).toEqualTypeOf<'profile'>()
+                    },
+                },
+            })
+            expectTypeOf(handler.sqs.handler).toEqualTypeOf<
+                (request: SQSEvent<unknown>, context: LambdaContext<undefined, undefined, Schema<'profile'>>) => void
+            >()
+        }
+        {
+            const handler = sqsHandler({
+                profile: { schema: z.literal('profile') },
+                sqs: {
+                    schema: {},
+                    handler: (_, context) => {
+                        expectTypeOf(context).toEqualTypeOf<LambdaContext<undefined, undefined, z.ZodLiteral<'profile'>>>()
+                        expectTypeOf(context.config).toEqualTypeOf<never>()
+                        expectTypeOf(context.services).toEqualTypeOf<never>()
+                        expectTypeOf(context.profile).toEqualTypeOf<'profile'>()
+                    },
+                },
+            })
+            expectTypeOf(handler.sqs.handler).toEqualTypeOf<
+                (request: SQSEvent<unknown>, context: LambdaContext<undefined, undefined, z.ZodLiteral<'profile'>>) => void
+            >()
+        }
     })
 
     it('does not handle non sqs events', async () => {
@@ -126,11 +300,43 @@ describe('sqsGroupHandler', () => {
                 schema: { payload: literalSchema<'payload'>() },
                 handler: (request) => {
                     expectTypeOf(request).toEqualTypeOf<SQSMessageGroup<'payload'>>()
+                    expectTypeOf(request.records).toEqualTypeOf<SQSEvent<Try<'payload'>>[]>()
+
                     return [{ itemIdentifier: 'sdf' }]
                 },
             },
         })
         expectTypeOf(handler.sqs.handler).toEqualTypeOf<(request: SQSMessageGroup<'payload'>) => SQSBatchItemFailure[]>()
+    })
+
+    it('handles schema types - zod', () => {
+        const handler = sqsGroupHandler({
+            sqs: {
+                schema: { payload: z.literal('payload') },
+                handler: (request) => {
+                    expectTypeOf(request).toEqualTypeOf<SQSMessageGroup<'payload'>>()
+                    expectTypeOf(request.records).toEqualTypeOf<SQSEvent<Try<'payload'>>[]>()
+
+                    return [{ itemIdentifier: 'sdf' }]
+                },
+            },
+        })
+        expectTypeOf(handler.sqs.handler).toEqualTypeOf<(request: SQSMessageGroup<'payload'>) => SQSBatchItemFailure[]>()
+    })
+
+    it('handles schema types - default', () => {
+        const handler = sqsGroupHandler({
+            sqs: {
+                schema: {},
+                handler: (request) => {
+                    expectTypeOf(request).toEqualTypeOf<SQSMessageGroup<unknown>>()
+                    expectTypeOf(request.records).toEqualTypeOf<SQSEvent<Try<unknown>>[]>()
+
+                    return [{ itemIdentifier: 'sdf' }]
+                },
+            },
+        })
+        expectTypeOf(handler.sqs.handler).toEqualTypeOf<(request: SQSMessageGroup<unknown>) => SQSBatchItemFailure[]>()
     })
 
     it('does not handle non sqs events', async () => {

@@ -85,7 +85,6 @@ it('response type is properly expanded', () => {
               }
         >
     >
-
     type _test_mixed_overloaded_repsponse_headers = Expect<
         Equal<
             Simplify<
@@ -96,16 +95,14 @@ it('response type is properly expanded', () => {
             >,
             | {
                   statusCode: 400
-                  headers?: HTTPHeaders | undefined
+                  headers?: HTTPHeaders
                   body: '400-response'
               }
             | {
                   statusCode: 200
-                  headers?:
-                      | {
-                            foo: 'bar'
-                        }
-                      | undefined
+                  headers: {
+                      foo: 'bar'
+                  }
                   body: '200-response'
               }
         >

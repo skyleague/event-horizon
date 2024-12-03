@@ -2,6 +2,7 @@ import type { Try } from '@skyleague/axioms'
 import { isLeft, mapLeft, mapTry, tryAsValue, tryToEither } from '@skyleague/axioms'
 import type { KinesisStreamBatchItemFailure, KinesisStreamBatchResponse } from 'aws-lambda'
 import type { KinesisDataStreamRecord } from '../../aws/kinesis/kinesis.type.js'
+import type { MaybeGenericParser } from '../../parsers/types.js'
 import { ioLoggerChild } from '../functions/io-logger-child.js'
 import { ioLogger } from '../functions/io-logger.js'
 import { ioValidate } from '../functions/io-validate.js'
@@ -10,7 +11,12 @@ import { kinesisErrorHandler } from './functions/error-handler.js'
 import { kinesisParseEvent } from './functions/parse-event.js'
 import type { KinesisEvent, KinesisHandler } from './types.js'
 
-export async function handleKinesisEvent<Configuration, Service, Profile, Payload>(
+export async function handleKinesisEvent<
+    Configuration,
+    Service,
+    Profile extends MaybeGenericParser,
+    Payload extends MaybeGenericParser,
+>(
     handler: KinesisHandler<Configuration, Service, Profile, Payload>,
     events: KinesisDataStreamRecord[],
     context: LambdaContext<Configuration, Service, Profile>,
@@ -29,7 +35,7 @@ export async function handleKinesisEvent<Configuration, Service, Profile, Payloa
     for (const [i, event] of events.entries()) {
         const item = { item: i }
 
-        const kinesisEvent = mapTry(event, (e) => {
+        const kinesisEvent = await mapTry(event, (e) => {
             const unvalidatedKinesisEvent = parseEventFn.before(e)
 
             ioLoggerChildFn.before({

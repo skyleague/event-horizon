@@ -1,26 +1,30 @@
-import type { EventHandlerDefinition, LambdaContext } from '../types.js'
-
 import type { Promisable, Try } from '@skyleague/axioms'
-import type { Schema } from '@skyleague/therefore'
+import type { InferFromParser, MaybeGenericParser } from '../../parsers/types.js'
+import type { EventHandlerDefinition, LambdaContext } from '../types.js'
 
 export interface RawEventHandler<
     Configuration = unknown,
     Service = unknown,
-    Profile = unknown,
-    Payload = unknown,
-    Result = unknown,
+    Profile extends MaybeGenericParser = MaybeGenericParser,
+    Payload extends MaybeGenericParser = MaybeGenericParser,
+    Result extends MaybeGenericParser = MaybeGenericParser,
 > {
     schema: {
-        payload?: Schema<Payload>
-        result?: Schema<Result>
+        payload?: Payload
+        result?: Result
     }
     handler: (
-        request: NoInfer<Payload>,
+        request: NoInfer<InferFromParser<Payload, unknown>>,
         context: LambdaContext<Configuration, Service, Profile>,
-    ) => Promisable<Try<NoInfer<Result>>>
+    ) => Promisable<Try<NoInfer<InferFromParser<Result, unknown>>>>
 }
 
-export interface RawHandler<Configuration = unknown, Service = unknown, Profile = unknown, Payload = unknown, Result = unknown>
-    extends EventHandlerDefinition<Configuration, Service, Profile> {
+export interface RawHandler<
+    Configuration = unknown,
+    Service = unknown,
+    Profile extends MaybeGenericParser = MaybeGenericParser,
+    Payload extends MaybeGenericParser = MaybeGenericParser,
+    Result extends MaybeGenericParser = MaybeGenericParser,
+> extends EventHandlerDefinition<Configuration, Service, Profile> {
     raw: RawEventHandler<Configuration, Service, Profile, Payload, Result>
 }
