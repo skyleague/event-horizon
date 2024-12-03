@@ -25,11 +25,11 @@ export function restApiHandler<
     Headers,
     const Result extends Responses,
     const Security extends SecurityRequirements,
-    Authorizer extends AuthorizerSchema,
+    Authorizer extends AuthorizerSchema<'rest'>,
     D,
 >(
     definition: D &
-        HTTPHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, Security, Authorizer, 'rest'>,
+        HTTPHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, Security, 'rest', Authorizer>,
     {
         _kernel = handleHTTPEvent,
     }: {
@@ -58,11 +58,11 @@ export function httpApiHandler<
     Headers,
     const Result extends Responses,
     const Security extends SecurityRequirements,
-    Authorizer extends AuthorizerSchema,
+    Authorizer extends AuthorizerSchema<'http'>,
     D,
 >(
     definition: D &
-        HTTPHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, Security, Authorizer, 'http'>,
+        HTTPHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, Security, 'http', Authorizer>,
     { _kernel = handleHTTPEvent }: { _kernel?: typeof handleHTTPEvent } = {},
 ): D & EventHandlerFn<Configuration, Service, Profile, Result> {
     return eventHandler(definition, {

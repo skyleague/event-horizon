@@ -15,11 +15,11 @@ export function httpApiEvent<
     Headers,
     Result extends Responses,
     Security extends SecurityRequirements,
-    Authorizer extends AuthorizerSchema,
+    Authorizer extends AuthorizerSchema<'http'>,
 >(
-    { http }: HTTPHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, Security, Authorizer, 'http'>,
+    { http }: HTTPHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, Security, 'http', Authorizer>,
     { generation = 'fast' }: { generation?: 'full' | 'fast' } = {},
-): Dependent<HTTPRequest<Body, Path, Query, Headers, Security, Authorizer, 'http'>> {
+): Dependent<HTTPRequest<Body, Path, Query, Headers, Security, 'http', Authorizer>> {
     const { bodyType = 'json' } = http
 
     const body = http.schema.body !== undefined ? arbitrary(http.schema.body) : constant(undefined)
@@ -59,7 +59,7 @@ export function httpApiEvent<
                 get raw() {
                     return event.raw
                 },
-            } as HTTPRequest<Body, Path, Query, Headers, Security, Authorizer, 'http'>
+            } as HTTPRequest<Body, Path, Query, Headers, Security, 'http', Authorizer>
         })
     })
 }

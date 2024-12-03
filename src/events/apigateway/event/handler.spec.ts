@@ -19,7 +19,7 @@ const path = `/${random(alpha())}` as const
 
 it.each([httpApiHandler, restApiHandler])('plaintext success does not give failures', async (fn) => {
     const h = vi.fn()
-    const handler = fn({
+    const handler = (fn as typeof httpApiHandler)({
         http: {
             method,
             path,
@@ -56,7 +56,7 @@ it.each([httpApiHandler, restApiHandler])('plaintext success does not give failu
 
 it.each([httpApiHandler, restApiHandler])('json success does not give failures', async (fn) => {
     const h = vi.fn()
-    const handler = fn({
+    const handler = (fn as typeof httpApiHandler)({
         http: {
             method,
             path,
@@ -93,7 +93,7 @@ it.each([httpApiHandler, restApiHandler])('json success does not give failures',
 
 it.each([httpApiHandler, restApiHandler])('binary success does not give failures', async (fn) => {
     const h = vi.fn()
-    const handler = fn({
+    const handler = (fn as typeof httpApiHandler)({
         http: {
             method,
             path,
@@ -130,7 +130,7 @@ it.each([httpApiHandler, restApiHandler])('binary success does not give failures
 
 it.each([httpApiHandler, restApiHandler])('body schema validation, gives failure', async (fn) => {
     const h = vi.fn()
-    const handler = fn({
+    const handler = (fn as typeof httpApiHandler)({
         http: {
             method,
             path,
@@ -165,7 +165,7 @@ it.each([httpApiHandler, restApiHandler])('body schema validation, gives failure
 
 it.each([httpApiHandler, restApiHandler])('query schema validation, gives failure', async (fn) => {
     const h = vi.fn()
-    const handler = fn({
+    const handler = (fn as typeof httpApiHandler)({
         http: {
             method,
             path,
@@ -200,7 +200,7 @@ it.each([httpApiHandler, restApiHandler])('query schema validation, gives failur
 
 it.each([httpApiHandler, restApiHandler])('path schema validation, gives failure', async (fn) => {
     const h = vi.fn()
-    const handler = fn({
+    const handler = (fn as typeof httpApiHandler)({
         http: {
             method,
             path,
@@ -235,7 +235,7 @@ it.each([httpApiHandler, restApiHandler])('path schema validation, gives failure
 
 it.each([httpApiHandler, restApiHandler])('headers schema validation, gives failure', async (fn) => {
     const h = vi.fn()
-    const handler = fn({
+    const handler = (fn as typeof httpApiHandler)({
         http: {
             method,
             path,

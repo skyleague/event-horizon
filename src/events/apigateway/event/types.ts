@@ -7,18 +7,28 @@ import type { EventHandlerDefinition, LambdaContext } from '../../types.js'
 import type { HTTPHeaders, HTTPMethod, HTTPPathParameters, HTTPQueryParameters, SecurityRequirements } from '../types.js'
 import type { HttpError } from './functions/http-error.type.js'
 
-export type AuthorizerSchema =
-    | {
-          jwt: Schema<Record<string, unknown>> | true
-      }
-    | {
-          lambda: Schema<Record<string, unknown>> | true
-      }
-    | {
-          iam?: true
-      }
+export type AuthorizerSchema<GV extends GatewayVersion> = GV extends 'http'
+    ?
+          | {
+                lambda: Schema<Record<string, unknown>> | true
+            }
+          | {
+                iam?: true
+            }
+    :
+          | {
+                jwt: Schema<Record<string, unknown>> | true
+            }
+          | {
+                lambda: Schema<Record<string, unknown>> | true
+            }
+          | {
+                iam?: true
+            }
 
-export type AuthorizerContext<GV, Authorizer extends AuthorizerSchema> = Authorizer extends { jwt: true }
+export type AuthorizerContext<GV extends GatewayVersion, Authorizer extends AuthorizerSchema<GV>> = Authorizer extends {
+    jwt: true
+}
     ? {
           claims: Record<string, unknown>
           scopes: string[]
@@ -40,10 +50,12 @@ export type AuthorizerContext<GV, Authorizer extends AuthorizerSchema> = Authori
                 : RestIamAuthorizer
             : AnyAuthorizerContext<GV>
 
-export type AnyAuthorizerContext<GV> =
-    | AuthorizerContext<GV, { jwt: true }>
-    | AuthorizerContext<GV, { lambda: true }>
-    | AuthorizerContext<GV, { iam: true }>
+export type AnyAuthorizerContext<GV> = GV extends 'http'
+    ? AuthorizerContext<'http', { lambda: true }> | AuthorizerContext<'http', { iam: true }>
+    :
+          | AuthorizerContext<'rest', { jwt: true }>
+          | AuthorizerContext<'rest', { lambda: true }>
+          | AuthorizerContext<'http', { iam: true }>
 
 export type HTTPIamAuthorizer = Exclude<Exclude<RequestContextV2Authorizer, undefined>['iam'], undefined>
 export type RestIamAuthorizer = Extract<
@@ -57,8 +69,8 @@ export interface HTTPRequest<
     Query = HTTPQueryParameters | undefined,
     Headers = HTTPHeaders | undefined,
     Security extends SecurityRequirements = SecurityRequirements,
-    Authorizer extends AuthorizerSchema = AuthorizerSchema,
     GV extends GatewayVersion = 'http' | 'rest',
+    Authorizer extends AuthorizerSchema<GV> = AuthorizerSchema<GV>,
 > {
     body: Body
     headers: Headers
@@ -123,8 +135,8 @@ export interface HTTPEventHandler<
     Headers = HTTPHeaders,
     Result extends Responses = Responses,
     Security extends SecurityRequirements = SecurityRequirements,
-    Authorizer extends AuthorizerSchema = AuthorizerSchema,
     GV extends GatewayVersion = 'http' | 'rest',
+    Authorizer extends AuthorizerSchema<GV> = AuthorizerSchema<GV>,
 > {
     method?: HTTPMethod
     path?: `/${string}`
@@ -137,7 +149,7 @@ export interface HTTPEventHandler<
         responses: Result
     }
     handler: (
-        request: NoInfer<HTTPRequest<Body, Path, Query, Headers, Security, Authorizer, GV>>,
+        request: NoInfer<HTTPRequest<Body, Path, Query, Headers, Security, GV, Authorizer>>,
         context: LambdaContext<Configuration, Service, Profile>,
     ) => Promisable<Try<HTTPResponses<NoInfer<Result>>>>
     security?: Security
@@ -158,10 +170,10 @@ export interface HTTPHandler<
     Headers = HTTPHeaders,
     Result extends Responses = Responses,
     Security extends SecurityRequirements = SecurityRequirements,
-    Authorizer extends AuthorizerSchema = AuthorizerSchema,
     GV extends GatewayVersion = 'http' | 'rest',
+    Authorizer extends AuthorizerSchema<GV> = AuthorizerSchema<GV>,
 > extends EventHandlerDefinition<Configuration, Service, Profile> {
-    http: HTTPEventHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, Security, Authorizer, GV>
+    http: HTTPEventHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, Security, GV, Authorizer>
     serialize?: {
         error?: ErrorSerializer
     }
