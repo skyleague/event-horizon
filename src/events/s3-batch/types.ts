@@ -1,4 +1,5 @@
-import type { Promisable, Try } from '@skyleague/axioms'
+import type { Try } from '@skyleague/axioms'
+import type { Promisable } from '@skyleague/axioms/types'
 import type { S3BatchEvent, S3BatchEventTask, S3BatchResultResultCode } from 'aws-lambda'
 import type { InferFromParser, MaybeGenericParser } from '../../parsers/types.js'
 import type { EventHandlerDefinition, LambdaContext } from '../types.js'
