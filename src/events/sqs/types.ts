@@ -1,6 +1,7 @@
 import type { DefaultServices, EventHandlerDefinition, LambdaContext } from '../types.js'
 
-import type { Promisable, Try } from '@skyleague/axioms'
+import type { Try } from '@skyleague/axioms'
+import type { Promisable } from '@skyleague/axioms/types'
 import type { SQSBatchItemFailure } from 'aws-lambda'
 import type { SqsRecordSchema } from '../../aws/sqs/sqs.type.js'
 import type { InferFromParser, MaybeGenericParser } from '../../parsers/types.js'

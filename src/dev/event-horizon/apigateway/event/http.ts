@@ -63,10 +63,10 @@ export function httpApiEvent<
             raw: constant(r),
         }).map((event) => {
             // force coercion
-            event.body = coerce(http.schema.body, event.body)
-            event.headers = coerce(http.schema.headers, event.headers)
-            event.query = coerce(http.schema.query, event.query)
-            event.path = coerce(http.schema.path, event.path)
+            event.body = coerce(http.schema.body, event.body) as typeof event.body
+            event.headers = coerce(http.schema.headers, event.headers) as typeof event.headers
+            event.query = coerce(http.schema.query, event.query) as typeof event.query
+            event.path = coerce(http.schema.path, event.path) as typeof event.path
 
             if (bodyType !== 'binary') {
                 const eventBody = event.body ?? event.raw.body

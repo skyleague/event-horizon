@@ -1,4 +1,5 @@
-import type { Promisable, Try } from '@skyleague/axioms'
+import type { Try } from '@skyleague/axioms'
+import type { Promisable } from '@skyleague/axioms/types'
 import type { EventBridgeSchema } from '../../aws/eventbridge/eventbridge.type.js'
 import type { InferFromParser, MaybeGenericParser } from '../../parsers/types.js'
 import type { EventHandlerDefinition, LambdaContext } from '../types.js'

@@ -1,4 +1,5 @@
-import type { Promisable, Try } from '@skyleague/axioms'
+import type { Try } from '@skyleague/axioms'
+import type { Promisable } from '@skyleague/axioms/types'
 import type { DynamoDBStreamRecord } from '../../aws/dynamodb/dynamodb.type.js'
 import type { MaybeGenericParser } from '../../parsers/types.js'
 import type { EventHandlerDefinition, LambdaContext } from '../types.js'

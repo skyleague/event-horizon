@@ -30,7 +30,9 @@ export function eventBridgeEvent<
     { generation = 'fast' }: { generation?: 'full' | 'fast' } = {},
 ): Dependent<EventBridgeEvent<InferFromParser<Payload, unknown>>> {
     const record = arbitrary(EventBridgeSchema).constant(generation === 'fast')
-    const payload = eventBridge.schema.payload !== undefined ? arbitrary(eventBridge.schema.payload) : unknown()
+    const payload = (eventBridge.schema.payload !== undefined ? arbitrary(eventBridge.schema.payload) : unknown()) as Dependent<
+        InferFromParser<Payload, unknown>
+    >
     return tuple(record, payload).map(([r, p]) => {
         const event = {
             raw: r,
