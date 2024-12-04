@@ -1,7 +1,7 @@
 import type { DefaultServices, EventHandlerDefinition, LambdaContext } from '../types.js'
 
-import type { Promisable, Try } from '@skyleague/axioms'
-import type { SetRequired } from '@skyleague/axioms/types'
+import type { Try } from '@skyleague/axioms'
+import type { Promisable, SetRequired } from '@skyleague/axioms/types'
 import type { SecretsManagerRotationEvent } from 'aws-lambda'
 import type { MaybeGenericParser } from '../../parsers/types.js'
 
