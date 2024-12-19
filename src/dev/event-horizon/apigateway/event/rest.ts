@@ -3,7 +3,7 @@ import { arbitrary } from '@skyleague/therefore'
 import { APIGatewayProxyEventSchema } from '../../../../aws/apigateway/rest.type.js'
 import type { AuthorizerSchema, HTTPHandler, HTTPRequest, Responses } from '../../../../events/apigateway/event/types.js'
 import type { SecurityRequirements } from '../../../../events/apigateway/types.js'
-import type { MaybeGenericParser } from '../../../../parsers/types.js'
+import type { InferFromParser, MaybeGenericParser } from '../../../../parsers/types.js'
 import { coerce } from '../../coerce.js'
 
 export function restApiEvent<
@@ -15,12 +15,36 @@ export function restApiEvent<
     Query extends MaybeGenericParser,
     Headers extends MaybeGenericParser,
     Result extends Responses,
-    Security extends SecurityRequirements,
+    Security,
     Authorizer extends AuthorizerSchema<'rest'>,
 >(
-    { http }: HTTPHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, Security, 'rest', Authorizer>,
+    {
+        http,
+    }: HTTPHandler<
+        Configuration,
+        Service,
+        Profile,
+        Body,
+        Path,
+        Query,
+        Headers,
+        Result,
+        Security extends SecurityRequirements | undefined ? Security : undefined,
+        'rest',
+        Authorizer
+    >,
     { generation = 'fast' }: { generation?: 'full' | 'fast' } = {},
-): Dependent<HTTPRequest<Body, Path, Query, Headers, Security, 'rest', Authorizer>> {
+): Dependent<
+    HTTPRequest<
+        InferFromParser<Body, undefined>,
+        InferFromParser<Path, undefined>,
+        InferFromParser<Query, undefined>,
+        InferFromParser<Headers, undefined>,
+        Security extends SecurityRequirements | undefined ? Security : undefined,
+        'rest',
+        Authorizer
+    >
+> {
     const { bodyType = 'json' } = http
 
     const body = http.schema.body !== undefined ? arbitrary(http.schema.body) : constant(undefined)
@@ -60,7 +84,15 @@ export function restApiEvent<
                 get raw() {
                     return event.raw
                 },
-            } as HTTPRequest<Body, Path, Query, Headers, Security, 'rest', Authorizer>
+            } as HTTPRequest<
+                InferFromParser<Body, undefined>,
+                InferFromParser<Path, undefined>,
+                InferFromParser<Query, undefined>,
+                InferFromParser<Headers, undefined>,
+                Security extends SecurityRequirements | undefined ? Security : undefined,
+                'rest',
+                Authorizer
+            >
         })
     })
 }

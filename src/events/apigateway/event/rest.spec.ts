@@ -14,6 +14,7 @@ import { S3Schema } from '../../../aws/s3/s3.type.js'
 import { SecretRotationEvent } from '../../../aws/secret-rotation/secret-rotation.type.js'
 import { SnsSchema } from '../../../aws/sns/sns.type.js'
 import { SqsSchema } from '../../../aws/sqs/sqs.type.js'
+import { restApiEvent } from '../../../dev/event-horizon/apigateway/event/rest.js'
 import { context } from '../../../test/context/context.js'
 import type { LambdaContext } from '../../types.js'
 import type { HTTPHeaders, HTTPPathParameters, HTTPQueryParameters } from '../types.js'
@@ -1563,6 +1564,31 @@ it('handles no response type and gives errors correctly', () => {
             },
         },
     })
+})
+
+it('supports Security without a schema', async () => {
+    const handler = restApiHandler({
+        http: {
+            schema: {
+                body: z.string(),
+                headers: z.object({ foo: z.string() }),
+                query: z.object({ bar: z.string() }),
+                path: z.object({ baz: z.string() }),
+                responses: {},
+            },
+            // security: {},
+            handler: (event, context) => {
+                expectTypeOf(event.security).toEqualTypeOf<[]>()
+                expectTypeOf(context.services).toEqualTypeOf<never>()
+                expectTypeOf(context.profile).toEqualTypeOf<never>()
+                expectTypeOf(context.config).toEqualTypeOf<never>()
+                return { statusCode: 200, body: '200-response' as const }
+            },
+        },
+    })
+    const event = random(restApiEvent(handler))
+
+    const _result = handler.http.handler(event, random(await context(handler)))
 })
 
 it('does not handle non http events', async () => {
