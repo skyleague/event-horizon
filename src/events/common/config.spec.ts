@@ -1,4 +1,4 @@
-import { array, collect, constant, forAll, json, set, string, tuple, unknown, zip } from '@skyleague/axioms'
+import { array, constant, forAll, json, set, string, tuple, unknown, zip } from '@skyleague/axioms'
 import { expect, expectTypeOf, it } from 'vitest'
 import { asConfig } from './config.js'
 
@@ -20,7 +20,7 @@ it('can retrieve all values set', () => {
             .chain((keys) => {
                 return tuple(constant(keys), array(json(), { minLength: keys.length, maxLength: keys.length }))
             })
-            .map(([keys, values]) => collect(zip(keys, values))),
+            .map(([keys, values]) => zip(keys, values).toArray()),
         (xs) => {
             const values = Object.fromEntries(xs)
             const proxy = asConfig(values)
@@ -40,7 +40,7 @@ it('throws an error when it fetches an undefined field', () => {
                     array(unknown({ undefined: true }), { minLength: keys.length, maxLength: keys.length }),
                 )
             })
-            .map(([keys, values]) => collect(zip(keys, values))),
+            .map(([keys, values]) => zip(keys, values).toArray()),
         (xs) => {
             const values = Object.fromEntries(xs)
             const proxy = asConfig(values)
