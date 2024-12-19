@@ -16,10 +16,24 @@ export function httpApiEvent<
     Query extends MaybeGenericParser,
     Headers extends MaybeGenericParser,
     Result extends Responses,
-    Security extends SecurityRequirements,
+    Security,
     Authorizer extends AuthorizerSchema<'http'>,
 >(
-    { http }: HTTPHandler<Configuration, Service, Profile, Body, Path, Query, Headers, Result, Security, 'http', Authorizer>,
+    {
+        http,
+    }: HTTPHandler<
+        Configuration,
+        Service,
+        Profile,
+        Body,
+        Path,
+        Query,
+        Headers,
+        Result,
+        Security extends SecurityRequirements | undefined ? Security : undefined,
+        'http',
+        Authorizer
+    >,
     { generation = 'fast' }: { generation?: 'full' | 'fast' } = {},
 ): Dependent<
     HTTPRequest<
@@ -27,7 +41,7 @@ export function httpApiEvent<
         InferFromParser<Path, undefined>,
         InferFromParser<Query, undefined>,
         InferFromParser<Headers, undefined>,
-        Security,
+        Security extends SecurityRequirements | undefined ? Security : undefined,
         'http',
         Authorizer
     >
@@ -76,7 +90,7 @@ export function httpApiEvent<
                 InferFromParser<Path, undefined>,
                 InferFromParser<Query, undefined>,
                 InferFromParser<Headers, undefined>,
-                Security,
+                Security extends SecurityRequirements | undefined ? Security : undefined,
                 'http',
                 Authorizer
             >
