@@ -1,9 +1,10 @@
-import { type Try, forAll } from '@skyleague/axioms'
+import { type Try, forAll, tuple } from '@skyleague/axioms'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { z } from 'zod'
 import { SqsRecordSchema } from '../../../aws/sqs/sqs.type.js'
 import { sqsGroupHandler, sqsHandler } from '../../../events/sqs/sqs.js'
 import type { SQSEvent } from '../../../events/sqs/types.js'
+import { context } from '../../../test/context/context.js'
 import { sqsEvent, sqsGroupEvent } from './sqs.js'
 
 describe('sqsHandler', () => {
@@ -34,6 +35,20 @@ describe('sqsHandler', () => {
             },
         )
     })
+
+    it('default parameter types', async () => {
+        const handler = sqsHandler({
+            sqs: {
+                schema: {},
+                handler: (_event, _ctx) => {},
+            },
+        })
+        forAll(tuple(sqsEvent(handler), await context(handler)), ([request, ctx]) => {
+            expectTypeOf(handler.sqs.handler(request, ctx)).toEqualTypeOf<void>()
+
+            expectTypeOf(request.payload).toEqualTypeOf<unknown>()
+        })
+    })
 })
 
 describe('sqsGroupHandler', () => {
@@ -63,5 +78,19 @@ describe('sqsGroupHandler', () => {
                 expectTypeOf(request.records).toEqualTypeOf<SQSEvent<Try<'payload'>>[]>()
             },
         )
+    })
+
+    it('default parameter types', async () => {
+        const handler = sqsGroupHandler({
+            sqs: {
+                schema: {},
+                handler: (_event, _ctx) => {},
+            },
+        })
+        forAll(tuple(sqsGroupEvent(handler), await context(handler)), ([request, ctx]) => {
+            expectTypeOf(handler.sqs.handler(request, ctx)).toEqualTypeOf<void>()
+
+            expectTypeOf(request.records).toEqualTypeOf<SQSEvent<unknown>[]>()
+        })
     })
 })

@@ -1,10 +1,12 @@
-import { isString } from '@skyleague/axioms'
+import { isString, tuple } from '@skyleague/axioms'
 import { forAll } from '@skyleague/axioms'
 import { vi } from 'vitest'
 import { expect, expectTypeOf, it } from 'vitest'
 import { z } from 'zod'
 import { APIGatewayProxyEventSchema } from '../../../../aws/apigateway/rest.type.js'
 import { restApiHandler } from '../../../../events/apigateway/event/http.js'
+import type { HTTPHeaders, HTTPPathParameters, HTTPQueryParameters } from '../../../../events/apigateway/types.js'
+import { context } from '../../../../test/context/context.js'
 import { restApiEvent } from './rest.js'
 
 it('restApiEvent === restApiEvent', () => {
@@ -65,6 +67,37 @@ it('should properly validate and type event payload', () => {
             expectTypeOf(request.path).toEqualTypeOf<'path'>()
             expectTypeOf(request.query).toEqualTypeOf<'query'>()
             expectTypeOf(request.headers).toEqualTypeOf<'headers'>()
+            expectTypeOf(request.security).toEqualTypeOf<[]>()
         },
     )
+})
+
+it('default parameter types', async () => {
+    const handler = restApiHandler({
+        http: {
+            schema: {
+                responses: {
+                    200: z.literal('response'),
+                },
+            },
+            handler: (_event, _ctx) => {
+                return {
+                    statusCode: 200,
+                    body: 'response' as const,
+                }
+            },
+        },
+    })
+    forAll(tuple(restApiEvent(handler), await context(handler)), ([request, ctx]) => {
+        expectTypeOf(handler.http.handler(request, ctx)).toEqualTypeOf<{
+            statusCode: 200
+            body: 'response'
+        }>()
+
+        expectTypeOf(request.body).toEqualTypeOf<unknown>()
+        expectTypeOf(request.path).toEqualTypeOf<HTTPPathParameters>()
+        expectTypeOf(request.query).toEqualTypeOf<HTTPQueryParameters>()
+        expectTypeOf(request.headers).toEqualTypeOf<HTTPHeaders>()
+        expectTypeOf(request.security).toEqualTypeOf<[]>()
+    })
 })

@@ -1,8 +1,9 @@
-import { forAll } from '@skyleague/axioms'
+import { forAll, tuple } from '@skyleague/axioms'
 import { expect, expectTypeOf, it } from 'vitest'
 import { z } from 'zod'
 import { KinesisFirehoseRecord } from '../../../aws/firehose/firehose.type.js'
 import { firehoseHandler } from '../../../events/firehose/firehose.js'
+import { context } from '../../../test/context/context.js'
 import { firehoseTransformationEvent } from './firehose.js'
 
 it('should properly validate and type firehose event payload', () => {
@@ -34,4 +35,48 @@ it('should properly validate and type firehose event payload', () => {
             expectTypeOf(request.payload).toEqualTypeOf<'payload'>()
         },
     )
+})
+
+it('default parameter types', async () => {
+    const handler = firehoseHandler({
+        firehose: {
+            schema: {},
+            handler: (_event, _ctx) => {
+                return {
+                    status: 'Ok',
+                    payload: 'result' as const,
+                }
+            },
+        },
+    })
+    forAll(tuple(firehoseTransformationEvent(handler), await context(handler)), ([request, ctx]) => {
+        expectTypeOf(handler.firehose.handler(request, ctx)).toEqualTypeOf<{
+            status: 'Ok'
+            payload: 'result'
+        }>()
+
+        expectTypeOf(request.payload).toEqualTypeOf<unknown>()
+    })
+})
+
+it('default parameter return types', async () => {
+    const handler = firehoseHandler({
+        firehose: {
+            schema: {},
+            handler: (_event, _ctx) => {
+                return {
+                    status: 'Ok',
+                    payload: 'result' as const,
+                }
+            },
+        },
+    })
+    forAll(tuple(firehoseTransformationEvent(handler), await context(handler)), ([request, ctx]) => {
+        expectTypeOf(handler.firehose.handler(request, ctx)).toEqualTypeOf<{
+            status: 'Ok'
+            payload: 'result'
+        }>()
+
+        expectTypeOf(request.payload).toEqualTypeOf<unknown>()
+    })
 })

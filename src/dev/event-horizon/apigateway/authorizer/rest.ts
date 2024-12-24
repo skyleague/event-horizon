@@ -14,10 +14,10 @@ export function restApiAuthorizerEvent<
     Configuration,
     Service,
     Profile extends MaybeGenericParser,
-    Path extends MaybeGenericParser,
-    Query extends MaybeGenericParser,
-    Headers extends MaybeGenericParser,
-    Context extends MaybeGenericParser,
+    Path,
+    Query,
+    Headers,
+    Context,
     Security,
 >(
     {
@@ -26,19 +26,19 @@ export function restApiAuthorizerEvent<
         Configuration,
         Service,
         Profile,
-        Path,
-        Query,
-        Headers,
-        Context,
+        Path extends MaybeGenericParser ? Path : undefined,
+        Query extends MaybeGenericParser ? Query : undefined,
+        Headers extends MaybeGenericParser ? Headers : undefined,
+        Context extends MaybeGenericParser ? Context : undefined,
         Security extends SecuritySchemes ? Security : undefined,
         'rest'
     >,
     { generation = 'fast' }: { generation?: 'full' | 'fast' } = {},
 ): Dependent<
     RequestAuthorizerEvent<
-        InferFromParser<Path, undefined>,
-        InferFromParser<Query, undefined>,
-        InferFromParser<Headers, undefined>,
+        InferFromParser<Path extends MaybeGenericParser ? Path : undefined, undefined>,
+        InferFromParser<Query extends MaybeGenericParser ? Query : undefined, undefined>,
+        InferFromParser<Headers extends MaybeGenericParser ? Headers : undefined, undefined>,
         Security extends SecuritySchemes ? Security : undefined,
         'rest'
     >
@@ -71,9 +71,9 @@ export function restApiAuthorizerEvent<
                     return event.raw
                 },
             } as RequestAuthorizerEvent<
-                InferFromParser<Path, undefined>,
-                InferFromParser<Query, undefined>,
-                InferFromParser<Headers, undefined>,
+                InferFromParser<Path extends MaybeGenericParser ? Path : undefined, undefined>,
+                InferFromParser<Query extends MaybeGenericParser ? Query : undefined, undefined>,
+                InferFromParser<Headers extends MaybeGenericParser ? Headers : undefined, undefined>,
                 Security extends SecuritySchemes ? Security : undefined,
                 'rest'
             >
