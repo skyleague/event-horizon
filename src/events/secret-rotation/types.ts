@@ -17,10 +17,7 @@ export interface SecretRotationEventHandler<
     Service extends SetRequired<DefaultServices, 'secretsManager'> = SetRequired<DefaultServices, 'secretsManager'>,
     Profile extends MaybeGenericParser = MaybeGenericParser,
 > {
-    handler: (
-        request: NoInfer<SecretRotationRequest>,
-        context: LambdaContext<Configuration, Service, Profile>,
-    ) => Promisable<Try<void>>
+    handler: (request: SecretRotationRequest, context: LambdaContext<Configuration, Service, Profile>) => Promisable<Try<void>>
 }
 
 export interface SecretRotationHandler<

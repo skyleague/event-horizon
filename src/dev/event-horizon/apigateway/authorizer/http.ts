@@ -7,7 +7,7 @@ import type {
     RequestAuthorizerHandler,
     SecuritySchemes,
 } from '../../../../events/apigateway/authorizer/types.js'
-import type { MaybeGenericParser } from '../../../../parsers/types.js'
+import type { InferFromParser, MaybeGenericParser } from '../../../../parsers/types.js'
 import { coerce } from '../../coerce.js'
 
 export function httpApiAuthorizerEvent<
@@ -18,11 +18,31 @@ export function httpApiAuthorizerEvent<
     Query extends MaybeGenericParser,
     Headers extends MaybeGenericParser,
     Context extends MaybeGenericParser,
-    Security extends SecuritySchemes = SecuritySchemes,
+    Security,
 >(
-    { request }: RequestAuthorizerHandler<Configuration, Service, Profile, Path, Query, Headers, Context, Security, 'http'>,
+    {
+        request,
+    }: RequestAuthorizerHandler<
+        Configuration,
+        Service,
+        Profile,
+        Path,
+        Query,
+        Headers,
+        Context,
+        Security extends SecuritySchemes ? Security : undefined,
+        'http'
+    >,
     { generation = 'fast' }: { generation?: 'full' | 'fast' } = {},
-): Dependent<RequestAuthorizerEvent<Path, Query, Headers, Security, 'http'>> {
+): Dependent<
+    RequestAuthorizerEvent<
+        InferFromParser<Path, undefined>,
+        InferFromParser<Query, undefined>,
+        InferFromParser<Headers, undefined>,
+        Security extends SecuritySchemes ? Security : undefined,
+        'http'
+    >
+> {
     const headers = request.schema?.headers !== undefined ? arbitrary(request.schema.headers) : constant(undefined)
     const query = request.schema?.query !== undefined ? arbitrary(request.schema.query) : constant(undefined)
     const path = request.schema?.path !== undefined ? arbitrary(request.schema.path) : constant(undefined)
@@ -40,9 +60,9 @@ export function httpApiAuthorizerEvent<
             event.query = coerce(request.schema?.query, event.query)
             event.path = coerce(request.schema?.path, event.path)
 
-            event.raw.headers ??= (event.headers as typeof event.raw.headers) ?? {}
-            event.raw.queryStringParameters ??= (event.query as typeof event.raw.queryStringParameters) ?? {}
-            event.raw.pathParameters ??= (event.path as typeof event.raw.pathParameters) ?? {}
+            event.raw.headers = (event.headers as typeof event.raw.headers) ?? {}
+            event.raw.queryStringParameters = (event.query as typeof event.raw.queryStringParameters) ?? {}
+            event.raw.pathParameters = (event.path as typeof event.raw.pathParameters) ?? {}
 
             return {
                 ...event,
@@ -50,7 +70,13 @@ export function httpApiAuthorizerEvent<
                 get raw() {
                     return event.raw
                 },
-            } as RequestAuthorizerEvent<Path, Query, Headers, Security, 'http'>
+            } as RequestAuthorizerEvent<
+                InferFromParser<Path, undefined>,
+                InferFromParser<Query, undefined>,
+                InferFromParser<Headers, undefined>,
+                Security extends SecuritySchemes ? Security : undefined,
+                'http'
+            >
         })
     })
 }

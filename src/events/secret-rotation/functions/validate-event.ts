@@ -1,11 +1,10 @@
+import type { Maybe, Try } from '@skyleague/axioms'
+import { Nothing } from '@skyleague/axioms'
 import type { SetRequired } from '@skyleague/axioms/types'
 import { EventError } from '../../../errors/event-error/event-error.js'
 import type { MaybeGenericParser } from '../../../parsers/types.js'
 import type { DefaultServices, LambdaContext } from '../../types.js'
 import type { SecretRotationRequest } from '../types.js'
-
-import type { Maybe, Try } from '@skyleague/axioms'
-import { Nothing } from '@skyleague/axioms'
 
 export function secretValidateEvent<
     Configuration,

@@ -12,7 +12,7 @@ export function s3BatchParseEvent() {
                 s3BucketArn: task.s3BucketArn,
                 raw: {
                     task,
-                    job: {
+                    event: {
                         invocationSchemaVersion: event.invocationSchemaVersion,
                         invocationId: event.invocationId,
                         job: { id: event.job.id },

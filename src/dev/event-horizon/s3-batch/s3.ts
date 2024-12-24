@@ -1,9 +1,8 @@
-import { S3BatchEvent, S3BatchEventTask } from '../../../aws/s3-batch/s3.type.js'
-import type { S3BatchHandler, S3BatchTask } from '../../../events/s3-batch/types.js'
-
 import type { Dependent } from '@skyleague/axioms'
 import { omit, tuple } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
+import { S3BatchEvent, S3BatchEventTask } from '../../../aws/s3-batch/s3.type.js'
+import type { S3BatchHandler, S3BatchTask } from '../../../events/s3-batch/types.js'
 
 export function s3BatchTask(
     _?: S3BatchHandler,
@@ -14,11 +13,11 @@ export function s3BatchTask(
     return tuple(task, event).map(([t, e]) => ({
         taskId: t.taskId,
         s3Key: t.s3Key,
-        s3VersionId: t.s3VersionId,
+        s3VersionId: t.s3VersionId ?? undefined,
         s3BucketArn: t.s3BucketArn,
         raw: {
-            task: task,
-            job: omit(e, ['tasks']),
+            task: t,
+            event: omit(e, ['tasks']),
         },
-    })) as unknown as Dependent<S3BatchTask>
+    }))
 }

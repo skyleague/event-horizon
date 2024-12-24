@@ -4,7 +4,7 @@ import { arbitrary } from '@skyleague/therefore'
 import { $ref, $string, $unknown, type Node } from '@skyleague/therefore'
 import { EventBridgeSchema } from '../../../aws/eventbridge/eventbridge.type.js'
 import type { EventBridgeEvent, EventBridgeHandler } from '../../../events/eventbridge/types.js'
-import type { MaybeGenericParser } from '../../../parsers/types.js'
+import type { InferFromParser, MaybeGenericParser } from '../../../parsers/types.js'
 
 export function $eventBridge({
     detailType = $string(),
@@ -28,11 +28,16 @@ export function eventBridgeEvent<
 >(
     { eventBridge }: EventBridgeHandler<Configuration, Service, Profile, Payload, Result>,
     { generation = 'fast' }: { generation?: 'full' | 'fast' } = {},
-): Dependent<EventBridgeEvent<Payload>> {
+): Dependent<EventBridgeEvent<InferFromParser<Payload, unknown>>> {
     const record = arbitrary(EventBridgeSchema).constant(generation === 'fast')
     const payload = eventBridge.schema.payload !== undefined ? arbitrary(eventBridge.schema.payload) : unknown()
-    return tuple(record, payload).map(([r, p]) => ({
-        raw: r,
-        payload: p,
-    })) as unknown as Dependent<EventBridgeEvent<Payload>>
+    return tuple(record, payload).map(([r, p]) => {
+        const event = {
+            raw: r,
+            payload: p,
+        }
+        event.raw.detail = event.payload
+
+        return event
+    })
 }

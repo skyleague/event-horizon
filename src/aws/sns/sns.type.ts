@@ -6,6 +6,7 @@
 
 import type { DefinedError, ValidateFunction } from 'ajv'
 
+import { validate as SnsNotificationSchemaValidator } from './schemas/sns-notification-schema.schema.js'
 import { validate as SnsRecordSchemaValidator } from './schemas/sns-record-schema.schema.js'
 import { validate as SnsSchemaValidator } from './schemas/sns-schema.schema.js'
 
@@ -15,7 +16,7 @@ export interface SnsMsgAttribute {
 }
 
 export interface SnsNotificationSchema {
-    Subject?: string | undefined
+    Subject?: string | null | undefined
     TopicArn: string
     UnsubscribeUrl: string
     UnsubscribeURL?: string | undefined
@@ -33,6 +34,23 @@ export interface SnsNotificationSchema {
     SignatureVersion?: string | undefined
     Timestamp: string
 }
+
+export const SnsNotificationSchema = {
+    validate: SnsNotificationSchemaValidator as ValidateFunction<SnsNotificationSchema>,
+    get schema() {
+        return SnsNotificationSchema.validate.schema
+    },
+    get errors() {
+        return SnsNotificationSchema.validate.errors ?? undefined
+    },
+    is: (o: unknown): o is SnsNotificationSchema => SnsNotificationSchema.validate(o) === true,
+    parse: (o: unknown): { right: SnsNotificationSchema } | { left: DefinedError[] } => {
+        if (SnsNotificationSchema.is(o)) {
+            return { right: o }
+        }
+        return { left: (SnsNotificationSchema.errors ?? []) as DefinedError[] }
+    },
+} as const
 
 export interface SnsRecordSchema {
     EventSource: 'aws:sns'

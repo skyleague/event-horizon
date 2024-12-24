@@ -44,7 +44,7 @@ it('events do not give failures', async () => {
                     expect.objectContaining({
                         raw: {
                             task: task,
-                            job: omit(event, ['tasks']),
+                            event: omit(event, ['tasks']),
                         },
                     }),
                     ctx,
@@ -54,7 +54,7 @@ it('events do not give failures', async () => {
                     event: expect.objectContaining({
                         raw: {
                             task: task,
-                            job: omit(event, ['tasks']),
+                            event: omit(event, ['tasks']),
                         },
                     }),
                     item: i,
@@ -99,7 +99,7 @@ it.each([new Error(), 'foobar'])('promise reject with Error, gives failure', asy
                 expect.objectContaining({
                     raw: {
                         task: task,
-                        job: omit(event, ['tasks']),
+                        event: omit(event, ['tasks']),
                     },
                 }),
                 ctx,
@@ -109,7 +109,7 @@ it.each([new Error(), 'foobar'])('promise reject with Error, gives failure', asy
                 event: expect.objectContaining({
                     raw: {
                         task: task,
-                        job: omit(event, ['tasks']),
+                        event: omit(event, ['tasks']),
                     },
                 }),
                 item: i,
@@ -154,7 +154,7 @@ it.each([EventError.badRequest()])('promise reject with client error, gives erro
                 expect.objectContaining({
                     raw: {
                         task: task,
-                        job: omit(event, ['tasks']),
+                        event: omit(event, ['tasks']),
                     },
                 }),
                 ctx,
@@ -164,7 +164,7 @@ it.each([EventError.badRequest()])('promise reject with client error, gives erro
                 event: expect.objectContaining({
                     raw: {
                         task: task,
-                        job: omit(event, ['tasks']),
+                        event: omit(event, ['tasks']),
                     },
                 }),
                 item: i,
@@ -211,7 +211,7 @@ it.each([new Error(), 'foobar'])('promise throws with Error, gives failure', asy
                 expect.objectContaining({
                     raw: {
                         task: task,
-                        job: omit(event, ['tasks']),
+                        event: omit(event, ['tasks']),
                     },
                 }),
                 ctx,
@@ -221,7 +221,7 @@ it.each([new Error(), 'foobar'])('promise throws with Error, gives failure', asy
                 event: expect.objectContaining({
                     raw: {
                         task: task,
-                        job: omit(event, ['tasks']),
+                        event: omit(event, ['tasks']),
                     },
                 }),
                 item: i,
@@ -268,7 +268,7 @@ it.each([EventError.badRequest()])('promise throws with client error, gives erro
                 expect.objectContaining({
                     raw: {
                         task: task,
-                        job: omit(event, ['tasks']),
+                        event: omit(event, ['tasks']),
                     },
                 }),
                 ctx,
@@ -278,7 +278,7 @@ it.each([EventError.badRequest()])('promise throws with client error, gives erro
                 event: expect.objectContaining({
                     raw: {
                         task: task,
-                        job: omit(event, ['tasks']),
+                        event: omit(event, ['tasks']),
                     },
                 }),
                 item: i,
