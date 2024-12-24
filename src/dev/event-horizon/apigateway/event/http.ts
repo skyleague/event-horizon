@@ -76,8 +76,9 @@ export function httpApiEvent<
                 ) as typeof event.raw.body
             }
 
-            event.raw.headers ??= (event.headers as typeof event.raw.headers) ?? {}
-            event.raw.queryStringParameters ??= (event.query as typeof event.raw.queryStringParameters) ?? {}
+            event.raw.headers = (event.headers as typeof event.raw.headers) ?? {}
+            event.raw.queryStringParameters = (event.query as typeof event.raw.queryStringParameters) ?? {}
+            event.raw.pathParameters = (event.path as typeof event.raw.pathParameters) ?? {}
 
             return {
                 ...event,

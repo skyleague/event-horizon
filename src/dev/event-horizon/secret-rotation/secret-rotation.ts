@@ -1,10 +1,9 @@
+import type { Dependent } from '@skyleague/axioms'
 import type { SetRequired } from '@skyleague/axioms/types'
+import { arbitrary } from '@skyleague/therefore'
 import { SecretRotationEvent } from '../../../aws/secret-rotation/secret-rotation.type.js'
 import type { SecretRotationHandler, SecretRotationRequest } from '../../../events/secret-rotation/types.js'
 import type { DefaultServices } from '../../../events/types.js'
-
-import type { Dependent } from '@skyleague/axioms'
-import { arbitrary } from '@skyleague/therefore'
 import type { MaybeGenericParser } from '../../../parsers/types.js'
 
 export function secretRotationEvent<

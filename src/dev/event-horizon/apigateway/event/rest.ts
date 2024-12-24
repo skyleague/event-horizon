@@ -10,10 +10,10 @@ export function restApiEvent<
     Configuration,
     Service,
     Profile extends MaybeGenericParser,
-    Body extends MaybeGenericParser,
-    Path extends MaybeGenericParser,
-    Query extends MaybeGenericParser,
-    Headers extends MaybeGenericParser,
+    Body,
+    Path,
+    Query,
+    Headers,
     Result extends Responses,
     Security,
     Authorizer extends AuthorizerSchema<'rest'>,
@@ -24,10 +24,10 @@ export function restApiEvent<
         Configuration,
         Service,
         Profile,
-        Body,
-        Path,
-        Query,
-        Headers,
+        Body extends MaybeGenericParser ? Body : undefined,
+        Path extends MaybeGenericParser ? Path : undefined,
+        Query extends MaybeGenericParser ? Query : undefined,
+        Headers extends MaybeGenericParser ? Headers : undefined,
         Result,
         Security extends SecurityRequirements | undefined ? Security : undefined,
         'rest',
@@ -36,10 +36,10 @@ export function restApiEvent<
     { generation = 'fast' }: { generation?: 'full' | 'fast' } = {},
 ): Dependent<
     HTTPRequest<
-        InferFromParser<Body, undefined>,
-        InferFromParser<Path, undefined>,
-        InferFromParser<Query, undefined>,
-        InferFromParser<Headers, undefined>,
+        InferFromParser<Body extends MaybeGenericParser ? Body : undefined, undefined>,
+        InferFromParser<Path extends MaybeGenericParser ? Path : undefined, undefined>,
+        InferFromParser<Query extends MaybeGenericParser ? Query : undefined, undefined>,
+        InferFromParser<Headers extends MaybeGenericParser ? Headers : undefined, undefined>,
         Security extends SecurityRequirements | undefined ? Security : undefined,
         'rest',
         Authorizer
@@ -75,8 +75,9 @@ export function restApiEvent<
                 ) as typeof event.raw.body
             }
 
-            event.raw.headers ??= (event.headers as typeof event.raw.headers) ?? {}
-            event.raw.queryStringParameters ??= (event.query as typeof event.raw.queryStringParameters) ?? {}
+            event.raw.headers = (event.headers as typeof event.raw.headers) ?? {}
+            event.raw.queryStringParameters = (event.query as typeof event.raw.queryStringParameters) ?? {}
+            event.raw.pathParameters = (event.path as typeof event.raw.pathParameters) ?? {}
 
             return {
                 ...event,
@@ -85,10 +86,10 @@ export function restApiEvent<
                     return event.raw
                 },
             } as HTTPRequest<
-                InferFromParser<Body, undefined>,
-                InferFromParser<Path, undefined>,
-                InferFromParser<Query, undefined>,
-                InferFromParser<Headers, undefined>,
+                InferFromParser<Body extends MaybeGenericParser ? Body : undefined, undefined>,
+                InferFromParser<Path extends MaybeGenericParser ? Path : undefined, undefined>,
+                InferFromParser<Query extends MaybeGenericParser ? Query : undefined, undefined>,
+                InferFromParser<Headers extends MaybeGenericParser ? Headers : undefined, undefined>,
                 Security extends SecurityRequirements | undefined ? Security : undefined,
                 'rest',
                 Authorizer

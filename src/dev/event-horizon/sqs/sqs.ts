@@ -4,25 +4,37 @@ import type { Dependent } from '@skyleague/axioms'
 import { alphaNumeric, array, constant, integer, object, tuple, unknown } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
 import { SqsRecordSchema } from '../../../aws/sqs/sqs.type.js'
-import type { MaybeGenericParser } from '../../../parsers/types.js'
+import type { InferFromParser, MaybeGenericParser } from '../../../parsers/types.js'
 
 export function sqsEvent<Configuration, Service, Profile extends MaybeGenericParser, Payload extends MaybeGenericParser>(
     definition: SQSHandler<Configuration, Service, Profile, Payload>,
     { generation = 'fast' }: { generation?: 'full' | 'fast' } = {},
-): Dependent<SQSEvent<Payload>> {
+): Dependent<SQSEvent<InferFromParser<Payload>>> {
     const { sqs } = definition
     return object({
         messageGroupId: alphaNumeric({ minLength: 1 }),
         payload: sqs.schema.payload !== undefined ? arbitrary(sqs.schema.payload) : unknown(),
         raw: arbitrary(SqsRecordSchema).constant(generation === 'fast'),
         item: integer({ min: 0, max: 10 }),
-    } satisfies { [k in keyof SQSEvent]: unknown }) as Dependent<SQSEvent<Payload>>
+    }).map(({ messageGroupId, payload, raw, item }) => ({
+        messageGroupId,
+        payload,
+        item,
+        raw: {
+            ...raw,
+            body: JSON.stringify(payload),
+            attributes: {
+                ...raw.attributes,
+                MessageGroupId: messageGroupId,
+            },
+        },
+    }))
 }
 
 export function sqsGroupEvent<Configuration, Service, Profile extends MaybeGenericParser, Payload extends MaybeGenericParser>(
     definition: SQSGroupHandler<Configuration, Service, Profile, Payload>,
     { generation = 'fast' }: { generation?: 'full' | 'fast' } = {},
-): Dependent<SQSMessageGroup<Payload>> {
+): Dependent<SQSMessageGroup<InferFromParser<Payload>>> {
     const { sqs } = definition
     return tuple(
         array(
@@ -44,8 +56,16 @@ export function sqsGroupEvent<Configuration, Service, Profile extends MaybeGener
                     ...r,
                     messageGroupId,
                     item,
+                    raw: {
+                        ...r.raw,
+                        body: JSON.stringify(r.payload),
+                        attributes: {
+                            ...r.raw.attributes,
+                            MessageGroupId: messageGroupId,
+                        },
+                    },
                 }) satisfies { [k in keyof SQSEvent]: unknown },
         ),
         messageGroupId,
-    })) as Dependent<SQSMessageGroup<Payload>>
+    }))
 }

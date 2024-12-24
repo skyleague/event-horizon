@@ -4,25 +4,30 @@ import type { Dependent } from '@skyleague/axioms'
 import { tuple, unknown } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
 import { KinesisFirehoseRecord } from '../../../aws/firehose/firehose.type.js'
-import type { MaybeGenericParser } from '../../../parsers/types.js'
+import type { DefaultServices } from '../../../events/types.js'
+import type { InferFromParser, MaybeGenericParser } from '../../../parsers/types.js'
 
 /**
  * @experimental
  */
 export function firehoseTransformationEvent<
     Configuration,
-    Service,
+    Service extends DefaultServices | undefined,
     Profile extends MaybeGenericParser,
     Payload extends MaybeGenericParser,
     Result extends MaybeGenericParser,
 >(
     { firehose }: FirehoseTransformationHandler<Configuration, Service, Profile, Payload, Result>,
     { generation = 'fast' }: { generation?: 'full' | 'fast' } = {},
-): Dependent<FirehoseTransformationEvent<Payload>> {
+): Dependent<FirehoseTransformationEvent<InferFromParser<Payload, unknown>>> {
     const record = arbitrary(KinesisFirehoseRecord).constant(generation === 'fast')
     const payload = firehose.schema.payload !== undefined ? arbitrary(firehose.schema.payload) : unknown()
-    return tuple(record, payload).map(([r, p]) => ({
-        raw: r,
-        payload: p,
-    })) as unknown as Dependent<FirehoseTransformationEvent<Payload>>
+    return tuple(record, payload).map(([r, p]) => {
+        const event = {
+            raw: r,
+            payload: p,
+        }
+        event.raw.data = JSON.stringify(event.payload)
+        return event
+    })
 }
