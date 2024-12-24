@@ -1,8 +1,9 @@
-import { forAll } from '@skyleague/axioms'
+import { forAll, tuple } from '@skyleague/axioms'
 import { expect, expectTypeOf, it } from 'vitest'
 import { z } from 'zod'
 import { SnsNotificationSchema } from '../../../aws/sns/sns.type.js'
 import { snsHandler } from '../../../events/sns/sns.js'
+import { context } from '../../../test/context/context.js'
 import { snsEvent } from './sns.js'
 
 it('should properly validate and type SNS event payload', () => {
@@ -28,4 +29,18 @@ it('should properly validate and type SNS event payload', () => {
             expectTypeOf(request.payload).toEqualTypeOf<'payload'>()
         },
     )
+})
+
+it('default parameter types', async () => {
+    const handler = snsHandler({
+        sns: {
+            schema: {},
+            handler: (_event, _ctx) => {},
+        },
+    })
+    forAll(tuple(snsEvent(handler), await context(handler)), ([request, ctx]) => {
+        expectTypeOf(handler.sns.handler(request, ctx)).toEqualTypeOf<void>()
+
+        expectTypeOf(request.payload).toEqualTypeOf<unknown>()
+    })
 })

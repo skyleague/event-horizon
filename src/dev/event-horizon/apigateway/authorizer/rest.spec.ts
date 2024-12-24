@@ -1,8 +1,10 @@
-import { forAll, isString } from '@skyleague/axioms'
+import { forAll, isString, tuple } from '@skyleague/axioms'
 import { expect, expectTypeOf, it, vi } from 'vitest'
 import { z } from 'zod'
 import { APIGatewayRequestAuthorizerEventSchema } from '../../../../aws/apigateway/rest.type.js'
 import { restApiAuthorizer } from '../../../../events/apigateway/authorizer/http.js'
+import type { HTTPHeaders, HTTPPathParameters, HTTPQueryParameters } from '../../../../events/apigateway/types.js'
+import { context } from '../../../../test/context/context.js'
 import { restApiAuthorizerEvent } from './rest.js'
 
 it('restApiAuthorizerEvent === restApiAuthorizerEvent', () => {
@@ -62,4 +64,52 @@ it('should properly validate and type event payload', () => {
             expectTypeOf(request.headers).toEqualTypeOf<'headers'>()
         },
     )
+})
+
+it('default parameter types', async () => {
+    const handler = restApiAuthorizer({
+        request: {
+            schema: {},
+            handler: (_event, _ctx) => {
+                return {
+                    isAuthorized: true,
+                    context: 'context' as const,
+                }
+            },
+        },
+    })
+    forAll(tuple(restApiAuthorizerEvent(handler), await context(handler)), ([request, ctx]) => {
+        expectTypeOf(handler.request.handler(request, ctx)).toEqualTypeOf<{
+            isAuthorized: true
+            context: 'context'
+        }>()
+
+        expectTypeOf(request.path).toEqualTypeOf<HTTPPathParameters>()
+        expectTypeOf(request.query).toEqualTypeOf<HTTPQueryParameters>()
+        expectTypeOf(request.headers).toEqualTypeOf<HTTPHeaders>()
+        expectTypeOf(request.security).toEqualTypeOf<[]>()
+    })
+})
+
+it('default parameter return types', async () => {
+    const handler = restApiAuthorizer({
+        request: {
+            schema: {},
+            handler: (_event, _ctx) => {
+                return {
+                    isAuthorized: true,
+                }
+            },
+        },
+    })
+    forAll(tuple(restApiAuthorizerEvent(handler), await context(handler)), ([request, ctx]) => {
+        expectTypeOf(handler.request.handler(request, ctx)).toEqualTypeOf<{
+            isAuthorized: true
+        }>()
+
+        expectTypeOf(request.path).toEqualTypeOf<HTTPPathParameters>()
+        expectTypeOf(request.query).toEqualTypeOf<HTTPQueryParameters>()
+        expectTypeOf(request.headers).toEqualTypeOf<HTTPHeaders>()
+        expectTypeOf(request.security).toEqualTypeOf<[]>()
+    })
 })

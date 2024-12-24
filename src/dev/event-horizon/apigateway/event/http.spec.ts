@@ -1,8 +1,10 @@
-import { forAll, isString } from '@skyleague/axioms'
+import { forAll, isString, tuple } from '@skyleague/axioms'
 import { expect, expectTypeOf, it, vi } from 'vitest'
 import { z } from 'zod'
 import { APIGatewayProxyEventV2Schema } from '../../../../aws/apigateway/http.type.js'
 import { httpApiHandler } from '../../../../events/apigateway/event/http.js'
+import type { HTTPHeaders, HTTPPathParameters, HTTPQueryParameters } from '../../../../events/apigateway/types.js'
+import { context } from '../../../../test/context/context.js'
 import { httpApiEvent } from './http.js'
 
 it('httpApiEvent === httpApiEvent', () => {
@@ -63,6 +65,37 @@ it('should properly validate and type event payload', () => {
             expectTypeOf(request.path).toEqualTypeOf<'path'>()
             expectTypeOf(request.query).toEqualTypeOf<'query'>()
             expectTypeOf(request.headers).toEqualTypeOf<'headers'>()
+            expectTypeOf(request.security).toEqualTypeOf<[]>()
         },
     )
+})
+
+it('default parameter types', async () => {
+    const handler = httpApiHandler({
+        http: {
+            schema: {
+                responses: {
+                    200: z.literal('response'),
+                },
+            },
+            handler: (_event, _ctx) => {
+                return {
+                    statusCode: 200,
+                    body: 'response' as const,
+                }
+            },
+        },
+    })
+    forAll(tuple(httpApiEvent(handler), await context(handler)), ([request, ctx]) => {
+        expectTypeOf(handler.http.handler(request, ctx)).toEqualTypeOf<{
+            statusCode: 200
+            body: 'response'
+        }>()
+
+        expectTypeOf(request.body).toEqualTypeOf<unknown>()
+        expectTypeOf(request.path).toEqualTypeOf<HTTPPathParameters>()
+        expectTypeOf(request.query).toEqualTypeOf<HTTPQueryParameters>()
+        expectTypeOf(request.headers).toEqualTypeOf<HTTPHeaders>()
+        expectTypeOf(request.security).toEqualTypeOf<[]>()
+    })
 })

@@ -19,10 +19,9 @@ export interface HTTPSecurityScheme {
     bearerFormat?: 'JWT'
 }
 
-export interface AuthorizerReponse<Context = unknown> {
-    isAuthorized: boolean
-    context: Context
-}
+export type AuthorizerReponse<Context = undefined> = [Context] extends [undefined]
+    ? { isAuthorized: boolean; context?: unknown }
+    : { isAuthorized: boolean; context: Context }
 
 export interface RequestAuthorizerEvent<
     Path = undefined,
@@ -67,7 +66,7 @@ export interface RequestAuthorizerEventHandler<
             >
         >,
         context: LambdaContext<Configuration, Service, Profile>,
-    ) => Promisable<Try<AuthorizerReponse<NoInfer<InferFromParser<Context, unknown>>>>>
+    ) => Promisable<Try<AuthorizerReponse<NoInfer<InferFromParser<Context, undefined>>>>>
 }
 
 export interface RequestAuthorizerHandler<
