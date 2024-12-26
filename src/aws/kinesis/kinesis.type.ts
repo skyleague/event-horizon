@@ -4,11 +4,6 @@
  */
 /* eslint-disable */
 
-import type { DefinedError, ValidateFunction } from 'ajv'
-
-import { validate as KinesisDataStreamRecordValidator } from './schemas/kinesis-data-stream-record.schema.js'
-import { validate as KinesisDataStreamSchemaValidator } from './schemas/kinesis-data-stream-schema.schema.js'
-
 export interface KinesisDataStreamRecord {
     eventSource: 'aws:kinesis'
     eventVersion: string
@@ -19,23 +14,6 @@ export interface KinesisDataStreamRecord {
     eventSourceARN: string
     kinesis: KinesisDataStreamRecordPayload
 }
-
-export const KinesisDataStreamRecord = {
-    validate: KinesisDataStreamRecordValidator as ValidateFunction<KinesisDataStreamRecord>,
-    get schema() {
-        return KinesisDataStreamRecord.validate.schema
-    },
-    get errors() {
-        return KinesisDataStreamRecord.validate.errors ?? undefined
-    },
-    is: (o: unknown): o is KinesisDataStreamRecord => KinesisDataStreamRecord.validate(o) === true,
-    parse: (o: unknown): { right: KinesisDataStreamRecord } | { left: DefinedError[] } => {
-        if (KinesisDataStreamRecord.is(o)) {
-            return { right: o }
-        }
-        return { left: (KinesisDataStreamRecord.errors ?? []) as DefinedError[] }
-    },
-} as const
 
 export interface KinesisDataStreamRecordPayload {
     kinesisSchemaVersion: string
@@ -48,20 +26,3 @@ export interface KinesisDataStreamRecordPayload {
 export interface KinesisDataStreamSchema {
     Records: KinesisDataStreamRecord[]
 }
-
-export const KinesisDataStreamSchema = {
-    validate: KinesisDataStreamSchemaValidator as ValidateFunction<KinesisDataStreamSchema>,
-    get schema() {
-        return KinesisDataStreamSchema.validate.schema
-    },
-    get errors() {
-        return KinesisDataStreamSchema.validate.errors ?? undefined
-    },
-    is: (o: unknown): o is KinesisDataStreamSchema => KinesisDataStreamSchema.validate(o) === true,
-    parse: (o: unknown): { right: KinesisDataStreamSchema } | { left: DefinedError[] } => {
-        if (KinesisDataStreamSchema.is(o)) {
-            return { right: o }
-        }
-        return { left: (KinesisDataStreamSchema.errors ?? []) as DefinedError[] }
-    },
-} as const

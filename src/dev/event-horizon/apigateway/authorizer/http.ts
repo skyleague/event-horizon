@@ -1,7 +1,8 @@
+import { APIGatewayRequestAuthorizerEventV2Schema } from '@aws-lambda-powertools/parser/schemas'
 import type { Dependent } from '@skyleague/axioms'
 import { constant, object } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
-import { APIGatewayRequestAuthorizerEventV2Schema } from '../../../../aws/apigateway/http.type.js'
+import type { ZodType } from 'zod'
 import type {
     RequestAuthorizerEvent,
     RequestAuthorizerHandler,
@@ -43,9 +44,9 @@ export function httpApiAuthorizerEvent<
         'http'
     >
 > {
-    const headers = request.schema?.headers !== undefined ? arbitrary(request.schema.headers) : constant(undefined)
-    const query = request.schema?.query !== undefined ? arbitrary(request.schema.query) : constant(undefined)
-    const path = request.schema?.path !== undefined ? arbitrary(request.schema.path) : constant(undefined)
+    const headers = request.schema?.headers !== undefined ? arbitrary(request.schema.headers as ZodType) : constant(undefined)
+    const query = request.schema?.query !== undefined ? arbitrary(request.schema.query as ZodType) : constant(undefined)
+    const path = request.schema?.path !== undefined ? arbitrary(request.schema.path as ZodType) : constant(undefined)
     const raw = arbitrary(APIGatewayRequestAuthorizerEventV2Schema).constant(generation === 'fast')
 
     return raw.chain((r) => {

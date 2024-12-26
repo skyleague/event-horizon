@@ -1,8 +1,10 @@
+import { EventBridgeSchema as AWSEventBridgeSchema } from '@aws-lambda-powertools/parser/schemas'
 import type { Dependent } from '@skyleague/axioms'
 import { tuple, unknown } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
 import { $ref, $string, $unknown, type Node } from '@skyleague/therefore'
-import { EventBridgeSchema } from '../../../aws/eventbridge/eventbridge.type.js'
+import type { ZodType } from 'zod'
+import type { EventBridgeSchema } from '../../../aws/eventbridge/eventbridge.type.js'
 import type { EventBridgeEvent, EventBridgeHandler } from '../../../events/eventbridge/types.js'
 import type { InferFromParser, MaybeGenericParser } from '../../../parsers/types.js'
 
@@ -13,7 +15,7 @@ export function $eventBridge({
     detailType?: Node
     detail?: Node
 } = {}) {
-    return $ref(EventBridgeSchema).extend({
+    return $ref(AWSEventBridgeSchema).extend({
         'detail-type': detailType,
         detail: detail,
     })
@@ -29,13 +31,13 @@ export function eventBridgeEvent<
     { eventBridge }: EventBridgeHandler<Configuration, Service, Profile, Payload, Result>,
     { generation = 'fast' }: { generation?: 'full' | 'fast' } = {},
 ): Dependent<EventBridgeEvent<InferFromParser<Payload, unknown>>> {
-    const record = arbitrary(EventBridgeSchema).constant(generation === 'fast')
+    const record = arbitrary(AWSEventBridgeSchema).constant(generation === 'fast')
     const payload = (eventBridge.schema.payload !== undefined ? arbitrary(eventBridge.schema.payload) : unknown()) as Dependent<
         InferFromParser<Payload, unknown>
     >
     return tuple(record, payload).map(([r, p]) => {
         const event = {
-            raw: r,
+            raw: r as EventBridgeSchema,
             payload: p,
         }
         event.raw.detail = event.payload

@@ -5,12 +5,6 @@
 /* eslint-disable */
 
 import type { APIGatewayCert, APIGatewayHttpMethod, APIGatewayRecord } from './proxy.type.js'
-import { validate as APIGatewayEventRequestContextValidator } from './schemas/api-gateway-event-request-context.schema.js'
-import { validate as APIGatewayProxyEventSchemaValidator } from './schemas/api-gateway-proxy-event-schema.schema.js'
-import { validate as APIGatewayRequestAuthorizerEventSchemaValidator } from './schemas/api-gateway-request-authorizer-event-schema.schema.js'
-import { validate as APIGatewayTokenAuthorizerEventSchemaValidator } from './schemas/api-gateway-token-authorizer-event-schema.schema.js'
-
-import type { DefinedError, ValidateFunction } from 'ajv'
 
 export interface APIGatewayEventIdentity {
     accessKey?: string | null | undefined
@@ -30,25 +24,27 @@ export interface APIGatewayEventIdentity {
     clientCert?: APIGatewayCert | null | undefined
 }
 
+export type APIGatewayEventRequestAuthorizer =
+    | (
+          | {
+                integrationLatency: number
+                principalId: string
+            }
+          | {
+                claims: {
+                    [k: string]: unknown
+                }
+                scopes?: string[] | undefined
+            }
+      )
+    | null
+    | undefined
+
 export interface APIGatewayEventRequestContext {
     accountId: string
     apiId: string
     deploymentId?: string | null | undefined
-    authorizer?:
-        | (
-              | {
-                    integrationLatency: number
-                    principalId: string
-                }
-              | {
-                    claims: {
-                        [k: string]: unknown
-                    }
-                    scopes?: string[] | undefined
-                }
-          )
-        | null
-        | undefined
+    authorizer?: APIGatewayEventRequestAuthorizer
     stage: string
     protocol: string
     identity: APIGatewayEventIdentity
@@ -70,23 +66,6 @@ export interface APIGatewayEventRequestContext {
     routeKey?: string | null | undefined
     operationName?: string | null | undefined
 }
-
-export const APIGatewayEventRequestContext = {
-    validate: APIGatewayEventRequestContextValidator as ValidateFunction<APIGatewayEventRequestContext>,
-    get schema() {
-        return APIGatewayEventRequestContext.validate.schema
-    },
-    get errors() {
-        return APIGatewayEventRequestContext.validate.errors ?? undefined
-    },
-    is: (o: unknown): o is APIGatewayEventRequestContext => APIGatewayEventRequestContext.validate(o) === true,
-    parse: (o: unknown): { right: APIGatewayEventRequestContext } | { left: DefinedError[] } => {
-        if (APIGatewayEventRequestContext.is(o)) {
-            return { right: o }
-        }
-        return { left: (APIGatewayEventRequestContext.errors ?? []) as DefinedError[] }
-    },
-} as const
 
 export interface APIGatewayProxyEventSchema {
     resource: string
@@ -122,23 +101,6 @@ export interface APIGatewayProxyEventSchema {
     isBase64Encoded: boolean
 }
 
-export const APIGatewayProxyEventSchema = {
-    validate: APIGatewayProxyEventSchemaValidator as ValidateFunction<APIGatewayProxyEventSchema>,
-    get schema() {
-        return APIGatewayProxyEventSchema.validate.schema
-    },
-    get errors() {
-        return APIGatewayProxyEventSchema.validate.errors ?? undefined
-    },
-    is: (o: unknown): o is APIGatewayProxyEventSchema => APIGatewayProxyEventSchema.validate(o) === true,
-    parse: (o: unknown): { right: APIGatewayProxyEventSchema } | { left: DefinedError[] } => {
-        if (APIGatewayProxyEventSchema.is(o)) {
-            return { right: o }
-        }
-        return { left: (APIGatewayProxyEventSchema.errors ?? []) as DefinedError[] }
-    },
-} as const
-
 export interface APIGatewayRequestAuthorizerEventSchema {
     type: 'REQUEST'
     methodArn: string
@@ -169,42 +131,8 @@ export interface APIGatewayRequestAuthorizerEventSchema {
     apiId?: string | undefined
 }
 
-export const APIGatewayRequestAuthorizerEventSchema = {
-    validate: APIGatewayRequestAuthorizerEventSchemaValidator as ValidateFunction<APIGatewayRequestAuthorizerEventSchema>,
-    get schema() {
-        return APIGatewayRequestAuthorizerEventSchema.validate.schema
-    },
-    get errors() {
-        return APIGatewayRequestAuthorizerEventSchema.validate.errors ?? undefined
-    },
-    is: (o: unknown): o is APIGatewayRequestAuthorizerEventSchema => APIGatewayRequestAuthorizerEventSchema.validate(o) === true,
-    parse: (o: unknown): { right: APIGatewayRequestAuthorizerEventSchema } | { left: DefinedError[] } => {
-        if (APIGatewayRequestAuthorizerEventSchema.is(o)) {
-            return { right: o }
-        }
-        return { left: (APIGatewayRequestAuthorizerEventSchema.errors ?? []) as DefinedError[] }
-    },
-} as const
-
 export interface APIGatewayTokenAuthorizerEventSchema {
     type: 'TOKEN'
     authorizationToken: string
     methodArn: string
 }
-
-export const APIGatewayTokenAuthorizerEventSchema = {
-    validate: APIGatewayTokenAuthorizerEventSchemaValidator as ValidateFunction<APIGatewayTokenAuthorizerEventSchema>,
-    get schema() {
-        return APIGatewayTokenAuthorizerEventSchema.validate.schema
-    },
-    get errors() {
-        return APIGatewayTokenAuthorizerEventSchema.validate.errors ?? undefined
-    },
-    is: (o: unknown): o is APIGatewayTokenAuthorizerEventSchema => APIGatewayTokenAuthorizerEventSchema.validate(o) === true,
-    parse: (o: unknown): { right: APIGatewayTokenAuthorizerEventSchema } | { left: DefinedError[] } => {
-        if (APIGatewayTokenAuthorizerEventSchema.is(o)) {
-            return { right: o }
-        }
-        return { left: (APIGatewayTokenAuthorizerEventSchema.errors ?? []) as DefinedError[] }
-    },
-} as const

@@ -1,16 +1,14 @@
-import { handleS3Batch } from './handler.js'
-
-import { S3BatchEvent } from '../../aws/s3-batch/s3.type.js'
-import { EventError } from '../../errors/event-error/event-error.js'
-import { context } from '../../test/context/context.js'
-
 import { array, asyncForAll, isString, json, omit, random, tuple } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
 import { expect, it, vi } from 'vitest'
+import { s3BatchEvent } from '../../aws/s3-batch/s3.schema.js'
+import { EventError } from '../../errors/event-error/event-error.js'
+import { context } from '../../test/context/context.js'
+import { handleS3Batch } from './handler.js'
 
 it('events do not give failures', async () => {
     await asyncForAll(
-        tuple(arbitrary(S3BatchEvent), await context({})).map(
+        tuple(arbitrary(s3BatchEvent), await context({})).map(
             (xs) => [...xs, random(array(json(), { minLength: xs[0].tasks.length, maxLength: xs[0].tasks.length }))] as const,
         ),
         async ([event, ctx, payloads]) => {
@@ -75,7 +73,7 @@ it('events do not give failures', async () => {
 })
 
 it.each([new Error(), 'foobar'])('promise reject with Error, gives failure', async (error) => {
-    await asyncForAll(tuple(arbitrary(S3BatchEvent), await context({})), async ([event, ctx]) => {
+    await asyncForAll(tuple(arbitrary(s3BatchEvent), await context({})), async ([event, ctx]) => {
         ctx.mockClear()
 
         const handler = vi.fn().mockRejectedValue(error)
@@ -130,7 +128,7 @@ it.each([new Error(), 'foobar'])('promise reject with Error, gives failure', asy
 })
 
 it.each([EventError.badRequest()])('promise reject with client error, gives errors', async (error) => {
-    await asyncForAll(tuple(arbitrary(S3BatchEvent), await context({})), async ([event, ctx]) => {
+    await asyncForAll(tuple(arbitrary(s3BatchEvent), await context({})), async ([event, ctx]) => {
         ctx.mockClear()
 
         const handler = vi.fn().mockRejectedValue(error)
@@ -185,7 +183,7 @@ it.each([EventError.badRequest()])('promise reject with client error, gives erro
 })
 
 it.each([new Error(), 'foobar'])('promise throws with Error, gives failure', async (error) => {
-    await asyncForAll(tuple(arbitrary(S3BatchEvent), await context({})), async ([event, ctx]) => {
+    await asyncForAll(tuple(arbitrary(s3BatchEvent), await context({})), async ([event, ctx]) => {
         ctx.mockClear()
 
         const handler = vi.fn().mockImplementation(() => {
@@ -242,7 +240,7 @@ it.each([new Error(), 'foobar'])('promise throws with Error, gives failure', asy
 })
 
 it.each([EventError.badRequest()])('promise throws with client error, gives errors', async (error) => {
-    await asyncForAll(tuple(arbitrary(S3BatchEvent), await context({})), async ([event, ctx]) => {
+    await asyncForAll(tuple(arbitrary(s3BatchEvent), await context({})), async ([event, ctx]) => {
         ctx.mockClear()
 
         const handler = vi.fn().mockImplementation(() => {

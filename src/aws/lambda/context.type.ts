@@ -4,10 +4,6 @@
  */
 /* eslint-disable */
 
-import type { DefinedError, ValidateFunction } from 'ajv'
-
-import { validate as ContextValidator } from './schemas/context.schema.js'
-
 export interface ClientContext {
     client: ClientContextClient
     Custom?: unknown
@@ -47,20 +43,3 @@ export interface Context {
     identity?: CognitoIdentity | undefined
     clientContext?: ClientContext | undefined
 }
-
-export const Context = {
-    validate: ContextValidator as ValidateFunction<Context>,
-    get schema() {
-        return Context.validate.schema
-    },
-    get errors() {
-        return Context.validate.errors ?? undefined
-    },
-    is: (o: unknown): o is Context => Context.validate(o) === true,
-    parse: (o: unknown): { right: Context } | { left: DefinedError[] } => {
-        if (Context.is(o)) {
-            return { right: o }
-        }
-        return { left: (Context.errors ?? []) as DefinedError[] }
-    },
-} as const

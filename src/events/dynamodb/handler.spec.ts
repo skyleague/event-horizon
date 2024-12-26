@@ -1,7 +1,7 @@
+import { DynamoDBStreamSchema } from '@aws-lambda-powertools/parser/schemas'
 import { asyncForAll, tuple } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
 import { expect, it, vi } from 'vitest'
-import { DynamoDBStreamSchema } from '../../aws/dynamodb/dynamodb.type.js'
 import { EventError } from '../../errors/event-error/event-error.js'
 import { context } from '../../test/context/context.js'
 import { handleDynamoDBStreamEvent } from './handler.js'

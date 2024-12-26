@@ -1,7 +1,7 @@
+import { SqsRecordSchema } from '@aws-lambda-powertools/parser/schemas'
 import { type Try, forAll, tuple } from '@skyleague/axioms'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { z } from 'zod'
-import { SqsRecordSchema } from '../../../aws/sqs/sqs.type.js'
 import { sqsGroupHandler, sqsHandler } from '../../../events/sqs/sqs.js'
 import type { SQSEvent } from '../../../events/sqs/types.js'
 import { context } from '../../../test/context/context.js'
@@ -29,7 +29,7 @@ describe('sqsHandler', () => {
 
                 expect(request.raw.attributes.MessageGroupId).toEqual(request.messageGroupId)
                 expect(request.raw.body).toEqual(JSON.stringify(request.payload))
-                expect(SqsRecordSchema.is(request.raw)).toBe(true)
+                SqsRecordSchema.parse(request.raw)
 
                 expectTypeOf(request.payload).toEqualTypeOf<'payload'>()
             },
@@ -71,7 +71,7 @@ describe('sqsGroupHandler', () => {
                     expect(record.payload).toEqual('payload')
                     expect(record.messageGroupId).toBeDefined()
                     expect(record.item).toBeDefined()
-                    expect(SqsRecordSchema.is(record.raw)).toBe(true)
+                    SqsRecordSchema.parse(record.raw)
                     expect(record.raw.attributes.MessageGroupId).toEqual(record.messageGroupId)
                     expect(record.raw.body).toEqual(JSON.stringify(record.payload))
                 }
