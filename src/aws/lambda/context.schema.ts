@@ -1,43 +1,41 @@
-import { $boolean, $object, $optional, $ref, $string, $unknown, $validator } from '@skyleague/therefore'
+import { z } from 'zod'
 
-export const cognitoIdentity = $object({
-    cognitoIdentityId: $string,
-    cognitoIdentityPoolId: $string,
+export const cognitoIdentity = z.object({
+    cognitoIdentityId: z.string(),
+    cognitoIdentityPoolId: z.string(),
 })
 
-export const clientContextClient = $object({
-    installationId: $string,
-    appTitle: $string,
-    appVersionName: $string,
-    appVersionCode: $string,
-    appPackageName: $string,
+export const clientContextClient = z.object({
+    installationId: z.string(),
+    appTitle: z.string(),
+    appVersionName: z.string(),
+    appVersionCode: z.string(),
+    appPackageName: z.string(),
 })
 
-export const clientContextEnv = $object({
-    platformVersion: $string,
-    platform: $string,
-    make: $string,
-    model: $string,
-    locale: $string,
+export const clientContextEnv = z.object({
+    platformVersion: z.string(),
+    platform: z.string(),
+    make: z.string(),
+    model: z.string(),
+    locale: z.string(),
 })
 
-export const clientContext = $object({
-    client: $ref(clientContextClient),
-    Custom: $optional($unknown),
-    env: $ref(clientContextEnv),
+export const clientContext = z.object({
+    client: clientContextClient,
+    Custom: z.unknown().optional(),
+    env: clientContextEnv,
 })
 
-export const context = $validator(
-    $object({
-        callbackWaitsForEmptyEventLoop: $boolean,
-        functionName: $string,
-        functionVersion: $string,
-        invokedFunctionArn: $string,
-        memoryLimitInMB: $string,
-        awsRequestId: $string,
-        logGroupName: $string,
-        logStreamName: $string,
-        identity: $optional($ref(cognitoIdentity)),
-        clientContext: $optional($ref(clientContext)),
-    }),
-)
+export const context = z.object({
+    callbackWaitsForEmptyEventLoop: z.boolean(),
+    functionName: z.string(),
+    functionVersion: z.string(),
+    invokedFunctionArn: z.string(),
+    memoryLimitInMB: z.string(),
+    awsRequestId: z.string(),
+    logGroupName: z.string(),
+    logStreamName: z.string(),
+    identity: cognitoIdentity.optional(),
+    clientContext: clientContext.optional(),
+})

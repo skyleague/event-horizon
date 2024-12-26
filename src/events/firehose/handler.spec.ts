@@ -1,13 +1,12 @@
-import { handleFirehoseTransformation } from './handler.js'
-
+import { KinesisFirehoseSchema } from '@aws-lambda-powertools/parser/schemas'
 import { asyncForAll, isString, json, random, tuple } from '@skyleague/axioms'
 import type { JsonValue } from '@skyleague/axioms/types'
 import { arbitrary } from '@skyleague/therefore'
 import { expect, it, vi } from 'vitest'
 import { alwaysTrueSchema, neverTrueSchema } from '../../../test/schema.js'
-import { KinesisFirehoseSchema } from '../../aws/firehose/firehose.type.js'
 import { EventError } from '../../errors/event-error/event-error.js'
 import { context } from '../../test/context/context.js'
+import { handleFirehoseTransformation } from './handler.js'
 
 it('binary events does not give failures', async () => {
     await asyncForAll(

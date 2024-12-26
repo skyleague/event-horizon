@@ -1,24 +1,27 @@
-import { eventBridgeHandler } from './eventbridge.js'
-import type { EventBridgeEvent } from './types.js'
-
-import { literalSchema, warmerEvent } from '../../../test/schema.js'
-import { KinesisDataStreamSchema } from '../../aws/kinesis/kinesis.type.js'
-import { S3BatchEvent } from '../../aws/s3-batch/s3.type.js'
-import { S3Schema } from '../../aws/s3/s3.type.js'
-import { SecretRotationEvent } from '../../aws/secret-rotation/secret-rotation.type.js'
-import { context } from '../../test/context/context.js'
-
+import {
+    APIGatewayProxyEventSchema,
+    APIGatewayProxyEventV2Schema,
+    APIGatewayRequestAuthorizerEventSchema,
+    APIGatewayRequestAuthorizerEventV2Schema,
+    EventBridgeSchema as AWSEventBridgeSchema,
+    KinesisDataStreamSchema,
+    KinesisFirehoseSchema,
+    S3Schema,
+    SnsSchema,
+    SqsSchema,
+} from '@aws-lambda-powertools/parser/schemas'
 import { asyncForAll, oneOf, random, tuple, unknown } from '@skyleague/axioms'
 import { type Schema, arbitrary } from '@skyleague/therefore'
 import { expect, expectTypeOf, it, vi } from 'vitest'
 import { z } from 'zod'
-import { APIGatewayProxyEventV2Schema, APIGatewayRequestAuthorizerEventV2Schema } from '../../aws/apigateway/http.type.js'
-import { APIGatewayProxyEventSchema, APIGatewayRequestAuthorizerEventSchema } from '../../aws/apigateway/rest.type.js'
-import { EventBridgeSchema } from '../../aws/eventbridge/eventbridge.type.js'
-import { KinesisFirehoseSchema } from '../../aws/firehose/firehose.type.js'
-import { SnsSchema } from '../../aws/sns/sns.type.js'
-import { SqsSchema } from '../../aws/sqs/sqs.type.js'
+import { literalSchema, warmerEvent } from '../../../test/schema.js'
+import type { EventBridgeSchema } from '../../aws/eventbridge/eventbridge.type.js'
+import { s3BatchEvent } from '../../aws/s3-batch/s3.schema.js'
+import { secretRotationEvent } from '../../aws/secret-rotation/secret-rotation.schema.js'
+import { context } from '../../test/context/context.js'
 import type { LambdaContext } from '../types.js'
+import { eventBridgeHandler } from './eventbridge.js'
+import type { EventBridgeEvent } from './types.js'
 
 it('handles eventbridge events', async () => {
     const eventBridge = vi.fn()
@@ -28,11 +31,11 @@ it('handles eventbridge events', async () => {
         },
         { _kernel: eventBridge },
     )
-    await asyncForAll(tuple(arbitrary(EventBridgeSchema), unknown(), await context(handler)), async ([event, ret, ctx]) => {
+    await asyncForAll(tuple(arbitrary(AWSEventBridgeSchema), unknown(), await context(handler)), async ([event, ret, ctx]) => {
         eventBridge.mockClear()
         eventBridge.mockReturnValue(ret)
 
-        const response = await handler._options.handler(event, ctx)
+        const response = await handler._options.handler(event as EventBridgeSchema, ctx)
         expect(response).toBe(ret)
         expect(eventBridge).toHaveBeenCalledWith(expect.anything(), event, ctx)
     })
@@ -259,8 +262,8 @@ it('does not handle non eventbridge events', async () => {
                 arbitrary(APIGatewayRequestAuthorizerEventV2Schema),
                 arbitrary(KinesisDataStreamSchema),
                 arbitrary(S3Schema),
-                arbitrary(S3BatchEvent),
-                arbitrary(SecretRotationEvent),
+                arbitrary(s3BatchEvent),
+                arbitrary(secretRotationEvent),
                 arbitrary(SnsSchema),
                 arbitrary(SqsSchema),
             ),

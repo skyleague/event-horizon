@@ -1,19 +1,23 @@
+import {
+    APIGatewayProxyEventSchema,
+    APIGatewayProxyEventV2Schema,
+    APIGatewayRequestAuthorizerEventSchema,
+    APIGatewayRequestAuthorizerEventV2Schema,
+    DynamoDBStreamSchema,
+    EventBridgeSchema,
+    KinesisDataStreamSchema,
+    KinesisFirehoseSchema,
+    S3Schema,
+    SnsSchema,
+    SqsSchema,
+} from '@aws-lambda-powertools/parser/schemas'
 import { asyncForAll, oneOf, random, tuple, unknown } from '@skyleague/axioms'
 import { type Schema, arbitrary } from '@skyleague/therefore'
 import { expect, expectTypeOf, it, vi } from 'vitest'
 import { z } from 'zod'
 import { literalSchema, warmerEvent } from '../../../test/schema.js'
-import { APIGatewayProxyEventV2Schema, APIGatewayRequestAuthorizerEventV2Schema } from '../../aws/apigateway/http.type.js'
-import { APIGatewayProxyEventSchema, APIGatewayRequestAuthorizerEventSchema } from '../../aws/apigateway/rest.type.js'
-import { DynamoDBStreamSchema } from '../../aws/dynamodb/dynamodb.type.js'
-import { EventBridgeSchema } from '../../aws/eventbridge/eventbridge.type.js'
-import { KinesisFirehoseSchema } from '../../aws/firehose/firehose.type.js'
-import { KinesisDataStreamSchema } from '../../aws/kinesis/kinesis.type.js'
-import { S3BatchEvent } from '../../aws/s3-batch/s3.type.js'
-import { S3Schema } from '../../aws/s3/s3.type.js'
-import { SecretRotationEvent } from '../../aws/secret-rotation/secret-rotation.type.js'
-import { SnsSchema } from '../../aws/sns/sns.type.js'
-import { SqsSchema } from '../../aws/sqs/sqs.type.js'
+import { s3BatchEvent } from '../../aws/s3-batch/s3.schema.js'
+import { secretRotationEvent } from '../../aws/secret-rotation/secret-rotation.schema.js'
 import { context } from '../../test/context/context.js'
 import type { LambdaContext } from '../types.js'
 import { s3BatchHandler } from './s3-batch.js'
@@ -27,7 +31,7 @@ it('handles s3Batch events', async () => {
         },
         { _kernel: s3Batch },
     )
-    await asyncForAll(tuple(arbitrary(S3BatchEvent), unknown(), await context(handler)), async ([event, ret, ctx]) => {
+    await asyncForAll(tuple(arbitrary(s3BatchEvent), unknown(), await context(handler)), async ([event, ret, ctx]) => {
         s3Batch.mockClear()
         s3Batch.mockReturnValue(ret)
 
@@ -328,8 +332,8 @@ it('does not handle non s3Batch events', async () => {
                 arbitrary(APIGatewayRequestAuthorizerEventV2Schema),
                 arbitrary(KinesisDataStreamSchema),
                 arbitrary(S3Schema),
-                // arbitrary(S3BatchEvent),
-                arbitrary(SecretRotationEvent),
+                // arbitrary(s3BatchEvent),
+                arbitrary(secretRotationEvent),
                 arbitrary(SnsSchema),
                 arbitrary(SqsSchema),
                 arbitrary(DynamoDBStreamSchema),

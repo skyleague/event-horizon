@@ -1,7 +1,7 @@
+import { SnsNotificationSchema } from '@aws-lambda-powertools/parser/schemas'
 import { forAll, tuple } from '@skyleague/axioms'
 import { expect, expectTypeOf, it } from 'vitest'
 import { z } from 'zod'
-import { SnsNotificationSchema } from '../../../aws/sns/sns.type.js'
 import { snsHandler } from '../../../events/sns/sns.js'
 import { context } from '../../../test/context/context.js'
 import { snsEvent } from './sns.js'
@@ -24,7 +24,7 @@ it('should properly validate and type SNS event payload', () => {
             expect(request.payload).toEqual('payload')
 
             expect(request.raw.Message).toEqual(JSON.stringify(request.payload))
-            expect(SnsNotificationSchema.is(request.raw)).toBe(true)
+            SnsNotificationSchema.parse(request.raw)
 
             expectTypeOf(request.payload).toEqualTypeOf<'payload'>()
         },

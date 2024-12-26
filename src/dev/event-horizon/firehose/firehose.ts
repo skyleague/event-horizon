@@ -1,9 +1,8 @@
-import type { FirehoseTransformationEvent, FirehoseTransformationHandler } from '../../../events/firehose/types.js'
-
 import type { Dependent } from '@skyleague/axioms'
 import { tuple, unknown } from '@skyleague/axioms'
 import { type Schema, arbitrary } from '@skyleague/therefore'
-import { KinesisFirehoseRecord } from '../../../aws/firehose/firehose.type.js'
+import { kinesisFirehoseRecord } from '../../../aws/firehose/firehose.schema.js'
+import type { FirehoseTransformationEvent, FirehoseTransformationHandler } from '../../../events/firehose/types.js'
 import type { DefaultServices } from '../../../events/types.js'
 import type { InferFromParser, MaybeGenericParser } from '../../../parsers/types.js'
 
@@ -20,7 +19,7 @@ export function firehoseTransformationEvent<
     { firehose }: FirehoseTransformationHandler<Configuration, Service, Profile, Payload, Result>,
     { generation = 'fast' }: { generation?: 'full' | 'fast' } = {},
 ): Dependent<FirehoseTransformationEvent<InferFromParser<Payload, unknown>>> {
-    const record = arbitrary(KinesisFirehoseRecord).constant(generation === 'fast')
+    const record = arbitrary(kinesisFirehoseRecord).constant(generation === 'fast')
     const payload = (
         firehose.schema.payload !== undefined ? arbitrary(firehose.schema.payload as Schema<unknown>) : unknown()
     ) as Dependent<InferFromParser<Payload, unknown>>

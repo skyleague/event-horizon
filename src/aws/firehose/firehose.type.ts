@@ -4,34 +4,12 @@
  */
 /* eslint-disable */
 
-import type { DefinedError, ValidateFunction } from 'ajv'
-
-import { validate as KinesisFirehoseRecordValidator } from './schemas/kinesis-firehose-record.schema.js'
-import { validate as KinesisFirehoseSchemaValidator } from './schemas/kinesis-firehose-schema.schema.js'
-
 export interface KinesisFirehoseRecord {
     recordId: string
     approximateArrivalTimestamp: number
     kinesisRecordMetadata?: KinesisRecordMetadata | null | undefined
     data: string
 }
-
-export const KinesisFirehoseRecord = {
-    validate: KinesisFirehoseRecordValidator as ValidateFunction<KinesisFirehoseRecord>,
-    get schema() {
-        return KinesisFirehoseRecord.validate.schema
-    },
-    get errors() {
-        return KinesisFirehoseRecord.validate.errors ?? undefined
-    },
-    is: (o: unknown): o is KinesisFirehoseRecord => KinesisFirehoseRecord.validate(o) === true,
-    parse: (o: unknown): { right: KinesisFirehoseRecord } | { left: DefinedError[] } => {
-        if (KinesisFirehoseRecord.is(o)) {
-            return { right: o }
-        }
-        return { left: (KinesisFirehoseRecord.errors ?? []) as DefinedError[] }
-    },
-} as const
 
 export interface KinesisFirehoseSchema {
     invocationId: string
@@ -40,23 +18,6 @@ export interface KinesisFirehoseSchema {
     sourceKinesisStreamArn?: string | undefined
     records: KinesisFirehoseRecord[]
 }
-
-export const KinesisFirehoseSchema = {
-    validate: KinesisFirehoseSchemaValidator as ValidateFunction<KinesisFirehoseSchema>,
-    get schema() {
-        return KinesisFirehoseSchema.validate.schema
-    },
-    get errors() {
-        return KinesisFirehoseSchema.validate.errors ?? undefined
-    },
-    is: (o: unknown): o is KinesisFirehoseSchema => KinesisFirehoseSchema.validate(o) === true,
-    parse: (o: unknown): { right: KinesisFirehoseSchema } | { left: DefinedError[] } => {
-        if (KinesisFirehoseSchema.is(o)) {
-            return { right: o }
-        }
-        return { left: (KinesisFirehoseSchema.errors ?? []) as DefinedError[] }
-    },
-} as const
 
 export type KinesisRecordMetadata = {
     shardId: string

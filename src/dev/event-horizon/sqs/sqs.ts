@@ -1,9 +1,9 @@
-import type { SQSEvent, SQSGroupHandler, SQSHandler, SQSMessageGroup } from '../../../events/sqs/types.js'
-
+import { SqsRecordSchema } from '@aws-lambda-powertools/parser/schemas'
 import type { Dependent } from '@skyleague/axioms'
 import { alphaNumeric, array, constant, integer, object, tuple, unknown } from '@skyleague/axioms'
-import { type Schema, arbitrary } from '@skyleague/therefore'
-import { SqsRecordSchema } from '../../../aws/sqs/sqs.type.js'
+import { arbitrary } from '@skyleague/therefore'
+import type { Schema } from 'zod'
+import type { SQSEvent, SQSGroupHandler, SQSHandler, SQSMessageGroup } from '../../../events/sqs/types.js'
 import type { InferFromParser, MaybeGenericParser } from '../../../parsers/types.js'
 
 export function sqsEvent<

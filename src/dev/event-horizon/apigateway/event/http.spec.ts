@@ -1,16 +1,16 @@
+import { APIGatewayProxyEventV2Schema } from '@aws-lambda-powertools/parser/schemas'
 import { forAll, isString, tuple } from '@skyleague/axioms'
 import { expect, expectTypeOf, it, vi } from 'vitest'
 import { z } from 'zod'
-import { APIGatewayProxyEventV2Schema } from '../../../../aws/apigateway/http.type.js'
 import { httpApiHandler } from '../../../../events/apigateway/event/http.js'
 import type { HTTPHeaders, HTTPPathParameters, HTTPQueryParameters } from '../../../../events/apigateway/types.js'
 import { context } from '../../../../test/context/context.js'
 import { httpApiEvent } from './http.js'
 
 it('httpApiEvent === httpApiEvent', () => {
-    forAll(httpApiEvent({ http: { method: 'get', path: '/', handler: vi.fn(), schema: { responses: {} } } }), (e) =>
-        APIGatewayProxyEventV2Schema.is(e.raw),
-    )
+    forAll(httpApiEvent({ http: { method: 'get', path: '/', handler: vi.fn(), schema: { responses: {} } } }), (e) => {
+        APIGatewayProxyEventV2Schema.parse(e.raw)
+    })
 })
 
 it('httpApiEvent body === body', () => {

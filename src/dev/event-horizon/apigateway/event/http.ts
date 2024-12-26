@@ -1,7 +1,8 @@
+import { APIGatewayProxyEventV2Schema } from '@aws-lambda-powertools/parser/schemas'
 import type { Dependent } from '@skyleague/axioms'
 import { constant, object } from '@skyleague/axioms'
-import { type Schema, arbitrary } from '@skyleague/therefore'
-import { APIGatewayProxyEventV2Schema } from '../../../../aws/apigateway/http.type.js'
+import { arbitrary } from '@skyleague/therefore'
+import type { ZodType } from 'zod'
 import type { AuthorizerSchema, HTTPHandler, HTTPRequest, Responses } from '../../../../events/apigateway/event/types.js'
 import type { SecurityRequirements } from '../../../../events/apigateway/types.js'
 import type { InferFromParser, MaybeGenericParser } from '../../../../parsers/types.js'
@@ -48,10 +49,10 @@ export function httpApiEvent<
 > {
     const { bodyType = 'json' } = http
 
-    const body = http.schema.body !== undefined ? arbitrary(http.schema.body as Schema<unknown>) : constant(undefined)
-    const headers = http.schema.headers !== undefined ? arbitrary(http.schema.headers as Schema<unknown>) : constant(undefined)
-    const query = http.schema.query !== undefined ? arbitrary(http.schema.query as Schema<unknown>) : constant(undefined)
-    const path = http.schema.path !== undefined ? arbitrary(http.schema.path as Schema<unknown>) : constant(undefined)
+    const body = http.schema.body !== undefined ? arbitrary(http.schema.body as ZodType) : constant(undefined)
+    const headers = http.schema.headers !== undefined ? arbitrary(http.schema.headers as ZodType) : constant(undefined)
+    const query = http.schema.query !== undefined ? arbitrary(http.schema.query as ZodType) : constant(undefined)
+    const path = http.schema.path !== undefined ? arbitrary(http.schema.path as ZodType) : constant(undefined)
     const raw = arbitrary(APIGatewayProxyEventV2Schema).constant(generation === 'fast')
 
     return raw.chain((r) => {
