@@ -1,3 +1,7 @@
+import { type Try, eitherAsValue, isLeft, mapLeft, mapRight, mapTry, parallelLimit, tryToEither } from '@skyleague/axioms'
+import type { SQSBatchItemFailure, SQSBatchResponse } from 'aws-lambda'
+import type { SqsRecordSchema } from '../../aws/sqs/sqs.type.js'
+import type { InferFromParser, MaybeGenericParser } from '../../parsers/types.js'
 import { ioLoggerChild } from '../functions/io-logger-child.js'
 import { ioLogger } from '../functions/io-logger.js'
 import { ioValidate } from '../functions/io-validate.js'
@@ -5,22 +9,6 @@ import type { LambdaContext } from '../types.js'
 import { sqsErrorHandler } from './functions/error-handler.js'
 import { sqsParseEvent } from './functions/parse-event.js'
 import type { SQSEvent, SQSGroupHandler, SQSHandler, SQSMessageGroup } from './types.js'
-
-import {
-    type Try,
-    eitherAsValue,
-    groupBy,
-    isLeft,
-    map,
-    mapLeft,
-    mapRight,
-    mapTry,
-    parallelLimit,
-    tryToEither,
-} from '@skyleague/axioms'
-import type { SQSBatchItemFailure, SQSBatchResponse } from 'aws-lambda'
-import type { SqsRecordSchema } from '../../aws/sqs/sqs.type.js'
-import type { InferFromParser, MaybeGenericParser } from '../../parsers/types.js'
 
 export async function handleSQSEvent<
     Configuration,
@@ -94,7 +82,7 @@ export async function handleSQSMessageGroup<
 
     let failures: SQSBatchItemFailure[] | undefined = undefined
     const sqsEvents = await Promise.all(
-        map(events.entries(), async ([i, event]) => {
+        events.entries().map(async ([i, event]) => {
             const sqsEvent = await mapTry(event, (e) => {
                 const unvalidatedSQSEvent = parseEventFn.before(e, i)
                 return ioValidateFn.before(sqs.schema.payload, unvalidatedSQSEvent, 'payload')
@@ -108,8 +96,8 @@ export async function handleSQSMessageGroup<
         }),
     )
 
-    const messageGroups: Record<string, SQSMessageGroup<InferFromParser<Payload, unknown>>['records']> = groupBy(
-        map(sqsEvents, ({ sqsEvent, event, i }) => ({
+    const messageGroups: Partial<Record<string, SQSMessageGroup<InferFromParser<Payload, unknown>>['records']>> = Object.groupBy(
+        sqsEvents.map(({ sqsEvent, event, i }) => ({
             messageGroupId: event.attributes.MessageGroupId ?? 'unknown',
             payload: mapTry(sqsEvent, (e) => e.payload) as Try<InferFromParser<Payload, unknown>>,
             raw: event,
@@ -131,7 +119,7 @@ export async function handleSQSMessageGroup<
 
                 const messageGroup: SQSMessageGroup<InferFromParser<Payload, unknown>> = {
                     messageGroupId,
-                    records,
+                    records: records ?? [],
                 }
 
                 ioLoggerFn.before(messageGroup, { messageGroupId })
@@ -139,7 +127,7 @@ export async function handleSQSMessageGroup<
                 const transformed = await mapTry(messageGroup, (success) => sqs.handler(success, ctx))
 
                 const eitherTransformed = tryToEither(transformed)
-                const response = mapLeft(eitherTransformed, (e) => records.map((r) => errorHandlerFn.onError(r.raw, e)))
+                const response = mapLeft(eitherTransformed, (e) => (records ?? []).map((r) => errorHandlerFn.onError(r.raw, e)))
 
                 ioLoggerFn.after(eitherAsValue(response), { messageGroupId })
                 ioLoggerChildFn.after()

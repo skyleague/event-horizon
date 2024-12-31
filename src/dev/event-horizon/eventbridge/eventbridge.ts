@@ -2,6 +2,7 @@ import type { Dependent } from '@skyleague/axioms'
 import { tuple, unknown } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
 import { $ref, $string, $unknown, type Node } from '@skyleague/therefore'
+import type { ZodType } from 'zod'
 import { EventBridgeSchema } from '../../../aws/eventbridge/eventbridge.type.js'
 import type { EventBridgeEvent, EventBridgeHandler } from '../../../events/eventbridge/types.js'
 import type { InferFromParser, MaybeGenericParser } from '../../../parsers/types.js'
@@ -30,7 +31,7 @@ export function eventBridgeEvent<
     { generation = 'fast' }: { generation?: 'full' | 'fast' } = {},
 ): Dependent<EventBridgeEvent<InferFromParser<Payload, unknown>>> {
     const record = arbitrary(EventBridgeSchema).constant(generation === 'fast')
-    const payload = eventBridge.schema.payload !== undefined ? arbitrary(eventBridge.schema.payload) : unknown()
+    const payload = eventBridge.schema.payload !== undefined ? arbitrary(eventBridge.schema.payload as ZodType) : unknown()
     return tuple(record, payload).map(([r, p]) => {
         const event = {
             raw: r,

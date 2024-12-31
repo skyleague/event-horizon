@@ -1,9 +1,9 @@
-import type { SQSEvent, SQSGroupHandler, SQSHandler, SQSMessageGroup } from '../../../events/sqs/types.js'
-
 import type { Dependent } from '@skyleague/axioms'
 import { alphaNumeric, array, constant, integer, object, tuple, unknown } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
+import type { ZodType } from 'zod'
 import { SqsRecordSchema } from '../../../aws/sqs/sqs.type.js'
+import type { SQSEvent, SQSGroupHandler, SQSHandler, SQSMessageGroup } from '../../../events/sqs/types.js'
 import type { InferFromParser, MaybeGenericParser } from '../../../parsers/types.js'
 
 export function sqsEvent<Configuration, Service, Profile extends MaybeGenericParser, Payload extends MaybeGenericParser>(
@@ -13,7 +13,7 @@ export function sqsEvent<Configuration, Service, Profile extends MaybeGenericPar
     const { sqs } = definition
     return object({
         messageGroupId: alphaNumeric({ minLength: 1 }),
-        payload: sqs.schema.payload !== undefined ? arbitrary(sqs.schema.payload) : unknown(),
+        payload: sqs.schema.payload !== undefined ? arbitrary(sqs.schema.payload as ZodType) : unknown(),
         raw: arbitrary(SqsRecordSchema).constant(generation === 'fast'),
         item: integer({ min: 0, max: 10 }),
     }).map(({ messageGroupId, payload, raw, item }) => ({
@@ -43,7 +43,7 @@ export function sqsGroupEvent<Configuration, Service, Profile extends MaybeGener
                 messageGroupId: constant(''),
                 item: constant(0),
 
-                payload: sqs.schema.payload !== undefined ? arbitrary(sqs.schema.payload) : unknown(),
+                payload: sqs.schema.payload !== undefined ? arbitrary(sqs.schema.payload as ZodType) : unknown(),
                 raw: arbitrary(SqsRecordSchema).constant(generation === 'fast'),
             } satisfies { [k in keyof SQSEvent]: unknown }),
             { minLength: 1, maxLength: 10 },

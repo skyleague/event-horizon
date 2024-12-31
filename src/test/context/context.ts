@@ -1,3 +1,4 @@
+import type { ZodType } from 'zod'
 import { Context } from '../../aws/lambda/context.type.js'
 import type { AsConfig } from '../../events/common/config.js'
 import type { ProfileSchema } from '../../events/common/functions/profile-handler.js'
@@ -49,7 +50,7 @@ export async function context<Configuration = undefined, Service = undefined, Pr
         services: constant(isFunction(services) ? await services(configObj as AsConfig<Configuration>) : services) as Arbitrary<
             LambdaContext<Configuration, Service, Profile>['services']
         >,
-        profile: (profile?.schema !== undefined ? arbitrary(profile.schema) : constant(undefined)) as Arbitrary<
+        profile: (profile?.schema !== undefined ? arbitrary(profile.schema as ZodType) : constant(undefined)) as Arbitrary<
             LambdaContext<Configuration, Service, Profile>['profile']
         >,
 

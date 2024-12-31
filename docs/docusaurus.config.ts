@@ -89,6 +89,9 @@ const config: Config = {
             darkTheme: themes.dracula,
         },
     },
+    future: {
+        experimental_faster: true,
+    },
 }
 
 export default config

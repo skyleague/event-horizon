@@ -1,6 +1,7 @@
 import type { Dependent } from '@skyleague/axioms'
 import { constant, object } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
+import type { ZodType } from 'zod'
 import { APIGatewayProxyEventV2Schema } from '../../../../aws/apigateway/http.type.js'
 import type { AuthorizerSchema, HTTPHandler, HTTPRequest, Responses } from '../../../../events/apigateway/event/types.js'
 import type { SecurityRequirements } from '../../../../events/apigateway/types.js'
@@ -48,10 +49,10 @@ export function httpApiEvent<
 > {
     const { bodyType = 'json' } = http
 
-    const body = http.schema.body !== undefined ? arbitrary(http.schema.body) : constant(undefined)
-    const headers = http.schema.headers !== undefined ? arbitrary(http.schema.headers) : constant(undefined)
-    const query = http.schema.query !== undefined ? arbitrary(http.schema.query) : constant(undefined)
-    const path = http.schema.path !== undefined ? arbitrary(http.schema.path) : constant(undefined)
+    const body = http.schema.body !== undefined ? arbitrary(http.schema.body as ZodType) : constant(undefined)
+    const headers = http.schema.headers !== undefined ? arbitrary(http.schema.headers as ZodType) : constant(undefined)
+    const query = http.schema.query !== undefined ? arbitrary(http.schema.query as ZodType) : constant(undefined)
+    const path = http.schema.path !== undefined ? arbitrary(http.schema.path as ZodType) : constant(undefined)
     const raw = arbitrary(APIGatewayProxyEventV2Schema).constant(generation === 'fast')
 
     return raw.chain((r) => {
