@@ -10,7 +10,9 @@ export function kinesisEvent<Configuration, Service, Profile extends MaybeGeneri
     { generation = 'fast' }: { generation?: 'full' | 'fast' } = {},
 ): Dependent<KinesisEvent<InferFromParser<Payload, unknown>>> {
     const record = arbitrary(KinesisDataStreamRecord).constant(generation === 'fast')
-    const payload = kinesis.schema.payload !== undefined ? arbitrary(kinesis.schema.payload) : unknown()
+    const payload = (kinesis.schema.payload !== undefined ? arbitrary(kinesis.schema.payload) : unknown()) as Dependent<
+        InferFromParser<Payload, unknown>
+    >
     return tuple(record, payload).map(([r, p]) => {
         const event = {
             raw: r,

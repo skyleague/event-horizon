@@ -13,7 +13,9 @@ export function sqsEvent<Configuration, Service, Profile extends MaybeGenericPar
     const { sqs } = definition
     return object({
         messageGroupId: alphaNumeric({ minLength: 1 }),
-        payload: sqs.schema.payload !== undefined ? arbitrary(sqs.schema.payload) : unknown(),
+        payload: (sqs.schema.payload !== undefined ? arbitrary(sqs.schema.payload) : unknown()) as Dependent<
+            InferFromParser<Payload>
+        >,
         raw: arbitrary(SqsRecordSchema).constant(generation === 'fast'),
         item: integer({ min: 0, max: 10 }),
     }).map(({ messageGroupId, payload, raw, item }) => ({
@@ -43,7 +45,9 @@ export function sqsGroupEvent<Configuration, Service, Profile extends MaybeGener
                 messageGroupId: constant(''),
                 item: constant(0),
 
-                payload: sqs.schema.payload !== undefined ? arbitrary(sqs.schema.payload) : unknown(),
+                payload: (sqs.schema.payload !== undefined ? arbitrary(sqs.schema.payload) : unknown()) as Dependent<
+                    InferFromParser<Payload>
+                >,
                 raw: arbitrary(SqsRecordSchema).constant(generation === 'fast'),
             } satisfies { [k in keyof SQSEvent]: unknown }),
             { minLength: 1, maxLength: 10 },

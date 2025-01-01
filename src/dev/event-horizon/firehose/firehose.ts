@@ -21,7 +21,9 @@ export function firehoseTransformationEvent<
     { generation = 'fast' }: { generation?: 'full' | 'fast' } = {},
 ): Dependent<FirehoseTransformationEvent<InferFromParser<Payload, unknown>>> {
     const record = arbitrary(KinesisFirehoseRecord).constant(generation === 'fast')
-    const payload = firehose.schema.payload !== undefined ? arbitrary(firehose.schema.payload) : unknown()
+    const payload = (firehose.schema.payload !== undefined ? arbitrary(firehose.schema.payload) : unknown()) as Dependent<
+        InferFromParser<Payload, unknown>
+    >
     return tuple(record, payload).map(([r, p]) => {
         const event = {
             raw: r,

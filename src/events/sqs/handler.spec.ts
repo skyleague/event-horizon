@@ -6,7 +6,7 @@ import { EventError } from '../../errors/event-error/event-error.js'
 import type { Logger } from '../../observability/logger/logger.js'
 import { context } from '../../test/context/context.js'
 
-import { asyncForAll, groupBy, isFailure, json, map, random, tuple } from '@skyleague/axioms'
+import { asyncForAll, isFailure, json, random, tuple } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
 import { arbitrary } from '@skyleague/therefore'
 import type { SQSBatchItemFailure, SQSBatchResponse } from 'aws-lambda/trigger/sqs.js'
@@ -73,8 +73,8 @@ describe('plaintext events does not give failures', () => {
 
             expect(response).toEqual(undefined)
 
-            const groups = groupBy(
-                map(Records.entries(), ([item, record]) => ({ item, record })),
+            const groups = Object.groupBy(
+                Records.entries().map(([item, record]) => ({ item, record })),
                 (x) => x.record.attributes.MessageGroupId ?? 'unknown',
             )
             for (const [i, [messageGroupId, records]] of Object.entries(groups).entries()) {
@@ -82,7 +82,7 @@ describe('plaintext events does not give failures', () => {
                     i + 1,
                     {
                         messageGroupId,
-                        records: records.map((r) =>
+                        records: records?.map((r) =>
                             expect.objectContaining({ item: r.item, payload: expect.any(String), raw: r.record }),
                         ),
                     },
@@ -92,7 +92,7 @@ describe('plaintext events does not give failures', () => {
                 expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[sqs] start', {
                     event: {
                         messageGroupId,
-                        records: records.map((r) =>
+                        records: records?.map((r) =>
                             expect.objectContaining({ item: r.item, payload: expect.any(String), raw: r.record }),
                         ),
                     },
@@ -158,8 +158,8 @@ describe('json events does not give failures', () => {
 
                 expect(response).toEqual(undefined)
 
-                const groups = groupBy(
-                    map(Records.entries(), ([item, record]) => ({ item, record })),
+                const groups = Object.groupBy(
+                    Records.entries().map(([item, record]) => ({ item, record })),
                     (x) => x.record.attributes.MessageGroupId ?? 'unknown',
                 )
                 for (const [i, [messageGroupId, records]] of Object.entries(groups).entries()) {
@@ -167,7 +167,7 @@ describe('json events does not give failures', () => {
                         i + 1,
                         {
                             messageGroupId,
-                            records: records.map((r) =>
+                            records: records?.map((r) =>
                                 expect.objectContaining({ item: r.item, payload: expect.any(Object), raw: r.record }),
                             ),
                         },
@@ -177,7 +177,7 @@ describe('json events does not give failures', () => {
                     expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[sqs] start', {
                         event: {
                             messageGroupId,
-                            records: records.map((r) =>
+                            records: records?.map((r) =>
                                 expect.objectContaining({ item: r.item, payload: expect.any(Object), raw: r.record }),
                             ),
                         },
@@ -245,15 +245,15 @@ describe('json parse failure, gives failure', () => {
                 const handler = vi.fn().mockImplementation(handleMessageGroup)
                 const response = await handleSQSMessageGroup({ sqs: { schema: {}, handler } }, Records as SqsRecordSchema[], ctx)
 
-                const groups = groupBy(
-                    map(Records.entries(), ([item, record]) => ({ item, record })),
+                const groups = Object.groupBy(
+                    Records.entries().map(([item, record]) => ({ item, record })),
                     (x) => x.record.attributes.MessageGroupId ?? 'unknown',
                 )
 
                 if (Records.length > 0) {
                     expect(response).toEqual({
                         batchItemFailures: Object.values(groups).flatMap((rs) =>
-                            rs.map((r) => ({ itemIdentifier: r.record.messageId })),
+                            rs?.map((r) => ({ itemIdentifier: r.record.messageId })),
                         ),
                     })
                 }
@@ -263,7 +263,7 @@ describe('json parse failure, gives failure', () => {
                         i + 1,
                         {
                             messageGroupId,
-                            records: records.map((r) =>
+                            records: records?.map((r) =>
                                 expect.objectContaining({ item: r.item, payload: expect.any(SyntaxError), raw: r.record }),
                             ),
                         },
@@ -273,7 +273,7 @@ describe('json parse failure, gives failure', () => {
                     expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[sqs] start', {
                         event: {
                             messageGroupId,
-                            records: records.map((r) =>
+                            records: records?.map((r) =>
                                 expect.objectContaining({ item: r.item, payload: expect.any(SyntaxError), raw: r.record }),
                             ),
                         },
@@ -281,7 +281,7 @@ describe('json parse failure, gives failure', () => {
                     })
                     expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 2, '[sqs] sent', {
                         messageGroupId,
-                        response: records.map((r) => ({ itemIdentifier: r.record.messageId })),
+                        response: records?.map((r) => ({ itemIdentifier: r.record.messageId })),
                     })
                 }
 
@@ -360,15 +360,15 @@ describe('schema validation, gives failure', () => {
                     ctx,
                 )
 
-                const groups = groupBy(
-                    map(Records.entries(), ([item, record]) => ({ item, record })),
+                const groups = Object.groupBy(
+                    Records.entries().map(([item, record]) => ({ item, record })),
                     (x) => x.record.attributes.MessageGroupId ?? 'unknown',
                 )
 
                 if (Records.length > 0) {
                     expect(response).toEqual({
                         batchItemFailures: Object.values(groups).flatMap((rs) =>
-                            rs.map((r) => ({ itemIdentifier: r.record.messageId })),
+                            rs?.map((r) => ({ itemIdentifier: r.record.messageId })),
                         ),
                     })
                 }
@@ -378,7 +378,7 @@ describe('schema validation, gives failure', () => {
                         i + 1,
                         {
                             messageGroupId,
-                            records: records.map((r) =>
+                            records: records?.map((r) =>
                                 expect.objectContaining({ item: r.item, payload: expect.any(EventError), raw: r.record }),
                             ),
                         },
@@ -388,7 +388,7 @@ describe('schema validation, gives failure', () => {
                     expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[sqs] start', {
                         event: {
                             messageGroupId,
-                            records: records.map((r) =>
+                            records: records?.map((r) =>
                                 expect.objectContaining({ item: r.item, payload: expect.any(EventError), raw: r.record }),
                             ),
                         },
@@ -396,7 +396,7 @@ describe('schema validation, gives failure', () => {
                     })
                     expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 2, '[sqs] sent', {
                         messageGroupId,
-                        response: records.map((r) => ({ itemIdentifier: r.record.messageId })),
+                        response: records?.map((r) => ({ itemIdentifier: r.record.messageId })),
                     })
                 }
 
@@ -454,15 +454,15 @@ describe.each([new Error(), 'foobar'])('promise reject with Error, gives failure
                 ctx,
             )
 
-            const groups = groupBy(
-                map(Records.entries(), ([item, record]) => ({ item, record })),
+            const groups = Object.groupBy(
+                Records.entries().map(([item, record]) => ({ item, record })),
                 (x) => x.record.attributes.MessageGroupId ?? 'unknown',
             )
 
             if (Records.length > 0) {
                 expect(response).toEqual({
                     batchItemFailures: Object.values(groups).flatMap((rs) =>
-                        rs.map((r) => ({ itemIdentifier: r.record.messageId })),
+                        rs?.map((r) => ({ itemIdentifier: r.record.messageId })),
                     ),
                 })
             }
@@ -472,7 +472,7 @@ describe.each([new Error(), 'foobar'])('promise reject with Error, gives failure
                     i + 1,
                     {
                         messageGroupId,
-                        records: records.map((r) => expect.objectContaining({ item: r.item, raw: r.record })),
+                        records: records?.map((r) => expect.objectContaining({ item: r.item, raw: r.record })),
                     },
                     ctx,
                 )
@@ -480,13 +480,13 @@ describe.each([new Error(), 'foobar'])('promise reject with Error, gives failure
                 expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[sqs] start', {
                     event: {
                         messageGroupId,
-                        records: records.map((r) => expect.objectContaining({ item: r.item, raw: r.record })),
+                        records: records?.map((r) => expect.objectContaining({ item: r.item, raw: r.record })),
                     },
                     messageGroupId,
                 })
                 expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 2, '[sqs] sent', {
                     messageGroupId,
-                    response: records.map((r) => ({ itemIdentifier: r.record.messageId })),
+                    response: records?.map((r) => ({ itemIdentifier: r.record.messageId })),
                 })
             }
 
@@ -543,15 +543,15 @@ describe.each([EventError.badRequest()])('promise reject with error error, gives
                 ctx,
             )
 
-            const groups = groupBy(
-                map(Records.entries(), ([item, record]) => ({ item, record })),
+            const groups = Object.groupBy(
+                Records.entries().map(([item, record]) => ({ item, record })),
                 (x) => x.record.attributes.MessageGroupId ?? 'unknown',
             )
 
             if (Records.length > 0) {
                 expect(response).toEqual({
                     batchItemFailures: Object.values(groups).flatMap((rs) =>
-                        rs.map((r) => ({ itemIdentifier: r.record.messageId })),
+                        rs?.map((r) => ({ itemIdentifier: r.record.messageId })),
                     ),
                 })
             }
@@ -561,7 +561,7 @@ describe.each([EventError.badRequest()])('promise reject with error error, gives
                     i + 1,
                     {
                         messageGroupId,
-                        records: records.map((r) => expect.objectContaining({ item: r.item, raw: r.record })),
+                        records: records?.map((r) => expect.objectContaining({ item: r.item, raw: r.record })),
                     },
                     ctx,
                 )
@@ -569,13 +569,13 @@ describe.each([EventError.badRequest()])('promise reject with error error, gives
                 expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[sqs] start', {
                     event: {
                         messageGroupId,
-                        records: records.map((r) => expect.objectContaining({ item: r.item, raw: r.record })),
+                        records: records?.map((r) => expect.objectContaining({ item: r.item, raw: r.record })),
                     },
                     messageGroupId,
                 })
                 expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 2, '[sqs] sent', {
                     messageGroupId,
-                    response: records.map((r) => ({ itemIdentifier: r.record.messageId })),
+                    response: records?.map((r) => ({ itemIdentifier: r.record.messageId })),
                 })
             }
 
@@ -636,15 +636,15 @@ describe.each([new Error(), 'foobar'])('promise throws with Error, gives failure
                 ctx,
             )
 
-            const groups = groupBy(
-                map(Records.entries(), ([item, record]) => ({ item, record })),
+            const groups = Object.groupBy(
+                Records.entries().map(([item, record]) => ({ item, record })),
                 (x) => x.record.attributes.MessageGroupId ?? 'unknown',
             )
 
             if (Records.length > 0) {
                 expect(response).toEqual({
                     batchItemFailures: Object.values(groups).flatMap((rs) =>
-                        rs.map((r) => ({ itemIdentifier: r.record.messageId })),
+                        rs?.map((r) => ({ itemIdentifier: r.record.messageId })),
                     ),
                 })
             }
@@ -654,7 +654,7 @@ describe.each([new Error(), 'foobar'])('promise throws with Error, gives failure
                     i + 1,
                     {
                         messageGroupId,
-                        records: records.map((r) => expect.objectContaining({ item: r.item, raw: r.record })),
+                        records: records?.map((r) => expect.objectContaining({ item: r.item, raw: r.record })),
                     },
                     ctx,
                 )
@@ -662,13 +662,13 @@ describe.each([new Error(), 'foobar'])('promise throws with Error, gives failure
                 expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[sqs] start', {
                     event: {
                         messageGroupId,
-                        records: records.map((r) => expect.objectContaining({ item: r.item, raw: r.record })),
+                        records: records?.map((r) => expect.objectContaining({ item: r.item, raw: r.record })),
                     },
                     messageGroupId,
                 })
                 expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 2, '[sqs] sent', {
                     messageGroupId,
-                    response: records.map((r) => ({ itemIdentifier: r.record.messageId })),
+                    response: records?.map((r) => ({ itemIdentifier: r.record.messageId })),
                 })
             }
 
@@ -730,15 +730,15 @@ describe.each([EventError.badRequest()])('promise throws with client error, give
                 ctx,
             )
 
-            const groups = groupBy(
-                map(Records.entries(), ([item, record]) => ({ item, record })),
+            const groups = Object.groupBy(
+                Records.entries().map(([item, record]) => ({ item, record })),
                 (x) => x.record.attributes.MessageGroupId ?? 'unknown',
             )
 
             if (Records.length > 0) {
                 expect(response).toEqual({
                     batchItemFailures: Object.values(groups).flatMap((rs) =>
-                        rs.map((r) => ({ itemIdentifier: r.record.messageId })),
+                        rs?.map((r) => ({ itemIdentifier: r.record.messageId })),
                     ),
                 })
             }
@@ -748,7 +748,7 @@ describe.each([EventError.badRequest()])('promise throws with client error, give
                     i + 1,
                     {
                         messageGroupId,
-                        records: records.map((r) => expect.objectContaining({ item: r.item, raw: r.record })),
+                        records: records?.map((r) => expect.objectContaining({ item: r.item, raw: r.record })),
                     },
                     ctx,
                 )
@@ -756,13 +756,13 @@ describe.each([EventError.badRequest()])('promise throws with client error, give
                 expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 1, '[sqs] start', {
                     event: {
                         messageGroupId,
-                        records: records.map((r) => expect.objectContaining({ item: r.item, raw: r.record })),
+                        records: records?.map((r) => expect.objectContaining({ item: r.item, raw: r.record })),
                     },
                     messageGroupId,
                 })
                 expect(ctx.logger.info).toHaveBeenNthCalledWith(2 * i + 2, '[sqs] sent', {
                     messageGroupId,
-                    response: records.map((r) => ({ itemIdentifier: r.record.messageId })),
+                    response: records?.map((r) => ({ itemIdentifier: r.record.messageId })),
                 })
             }
 

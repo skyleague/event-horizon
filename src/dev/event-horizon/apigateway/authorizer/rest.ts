@@ -56,9 +56,9 @@ export function restApiAuthorizerEvent<
             raw: constant(r),
         }).map((event) => {
             // force coercion
-            event.headers = coerce(request.schema?.headers, event.headers)
-            event.query = coerce(request.schema?.query, event.query)
-            event.path = coerce(request.schema?.path, event.path)
+            event.headers = coerce(request.schema?.headers, event.headers) as typeof event.headers
+            event.query = coerce(request.schema?.query, event.query) as typeof event.query
+            event.path = coerce(request.schema?.path, event.path) as typeof event.path
 
             event.raw.headers = (event.headers as typeof event.raw.headers) ?? {}
             event.raw.queryStringParameters = (event.query as typeof event.raw.queryStringParameters) ?? {}

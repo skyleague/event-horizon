@@ -11,7 +11,9 @@ export function snsEvent<Configuration, Service, Profile extends MaybeGenericPar
 ): Dependent<SNSEvent<InferFromParser<Payload, unknown>>> {
     const { sns } = definition
     return object({
-        payload: sns.schema.payload !== undefined ? arbitrary(sns.schema.payload) : unknown(),
+        payload: (sns.schema.payload !== undefined ? arbitrary(sns.schema.payload) : unknown()) as Dependent<
+            InferFromParser<Payload, unknown>
+        >,
         raw: arbitrary(SnsNotificationSchema).constant(generation === 'fast'),
     }).map((event) => ({
         ...event,

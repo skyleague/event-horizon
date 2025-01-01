@@ -1,4 +1,5 @@
-import type { Promisable, Try } from '@skyleague/axioms'
+import type { Try } from '@skyleague/axioms'
+import type { Promisable } from '@skyleague/axioms/types'
 import type { FirehoseRecordTransformationStatus } from 'aws-lambda'
 import type { KinesisFirehoseRecord } from '../../aws/firehose/firehose.type.js'
 import type { InferFromParser, MaybeGenericParser } from '../../parsers/types.js'
