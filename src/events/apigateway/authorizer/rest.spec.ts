@@ -1,19 +1,23 @@
+import {
+    APIGatewayProxyEventSchema,
+    DynamoDBStreamSchema,
+    EventBridgeSchema,
+    KinesisDataStreamSchema,
+    KinesisFirehoseSchema,
+    S3Schema,
+    SnsSchema,
+    SqsSchema,
+} from '@aws-lambda-powertools/parser/schemas'
 import { asyncForAll, oneOf, random, tuple, unknown } from '@skyleague/axioms'
 import { type Schema, arbitrary } from '@skyleague/therefore'
 import { expect, expectTypeOf, it, vi } from 'vitest'
 import { z } from 'zod'
 import { literalSchema, warmerEvent } from '../../../../test/schema.js'
 import { APIGatewayProxyEventV2Schema } from '../../../aws/apigateway/http.schema.js'
-import { APIGatewayProxyEventSchema, APIGatewayRequestAuthorizerEventSchema } from '../../../aws/apigateway/rest.type.js'
-import { DynamoDBStreamSchema } from '../../../aws/dynamodb/dynamodb.type.js'
-import { EventBridgeSchema } from '../../../aws/eventbridge/eventbridge.type.js'
-import { KinesisFirehoseSchema } from '../../../aws/firehose/firehose.type.js'
-import { KinesisDataStreamSchema } from '../../../aws/kinesis/kinesis.type.js'
-import { S3BatchEvent } from '../../../aws/s3-batch/s3.type.js'
-import { S3Schema } from '../../../aws/s3/s3.type.js'
-import { SecretRotationEvent } from '../../../aws/secret-rotation/secret-rotation.type.js'
-import { SnsSchema } from '../../../aws/sns/sns.type.js'
-import { SqsSchema } from '../../../aws/sqs/sqs.type.js'
+import { APIGatewayRequestAuthorizerEventSchema as AWSAPIGatewayRequestAuthorizerEventSchema } from '../../../aws/apigateway/rest.schema.js'
+import type { APIGatewayRequestAuthorizerEventSchema } from '../../../aws/apigateway/rest.type.js'
+import { s3BatchEvent } from '../../../aws/s3-batch/s3.schema.js'
+import { secretRotationEvent } from '../../../aws/secret-rotation/secret-rotation.schema.js'
 import { context } from '../../../test/context/context.js'
 import type { LambdaContext } from '../../types.js'
 import type { HTTPHeaders, HTTPPathParameters, HTTPQueryParameters } from '../types.js'
@@ -33,12 +37,12 @@ it('handles authorizer events', async () => {
     )
 
     await asyncForAll(
-        tuple(arbitrary(APIGatewayRequestAuthorizerEventSchema), unknown(), await context(handler)),
+        tuple(arbitrary(AWSAPIGatewayRequestAuthorizerEventSchema), unknown(), await context(handler)),
         async ([event, ret, ctx]) => {
             http.mockClear()
             http.mockReturnValue(ret)
 
-            const response = await handler._options.handler(event, ctx)
+            const response = await handler._options.handler(event as APIGatewayRequestAuthorizerEventSchema, ctx)
             expect(response).toBe(ret)
             expect(http).toHaveBeenCalledWith(expect.anything(), event, ctx)
         },
@@ -473,8 +477,8 @@ it('does not handle non authorizer events', async () => {
                 // arbitrary(APIGatewayRequestAuthorizerEventV2Schema),
                 arbitrary(KinesisDataStreamSchema),
                 arbitrary(S3Schema),
-                arbitrary(S3BatchEvent),
-                arbitrary(SecretRotationEvent),
+                arbitrary(s3BatchEvent),
+                arbitrary(secretRotationEvent),
                 arbitrary(SnsSchema),
                 arbitrary(SqsSchema),
                 arbitrary(DynamoDBStreamSchema),

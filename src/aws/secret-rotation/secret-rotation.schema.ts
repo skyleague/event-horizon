@@ -1,9 +1,7 @@
-import { $enum, $object, $string, $validator } from '@skyleague/therefore'
+import { z } from 'zod'
 
-export const secretRotationEvent = $validator(
-    $object({
-        Step: $enum(['createSecret', 'finishSecret', 'setSecret', 'testSecret']),
-        SecretId: $string,
-        ClientRequestToken: $string,
-    }),
-)
+export const secretRotationEvent = z.object({
+    Step: z.enum(['createSecret', 'finishSecret', 'setSecret', 'testSecret']),
+    SecretId: z.string(),
+    ClientRequestToken: z.string(),
+})

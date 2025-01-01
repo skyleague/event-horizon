@@ -1,16 +1,16 @@
+import { APIGatewayRequestAuthorizerEventV2Schema } from '@aws-lambda-powertools/parser/schemas'
 import { forAll, isString, tuple } from '@skyleague/axioms'
 import { expect, expectTypeOf, it, vi } from 'vitest'
 import { z } from 'zod'
-import { APIGatewayRequestAuthorizerEventV2Schema } from '../../../../aws/apigateway/http.type.js'
 import { httpApiAuthorizer } from '../../../../events/apigateway/authorizer/http.js'
 import type { HTTPHeaders, HTTPPathParameters, HTTPQueryParameters } from '../../../../events/apigateway/types.js'
 import { context } from '../../../../test/context/context.js'
 import { httpApiAuthorizerEvent } from './http.js'
 
 it('httpApiAuthorizerEvent === httpApiAuthorizerEvent', () => {
-    forAll(httpApiAuthorizerEvent({ request: { handler: vi.fn(), schema: {} } }), (e) =>
-        APIGatewayRequestAuthorizerEventV2Schema.is(e.raw),
-    )
+    forAll(httpApiAuthorizerEvent({ request: { handler: vi.fn(), schema: {} } }), (e) => {
+        APIGatewayRequestAuthorizerEventV2Schema.parse(e.raw)
+    })
 })
 
 it('rApiAuthorizerEvent headers === headers', () => {
