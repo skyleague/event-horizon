@@ -1,6 +1,10 @@
+import type { Segment, Subsegment } from 'aws-xray-sdk-core'
+import { captureFetchGlobal } from 'aws-xray-sdk-fetch'
 import type { LambdaContext } from '../../types.js'
 
-import type { Segment, Subsegment } from 'aws-xray-sdk-core'
+export function traceGlobal() {
+    captureFetchGlobal(true)
+}
 
 export function traceInvocation<Context extends LambdaContext>({
     tracer,
