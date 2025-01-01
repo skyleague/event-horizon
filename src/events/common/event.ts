@@ -7,7 +7,7 @@ import { errorHandler } from '../../events/common/functions/error-handler.js'
 import { loggerContext } from '../../events/common/functions/logger-context.js'
 import { metricsContext } from '../../events/common/functions/metrics-context.js'
 import { profileHandler } from '../../events/common/functions/profile-handler.js'
-import { traceInvocation } from '../../events/common/functions/trace-invocation.js'
+import { traceGlobal, traceInvocation } from '../../events/common/functions/trace-invocation.js'
 import { traceServices } from '../../events/common/functions/trace-services.js'
 import { warmup } from '../../events/common/functions/warmup.js'
 import type { DefaultServices, EventHandlerDefinition, LambdaContext } from '../../events/types.js'
@@ -95,6 +95,7 @@ export function eventHandler<
     const { handler: kernel, eagerHandlerInitialization = initConstants.eagerHandlerInitialization } = options
     const { logger = globalLogger, metrics = globalMetrics, tracer = globalTracer, services: servicesFn } = definition
 
+    traceGlobal()
     const traceServicesFn = traceServices({ tracer })
 
     const config = memoize(async (): Promise<AsConfig<Configuration>> => {
