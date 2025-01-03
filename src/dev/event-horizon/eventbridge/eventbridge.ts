@@ -1,10 +1,12 @@
 import type { Dependent } from '@skyleague/axioms'
 import { tuple, unknown } from '@skyleague/axioms'
-import { arbitrary } from '@skyleague/therefore'
+import { $moduleRef, arbitrary } from '@skyleague/therefore'
 import { $ref, $string, $unknown, type Node } from '@skyleague/therefore'
 import { EventBridgeSchema } from '../../../aws/eventbridge/eventbridge.type.js'
 import type { EventBridgeEvent, EventBridgeHandler } from '../../../events/eventbridge/types.js'
 import type { InferFromParser, MaybeGenericParser } from '../../../parsers/types.js'
+
+export const eventBridgeSchemaSymbol = $moduleRef('@aws-lambda-powertools/parser/schemas', 'EventBridgeSchema')
 
 export function $eventBridge({
     detailType = $string(),
@@ -13,7 +15,9 @@ export function $eventBridge({
     detailType?: Node
     detail?: Node
 } = {}) {
-    return $ref(EventBridgeSchema).extend({
+    const schema = $ref(EventBridgeSchema)
+    schema._toZod = eventBridgeSchemaSymbol
+    return schema.extend({
         'detail-type': detailType,
         detail: detail,
     })
