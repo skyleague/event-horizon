@@ -33,16 +33,16 @@ export function genericJsonSchema<T extends GenericParser>(parser: T | undefined
         return undefined
     }
 
-    // Therefore parser
-    if ('schema' in parser) {
-        return parser.schema as JsonSchema
-    }
-
     if ('_def' in parser) {
         // Convert Zod schema to Therefore schema and then to JSON Schema
         if ($ref) {
             return $ref(parser as ZodNumber).compile().schema as JsonSchema
         }
+    }
+
+    // Therefore parser
+    if ('schema' in parser) {
+        return parser.schema as JsonSchema
     }
 
     // TypeSchema parser

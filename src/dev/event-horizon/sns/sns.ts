@@ -5,7 +5,12 @@ import { SnsNotificationSchema } from '../../../aws/sns/sns.type.js'
 import type { SNSEvent, SNSHandler } from '../../../events/sns/types.js'
 import type { InferFromParser, MaybeGenericParser } from '../../../parsers/types.js'
 
-export function snsEvent<Configuration, Service, Profile extends MaybeGenericParser, Payload extends MaybeGenericParser>(
+export function snsEvent<
+    Configuration,
+    Service,
+    Profile extends MaybeGenericParser,
+    Payload extends MaybeGenericParser = undefined,
+>(
     definition: SNSHandler<Configuration, Service, Profile, Payload>,
     { generation = 'fast' }: { generation?: 'full' | 'fast' } = {},
 ): Dependent<SNSEvent<InferFromParser<Payload, unknown>>> {

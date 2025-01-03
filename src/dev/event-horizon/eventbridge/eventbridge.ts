@@ -27,8 +27,8 @@ export function eventBridgeEvent<
     Configuration,
     Service,
     Profile extends MaybeGenericParser,
-    Payload extends MaybeGenericParser,
-    Result extends MaybeGenericParser,
+    Payload extends MaybeGenericParser = undefined,
+    Result extends MaybeGenericParser = undefined,
 >(
     { eventBridge }: EventBridgeHandler<Configuration, Service, Profile, Payload, Result>,
     { generation = 'fast' }: { generation?: 'full' | 'fast' } = {},
