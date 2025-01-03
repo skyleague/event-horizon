@@ -5,7 +5,12 @@ import { KinesisDataStreamRecord } from '../../../aws/kinesis/kinesis.type.js'
 import type { KinesisEvent, KinesisHandler } from '../../../events/kinesis/types.js'
 import type { InferFromParser, MaybeGenericParser } from '../../../parsers/types.js'
 
-export function kinesisEvent<Configuration, Service, Profile extends MaybeGenericParser, Payload extends MaybeGenericParser>(
+export function kinesisEvent<
+    Configuration,
+    Service,
+    Profile extends MaybeGenericParser,
+    Payload extends MaybeGenericParser = undefined,
+>(
     { kinesis }: KinesisHandler<Configuration, Service, Profile, Payload>,
     { generation = 'fast' }: { generation?: 'full' | 'fast' } = {},
 ): Dependent<KinesisEvent<InferFromParser<Payload, unknown>>> {

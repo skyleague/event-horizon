@@ -14,8 +14,8 @@ export function firehoseTransformationEvent<
     Configuration,
     Service extends DefaultServices | undefined,
     Profile extends MaybeGenericParser,
-    Payload extends MaybeGenericParser,
-    Result extends MaybeGenericParser,
+    Payload extends MaybeGenericParser = undefined,
+    Result extends MaybeGenericParser = undefined,
 >(
     { firehose }: FirehoseTransformationHandler<Configuration, Service, Profile, Payload, Result>,
     { generation = 'fast' }: { generation?: 'full' | 'fast' } = {},

@@ -6,7 +6,12 @@ import { arbitrary } from '@skyleague/therefore'
 import { SqsRecordSchema } from '../../../aws/sqs/sqs.type.js'
 import type { InferFromParser, MaybeGenericParser } from '../../../parsers/types.js'
 
-export function sqsEvent<Configuration, Service, Profile extends MaybeGenericParser, Payload extends MaybeGenericParser>(
+export function sqsEvent<
+    Configuration,
+    Service,
+    Profile extends MaybeGenericParser,
+    Payload extends MaybeGenericParser = undefined,
+>(
     definition: SQSHandler<Configuration, Service, Profile, Payload>,
     { generation = 'fast' }: { generation?: 'full' | 'fast' } = {},
 ): Dependent<SQSEvent<InferFromParser<Payload>>> {
@@ -33,7 +38,12 @@ export function sqsEvent<Configuration, Service, Profile extends MaybeGenericPar
     }))
 }
 
-export function sqsGroupEvent<Configuration, Service, Profile extends MaybeGenericParser, Payload extends MaybeGenericParser>(
+export function sqsGroupEvent<
+    Configuration,
+    Service,
+    Profile extends MaybeGenericParser,
+    Payload extends MaybeGenericParser = undefined,
+>(
     definition: SQSGroupHandler<Configuration, Service, Profile, Payload>,
     { generation = 'fast' }: { generation?: 'full' | 'fast' } = {},
 ): Dependent<SQSMessageGroup<InferFromParser<Payload>>> {
