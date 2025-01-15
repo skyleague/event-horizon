@@ -10,32 +10,6 @@ import { validate as KafkaMskEventSchemaValidator } from './schemas/kafka-msk-ev
 import { validate as KafkaRecordSchemaValidator } from './schemas/kafka-record-schema.schema.js'
 import { validate as KafkaSelfManagedEventSchemaValidator } from './schemas/kafka-self-managed-event-schema.schema.js'
 
-export interface KafkaMskEventSchema {
-    bootstrapServers?: string | null | undefined
-    records: {
-        [k: string]: KafkaRecordSchema[] | undefined
-    }
-    eventSource: 'aws:kafka'
-    eventSourceArn: string
-}
-
-export const KafkaMskEventSchema = {
-    validate: KafkaMskEventSchemaValidator as ValidateFunction<KafkaMskEventSchema>,
-    get schema() {
-        return KafkaMskEventSchema.validate.schema
-    },
-    get errors() {
-        return KafkaMskEventSchema.validate.errors ?? undefined
-    },
-    is: (o: unknown): o is KafkaMskEventSchema => KafkaMskEventSchema.validate(o) === true,
-    parse: (o: unknown): { right: KafkaMskEventSchema } | { left: DefinedError[] } => {
-        if (KafkaMskEventSchema.is(o)) {
-            return { right: o }
-        }
-        return { left: (KafkaMskEventSchema.errors ?? []) as DefinedError[] }
-    },
-} as const
-
 export interface KafkaRecordSchema {
     topic: string
     partition: number
@@ -88,5 +62,31 @@ export const KafkaSelfManagedEventSchema = {
             return { right: o }
         }
         return { left: (KafkaSelfManagedEventSchema.errors ?? []) as DefinedError[] }
+    },
+} as const
+
+export interface KafkaMskEventSchema {
+    bootstrapServers?: string | null | undefined
+    records: {
+        [k: string]: KafkaRecordSchema[] | undefined
+    }
+    eventSource: 'aws:kafka'
+    eventSourceArn: string
+}
+
+export const KafkaMskEventSchema = {
+    validate: KafkaMskEventSchemaValidator as ValidateFunction<KafkaMskEventSchema>,
+    get schema() {
+        return KafkaMskEventSchema.validate.schema
+    },
+    get errors() {
+        return KafkaMskEventSchema.validate.errors ?? undefined
+    },
+    is: (o: unknown): o is KafkaMskEventSchema => KafkaMskEventSchema.validate(o) === true,
+    parse: (o: unknown): { right: KafkaMskEventSchema } | { left: DefinedError[] } => {
+        if (KafkaMskEventSchema.is(o)) {
+            return { right: o }
+        }
+        return { left: (KafkaMskEventSchema.errors ?? []) as DefinedError[] }
     },
 } as const

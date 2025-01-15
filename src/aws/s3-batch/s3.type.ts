@@ -9,6 +9,30 @@ import type { DefinedError, ValidateFunction } from 'ajv'
 import { validate as S3BatchEventTaskValidator } from './schemas/s3-batch-event-task.schema.js'
 import { validate as S3BatchEventValidator } from './schemas/s3-batch-event.schema.js'
 
+export interface S3BatchEventTask {
+    taskId: string
+    s3Key: string
+    s3VersionId: string | null
+    s3BucketArn: string
+}
+
+export const S3BatchEventTask = {
+    validate: S3BatchEventTaskValidator as ValidateFunction<S3BatchEventTask>,
+    get schema() {
+        return S3BatchEventTask.validate.schema
+    },
+    get errors() {
+        return S3BatchEventTask.validate.errors ?? undefined
+    },
+    is: (o: unknown): o is S3BatchEventTask => S3BatchEventTask.validate(o) === true,
+    parse: (o: unknown): { right: S3BatchEventTask } | { left: DefinedError[] } => {
+        if (S3BatchEventTask.is(o)) {
+            return { right: o }
+        }
+        return { left: (S3BatchEventTask.errors ?? []) as DefinedError[] }
+    },
+} as const
+
 export interface S3BatchEvent {
     invocationSchemaVersion: string
     invocationId: string
@@ -36,27 +60,3 @@ export const S3BatchEvent = {
 export interface S3BatchEventJob {
     id: string
 }
-
-export interface S3BatchEventTask {
-    taskId: string
-    s3Key: string
-    s3VersionId: string | null
-    s3BucketArn: string
-}
-
-export const S3BatchEventTask = {
-    validate: S3BatchEventTaskValidator as ValidateFunction<S3BatchEventTask>,
-    get schema() {
-        return S3BatchEventTask.validate.schema
-    },
-    get errors() {
-        return S3BatchEventTask.validate.errors ?? undefined
-    },
-    is: (o: unknown): o is S3BatchEventTask => S3BatchEventTask.validate(o) === true,
-    parse: (o: unknown): { right: S3BatchEventTask } | { left: DefinedError[] } => {
-        if (S3BatchEventTask.is(o)) {
-            return { right: o }
-        }
-        return { left: (S3BatchEventTask.errors ?? []) as DefinedError[] }
-    },
-} as const

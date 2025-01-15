@@ -1,5 +1,5 @@
 import { type Dependent, constant, object } from '@skyleague/axioms'
-import { arbitrary } from '@skyleague/therefore'
+import { type Schema, arbitrary } from '@skyleague/therefore'
 import { APIGatewayProxyEventSchema } from '../../../../aws/apigateway/rest.type.js'
 import type { AuthorizerSchema, HTTPHandler, HTTPRequest, Responses } from '../../../../events/apigateway/event/types.js'
 import type { SecurityRequirements } from '../../../../events/apigateway/types.js'
@@ -47,10 +47,10 @@ export function restApiEvent<
 > {
     const { bodyType = 'json' } = http
 
-    const body = http.schema.body !== undefined ? arbitrary(http.schema.body) : constant(undefined)
-    const headers = http.schema.headers !== undefined ? arbitrary(http.schema.headers) : constant(undefined)
-    const query = http.schema.query !== undefined ? arbitrary(http.schema.query) : constant(undefined)
-    const path = http.schema.path !== undefined ? arbitrary(http.schema.path) : constant(undefined)
+    const body = http.schema.body !== undefined ? arbitrary(http.schema.body as Schema<unknown>) : constant(undefined)
+    const headers = http.schema.headers !== undefined ? arbitrary(http.schema.headers as Schema<unknown>) : constant(undefined)
+    const query = http.schema.query !== undefined ? arbitrary(http.schema.query as Schema<unknown>) : constant(undefined)
+    const path = http.schema.path !== undefined ? arbitrary(http.schema.path as Schema<unknown>) : constant(undefined)
     const raw = arbitrary(APIGatewayProxyEventSchema).constant(generation === 'fast')
 
     return raw.chain((r) => {

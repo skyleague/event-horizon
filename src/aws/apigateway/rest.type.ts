@@ -12,24 +12,6 @@ import { validate as APIGatewayTokenAuthorizerEventSchemaValidator } from './sch
 
 import type { DefinedError, ValidateFunction } from 'ajv'
 
-export interface APIGatewayEventIdentity {
-    accessKey?: string | null | undefined
-    accountId?: string | null | undefined
-    apiKey?: string | null | undefined
-    apiKeyId?: string | null | undefined
-    caller?: string | null | undefined
-    cognitoAuthenticationProvider?: string | null | undefined
-    cognitoAuthenticationType?: string | null | undefined
-    cognitoIdentityId?: string | null | undefined
-    cognitoIdentityPoolId?: string | null | undefined
-    principalOrgId?: string | null | undefined
-    sourceIp?: (string | 'test-invoke-source-ip') | undefined
-    user?: string | null | undefined
-    userAgent?: string | null | undefined
-    userArn?: string | null | undefined
-    clientCert?: APIGatewayCert | null | undefined
-}
-
 export interface APIGatewayEventRequestContext {
     accountId: string
     apiId: string
@@ -88,6 +70,71 @@ export const APIGatewayEventRequestContext = {
     },
 } as const
 
+export interface APIGatewayRequestAuthorizerEventSchema {
+    type: 'REQUEST'
+    methodArn: string
+    resource: string
+    path: string
+    httpMethod: keyof typeof APIGatewayHttpMethod
+    headers: {
+        [k: string]: string | undefined
+    }
+    multiValueHeaders: {
+        [k: string]: string[] | undefined
+    }
+    queryStringParameters: {
+        [k: string]: string | undefined
+    }
+    multiValueQueryStringParameters: {
+        [k: string]: string[] | undefined
+    }
+    pathParameters: {
+        [k: string]: string | undefined
+    }
+    stageVariables: {
+        [k: string]: string | undefined
+    }
+    requestContext: APIGatewayEventRequestContext
+    domainName?: string | undefined
+    deploymentId?: string | undefined
+    apiId?: string | undefined
+}
+
+export const APIGatewayRequestAuthorizerEventSchema = {
+    validate: APIGatewayRequestAuthorizerEventSchemaValidator as ValidateFunction<APIGatewayRequestAuthorizerEventSchema>,
+    get schema() {
+        return APIGatewayRequestAuthorizerEventSchema.validate.schema
+    },
+    get errors() {
+        return APIGatewayRequestAuthorizerEventSchema.validate.errors ?? undefined
+    },
+    is: (o: unknown): o is APIGatewayRequestAuthorizerEventSchema => APIGatewayRequestAuthorizerEventSchema.validate(o) === true,
+    parse: (o: unknown): { right: APIGatewayRequestAuthorizerEventSchema } | { left: DefinedError[] } => {
+        if (APIGatewayRequestAuthorizerEventSchema.is(o)) {
+            return { right: o }
+        }
+        return { left: (APIGatewayRequestAuthorizerEventSchema.errors ?? []) as DefinedError[] }
+    },
+} as const
+
+export interface APIGatewayEventIdentity {
+    accessKey?: string | null | undefined
+    accountId?: string | null | undefined
+    apiKey?: string | null | undefined
+    apiKeyId?: string | null | undefined
+    caller?: string | null | undefined
+    cognitoAuthenticationProvider?: string | null | undefined
+    cognitoAuthenticationType?: string | null | undefined
+    cognitoIdentityId?: string | null | undefined
+    cognitoIdentityPoolId?: string | null | undefined
+    principalOrgId?: string | null | undefined
+    sourceIp?: (string | 'test-invoke-source-ip') | undefined
+    user?: string | null | undefined
+    userAgent?: string | null | undefined
+    userArn?: string | null | undefined
+    clientCert?: APIGatewayCert | null | undefined
+}
+
 export interface APIGatewayProxyEventSchema {
     resource: string
     path: string
@@ -136,53 +183,6 @@ export const APIGatewayProxyEventSchema = {
             return { right: o }
         }
         return { left: (APIGatewayProxyEventSchema.errors ?? []) as DefinedError[] }
-    },
-} as const
-
-export interface APIGatewayRequestAuthorizerEventSchema {
-    type: 'REQUEST'
-    methodArn: string
-    resource: string
-    path: string
-    httpMethod: keyof typeof APIGatewayHttpMethod
-    headers: {
-        [k: string]: string | undefined
-    }
-    multiValueHeaders: {
-        [k: string]: string[] | undefined
-    }
-    queryStringParameters: {
-        [k: string]: string | undefined
-    }
-    multiValueQueryStringParameters: {
-        [k: string]: string[] | undefined
-    }
-    pathParameters: {
-        [k: string]: string | undefined
-    }
-    stageVariables: {
-        [k: string]: string | undefined
-    }
-    requestContext: APIGatewayEventRequestContext
-    domainName?: string | undefined
-    deploymentId?: string | undefined
-    apiId?: string | undefined
-}
-
-export const APIGatewayRequestAuthorizerEventSchema = {
-    validate: APIGatewayRequestAuthorizerEventSchemaValidator as ValidateFunction<APIGatewayRequestAuthorizerEventSchema>,
-    get schema() {
-        return APIGatewayRequestAuthorizerEventSchema.validate.schema
-    },
-    get errors() {
-        return APIGatewayRequestAuthorizerEventSchema.validate.errors ?? undefined
-    },
-    is: (o: unknown): o is APIGatewayRequestAuthorizerEventSchema => APIGatewayRequestAuthorizerEventSchema.validate(o) === true,
-    parse: (o: unknown): { right: APIGatewayRequestAuthorizerEventSchema } | { left: DefinedError[] } => {
-        if (APIGatewayRequestAuthorizerEventSchema.is(o)) {
-            return { right: o }
-        }
-        return { left: (APIGatewayRequestAuthorizerEventSchema.errors ?? []) as DefinedError[] }
     },
 } as const
 

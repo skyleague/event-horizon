@@ -7,7 +7,7 @@ import { mockLogger, mockMetrics, mockTracer } from '../mock/mock.js'
 
 import type { Arbitrary, Dependent } from '@skyleague/axioms'
 import { constant, isFunction, object, string } from '@skyleague/axioms'
-import { arbitrary } from '@skyleague/therefore'
+import { type Schema, arbitrary } from '@skyleague/therefore'
 
 import { inspect } from 'node:util'
 
@@ -49,9 +49,9 @@ export async function context<Configuration = undefined, Service = undefined, Pr
         services: constant(isFunction(services) ? await services(configObj as AsConfig<Configuration>) : services) as Arbitrary<
             LambdaContext<Configuration, Service, Profile>['services']
         >,
-        profile: (profile?.schema !== undefined ? arbitrary(profile.schema) : constant(undefined)) as Arbitrary<
-            LambdaContext<Configuration, Service, Profile>['profile']
-        >,
+        profile: (profile?.schema !== undefined
+            ? arbitrary(profile.schema as Schema<unknown>)
+            : constant(undefined)) as Arbitrary<LambdaContext<Configuration, Service, Profile>['profile']>,
 
         getRemainingTimeInMillis: constant(() => 10000),
     })

@@ -1,6 +1,6 @@
 import type { Dependent } from '@skyleague/axioms'
 import { tuple, unknown } from '@skyleague/axioms'
-import { $moduleRef, arbitrary } from '@skyleague/therefore'
+import { $moduleRef, type Schema, arbitrary } from '@skyleague/therefore'
 import { $ref, $string, $unknown, type Node } from '@skyleague/therefore'
 import { EventBridgeSchema } from '../../../aws/eventbridge/eventbridge.type.js'
 import type { EventBridgeEvent, EventBridgeHandler } from '../../../events/eventbridge/types.js'
@@ -34,9 +34,9 @@ export function eventBridgeEvent<
     { generation = 'fast' }: { generation?: 'full' | 'fast' } = {},
 ): Dependent<EventBridgeEvent<InferFromParser<Payload, unknown>>> {
     const record = arbitrary(EventBridgeSchema).constant(generation === 'fast')
-    const payload = (eventBridge.schema.payload !== undefined ? arbitrary(eventBridge.schema.payload) : unknown()) as Dependent<
-        InferFromParser<Payload, unknown>
-    >
+    const payload = (
+        eventBridge.schema.payload !== undefined ? arbitrary(eventBridge.schema.payload as Schema<unknown>) : unknown()
+    ) as Dependent<InferFromParser<Payload, unknown>>
     return tuple(record, payload).map(([r, p]) => {
         const event = {
             raw: r,

@@ -9,26 +9,6 @@ import type { DefinedError, ValidateFunction } from 'ajv'
 import { validate as SqsRecordSchemaValidator } from './schemas/sqs-record-schema.schema.js'
 import { validate as SqsSchemaValidator } from './schemas/sqs-schema.schema.js'
 
-export interface SqsAttributesSchema {
-    ApproximateReceiveCount: string
-    ApproximateFirstReceiveTimestamp: string
-    MessageDeduplicationId?: string | undefined
-    MessageGroupId?: string | undefined
-    SenderId: string
-    SentTimestamp: string
-    SequenceNumber?: string | undefined
-    AWSTraceHeader?: string | undefined
-    DeadLetterQueueSourceArn?: string | undefined
-}
-
-export interface SqsMsgAttributeSchema {
-    stringValue?: string | undefined
-    binaryValue?: string | undefined
-    stringListValues?: string[] | undefined
-    binaryListValues?: string[] | undefined
-    dataType: string
-}
-
 export interface SqsRecordSchema {
     messageId: string
     receiptHandle: string
@@ -60,6 +40,26 @@ export const SqsRecordSchema = {
         return { left: (SqsRecordSchema.errors ?? []) as DefinedError[] }
     },
 } as const
+
+export interface SqsAttributesSchema {
+    ApproximateReceiveCount: string
+    ApproximateFirstReceiveTimestamp: string
+    MessageDeduplicationId?: string | undefined
+    MessageGroupId?: string | undefined
+    SenderId: string
+    SentTimestamp: string
+    SequenceNumber?: string | undefined
+    AWSTraceHeader?: string | undefined
+    DeadLetterQueueSourceArn?: string | undefined
+}
+
+export interface SqsMsgAttributeSchema {
+    stringValue?: string | undefined
+    binaryValue?: string | undefined
+    stringListValues?: string[] | undefined
+    binaryListValues?: string[] | undefined
+    dataType: string
+}
 
 export interface SqsSchema {
     Records: SqsRecordSchema[]

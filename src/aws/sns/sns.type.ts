@@ -10,11 +10,6 @@ import { validate as SnsNotificationSchemaValidator } from './schemas/sns-notifi
 import { validate as SnsRecordSchemaValidator } from './schemas/sns-record-schema.schema.js'
 import { validate as SnsSchemaValidator } from './schemas/sns-schema.schema.js'
 
-export interface SnsMsgAttribute {
-    Type: string
-    Value: string
-}
-
 export interface SnsNotificationSchema {
     Subject?: string | null | undefined
     TopicArn: string
@@ -75,6 +70,11 @@ export const SnsRecordSchema = {
         return { left: (SnsRecordSchema.errors ?? []) as DefinedError[] }
     },
 } as const
+
+export interface SnsMsgAttribute {
+    Type: string
+    Value: string
+}
 
 export interface SnsSchema {
     Records: SnsRecordSchema[]
