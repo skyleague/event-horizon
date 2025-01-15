@@ -2,7 +2,7 @@ import type { SQSEvent, SQSGroupHandler, SQSHandler, SQSMessageGroup } from '../
 
 import type { Dependent } from '@skyleague/axioms'
 import { alphaNumeric, array, constant, integer, object, tuple, unknown } from '@skyleague/axioms'
-import { arbitrary } from '@skyleague/therefore'
+import { type Schema, arbitrary } from '@skyleague/therefore'
 import { SqsRecordSchema } from '../../../aws/sqs/sqs.type.js'
 import type { InferFromParser, MaybeGenericParser } from '../../../parsers/types.js'
 
@@ -18,7 +18,7 @@ export function sqsEvent<
     const { sqs } = definition
     return object({
         messageGroupId: alphaNumeric({ minLength: 1 }),
-        payload: (sqs.schema.payload !== undefined ? arbitrary(sqs.schema.payload) : unknown()) as Dependent<
+        payload: (sqs.schema.payload !== undefined ? arbitrary(sqs.schema.payload as Schema<unknown>) : unknown()) as Dependent<
             InferFromParser<Payload>
         >,
         raw: arbitrary(SqsRecordSchema).constant(generation === 'fast'),
@@ -55,9 +55,9 @@ export function sqsGroupEvent<
                 messageGroupId: constant(''),
                 item: constant(0),
 
-                payload: (sqs.schema.payload !== undefined ? arbitrary(sqs.schema.payload) : unknown()) as Dependent<
-                    InferFromParser<Payload>
-                >,
+                payload: (sqs.schema.payload !== undefined
+                    ? arbitrary(sqs.schema.payload as Schema<unknown>)
+                    : unknown()) as Dependent<InferFromParser<Payload>>,
                 raw: arbitrary(SqsRecordSchema).constant(generation === 'fast'),
             } satisfies { [k in keyof SQSEvent]: unknown }),
             { minLength: 1, maxLength: 10 },

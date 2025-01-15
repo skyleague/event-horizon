@@ -48,54 +48,6 @@ export const APIGatewayEventRequestContextV2 = {
     },
 } as const
 
-export interface APIGatewayProxyEventV2Schema {
-    version: string
-    routeKey: string
-    rawPath: string
-    rawQueryString: string
-    cookies?: string[] | undefined
-    headers: {
-        [k: string]: string | undefined
-    }
-    queryStringParameters?:
-        | {
-              [k: string]: string | undefined
-          }
-        | undefined
-    requestContext: APIGatewayEventRequestContextV2
-    body?: string | undefined
-    pathParameters?:
-        | {
-              [k: string]: string | undefined
-          }
-        | null
-        | undefined
-    isBase64Encoded: boolean
-    stageVariables?:
-        | {
-              [k: string]: string | undefined
-          }
-        | null
-        | undefined
-}
-
-export const APIGatewayProxyEventV2Schema = {
-    validate: APIGatewayProxyEventV2SchemaValidator as ValidateFunction<APIGatewayProxyEventV2Schema>,
-    get schema() {
-        return APIGatewayProxyEventV2Schema.validate.schema
-    },
-    get errors() {
-        return APIGatewayProxyEventV2Schema.validate.errors ?? undefined
-    },
-    is: (o: unknown): o is APIGatewayProxyEventV2Schema => APIGatewayProxyEventV2Schema.validate(o) === true,
-    parse: (o: unknown): { right: APIGatewayProxyEventV2Schema } | { left: DefinedError[] } => {
-        if (APIGatewayProxyEventV2Schema.is(o)) {
-            return { right: o }
-        }
-        return { left: (APIGatewayProxyEventV2Schema.errors ?? []) as DefinedError[] }
-    },
-} as const
-
 export interface APIGatewayRequestAuthorizerEventV2Schema {
     version: '2.0'
     type: 'REQUEST'
@@ -145,6 +97,54 @@ export const APIGatewayRequestAuthorizerEventV2Schema = {
             return { right: o }
         }
         return { left: (APIGatewayRequestAuthorizerEventV2Schema.errors ?? []) as DefinedError[] }
+    },
+} as const
+
+export interface APIGatewayProxyEventV2Schema {
+    version: string
+    routeKey: string
+    rawPath: string
+    rawQueryString: string
+    cookies?: string[] | undefined
+    headers: {
+        [k: string]: string | undefined
+    }
+    queryStringParameters?:
+        | {
+              [k: string]: string | undefined
+          }
+        | undefined
+    requestContext: APIGatewayEventRequestContextV2
+    body?: string | undefined
+    pathParameters?:
+        | {
+              [k: string]: string | undefined
+          }
+        | null
+        | undefined
+    isBase64Encoded: boolean
+    stageVariables?:
+        | {
+              [k: string]: string | undefined
+          }
+        | null
+        | undefined
+}
+
+export const APIGatewayProxyEventV2Schema = {
+    validate: APIGatewayProxyEventV2SchemaValidator as ValidateFunction<APIGatewayProxyEventV2Schema>,
+    get schema() {
+        return APIGatewayProxyEventV2Schema.validate.schema
+    },
+    get errors() {
+        return APIGatewayProxyEventV2Schema.validate.errors ?? undefined
+    },
+    is: (o: unknown): o is APIGatewayProxyEventV2Schema => APIGatewayProxyEventV2Schema.validate(o) === true,
+    parse: (o: unknown): { right: APIGatewayProxyEventV2Schema } | { left: DefinedError[] } => {
+        if (APIGatewayProxyEventV2Schema.is(o)) {
+            return { right: o }
+        }
+        return { left: (APIGatewayProxyEventV2Schema.errors ?? []) as DefinedError[] }
     },
 } as const
 

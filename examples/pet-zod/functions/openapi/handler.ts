@@ -13,10 +13,10 @@ export const handlerJson = httpApiHandler({
         schema: {
             responses: {},
         },
-        handler: () => {
+        handler: async () => {
             return {
                 statusCode: 200,
-                body: openapiFromHandlers(handlers, { info: { title: name, version } }),
+                body: await openapiFromHandlers(handlers, { info: { title: name, version } }),
             }
         },
     },

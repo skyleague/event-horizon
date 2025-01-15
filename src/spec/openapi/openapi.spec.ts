@@ -2,6 +2,7 @@ import {
     alpha,
     alphaNumeric,
     array,
+    asyncForAll,
     entriesOf,
     forAll,
     json,
@@ -413,9 +414,9 @@ describe('openapiFromHandlers', () => {
     const title = random(string())
     const version = random(string())
 
-    it('simple', () => {
+    it('simple', async () => {
         const h = vi.fn()
-        forAll(tuple(string(), string()), ([method, path]) => {
+        await asyncForAll(tuple(string(), string()), async ([method, path]) => {
             const helloWorld = httpApiHandler({
                 http: {
                     method,
@@ -426,7 +427,7 @@ describe('openapiFromHandlers', () => {
                 } as any,
             })
 
-            expect(openapiFromHandlers({ helloWorld }, { info: { title, version } })).toEqual({
+            expect(await openapiFromHandlers({ helloWorld }, { info: { title, version } })).toEqual({
                 components: {
                     requestBodies: {},
                     responses: {
@@ -460,11 +461,11 @@ describe('openapiFromHandlers', () => {
         })
     })
 
-    it('request body', () => {
+    it('request body', async () => {
         const h = vi.fn()
-        forAll(
+        await asyncForAll(
             tuple(string(), string(), record(json())),
-            ([method, path, schema]) => {
+            async ([method, path, schema]) => {
                 const helloWorld = httpApiHandler({
                     http: {
                         method,
@@ -474,7 +475,7 @@ describe('openapiFromHandlers', () => {
                     } as any,
                 })
 
-                expect(openapiFromHandlers({ helloWorld }, { info: { title, version } })).toEqual({
+                expect(await openapiFromHandlers({ helloWorld }, { info: { title, version } })).toEqual({
                     components: {
                         requestBodies: {},
                         responses: {
@@ -504,9 +505,9 @@ describe('openapiFromHandlers', () => {
         )
     })
 
-    it('response', () => {
+    it('response', async () => {
         const h = vi.fn()
-        forAll(tuple(string(), string(), record(json())), ([method, path, schema]) => {
+        await asyncForAll(tuple(string(), string(), record(json())), async ([method, path, schema]) => {
             const helloWorld = httpApiHandler({
                 http: {
                     method,
@@ -517,7 +518,7 @@ describe('openapiFromHandlers', () => {
                 } as any,
             })
 
-            expect(openapiFromHandlers({ helloWorld }, { info: { title, version } })).toEqual({
+            expect(await openapiFromHandlers({ helloWorld }, { info: { title, version } })).toEqual({
                 components: {
                     requestBodies: {},
                     responses: {
@@ -554,9 +555,9 @@ describe('openapiFromHandlers', () => {
         })
     })
 
-    it('response', () => {
+    it('response', async () => {
         const h = vi.fn()
-        forAll(tuple(string(), string(), record(json())), ([method, path, schema]) => {
+        await asyncForAll(tuple(string(), string(), record(json())), async ([method, path, schema]) => {
             const helloWorld = httpApiHandler({
                 http: {
                     method,
@@ -567,7 +568,7 @@ describe('openapiFromHandlers', () => {
                 } as any,
             })
 
-            expect(openapiFromHandlers({ helloWorld }, { info: { title, version } })).toEqual({
+            expect(await openapiFromHandlers({ helloWorld }, { info: { title, version } })).toEqual({
                 components: {
                     requestBodies: {},
                     responses: {
@@ -604,9 +605,9 @@ describe('openapiFromHandlers', () => {
         })
     })
 
-    it('response with title', () => {
+    it('response with title', async () => {
         const h = vi.fn()
-        forAll(tuple(string(), string(), record(json()), alphaNumeric()), ([method, path, schema, title]) => {
+        await asyncForAll(tuple(string(), string(), record(json()), alphaNumeric()), async ([method, path, schema, title]) => {
             const helloWorld = httpApiHandler({
                 http: {
                     method,
@@ -617,7 +618,7 @@ describe('openapiFromHandlers', () => {
                 } as any,
             })
 
-            expect(openapiFromHandlers({ helloWorld }, { info: { title, version } })).toEqual({
+            expect(await openapiFromHandlers({ helloWorld }, { info: { title, version } })).toEqual({
                 components: {
                     requestBodies: {},
                     responses: {
@@ -665,9 +666,9 @@ describe('openapiFromHandlers', () => {
         })
     })
 
-    it('response with description', () => {
+    it('response with description', async () => {
         const h = vi.fn()
-        forAll(tuple(string(), string(), record(json()), string()), ([method, path, schema, description]) => {
+        await asyncForAll(tuple(string(), string(), record(json()), string()), async ([method, path, schema, description]) => {
             const helloWorld = httpApiHandler({
                 http: {
                     method,
@@ -678,7 +679,7 @@ describe('openapiFromHandlers', () => {
                 } as any,
             })
 
-            expect(openapiFromHandlers({ helloWorld }, { info: { title, version } })).toEqual({
+            expect(await openapiFromHandlers({ helloWorld }, { info: { title, version } })).toEqual({
                 components: {
                     requestBodies: {},
                     responses: {
@@ -715,9 +716,9 @@ describe('openapiFromHandlers', () => {
         })
     })
 
-    it('response with null and description', () => {
+    it('response with null and description', async () => {
         const h = vi.fn()
-        forAll(tuple(string(), string(), string()), ([method, path, description]) => {
+        await asyncForAll(tuple(string(), string(), string()), async ([method, path, description]) => {
             const helloWorld = httpApiHandler({
                 http: {
                     method,
@@ -728,7 +729,7 @@ describe('openapiFromHandlers', () => {
                 } as any,
             })
 
-            expect(openapiFromHandlers({ helloWorld }, { info: { title, version } })).toEqual({
+            expect(await openapiFromHandlers({ helloWorld }, { info: { title, version } })).toEqual({
                 components: {
                     requestBodies: {},
                     responses: {
@@ -765,9 +766,9 @@ describe('openapiFromHandlers', () => {
         })
     })
 
-    it('response with null', () => {
+    it('response with null', async () => {
         const h = vi.fn()
-        forAll(tuple(string(), string()), ([method, path]) => {
+        await asyncForAll(tuple(string(), string()), async ([method, path]) => {
             const helloWorld = httpApiHandler({
                 http: {
                     method,
@@ -778,7 +779,7 @@ describe('openapiFromHandlers', () => {
                 } as any,
             })
 
-            expect(openapiFromHandlers({ helloWorld }, { info: { title, version } })).toEqual({
+            expect(await openapiFromHandlers({ helloWorld }, { info: { title, version } })).toEqual({
                 components: {
                     requestBodies: {},
                     responses: {
@@ -815,9 +816,9 @@ describe('openapiFromHandlers', () => {
         })
     })
 
-    it('response default overrides', () => {
+    it('response default overrides', async () => {
         const h = vi.fn()
-        forAll(tuple(string(), string(), record(json())), ([method, path, schema]) => {
+        await asyncForAll(tuple(string(), string(), record(json())), async ([method, path, schema]) => {
             const helloWorld = httpApiHandler({
                 http: {
                     method,
@@ -828,7 +829,7 @@ describe('openapiFromHandlers', () => {
                 } as any,
             })
 
-            expect(openapiFromHandlers({ helloWorld }, { info: { title, version } })).toEqual({
+            expect(await openapiFromHandlers({ helloWorld }, { info: { title, version } })).toEqual({
                 components: {
                     requestBodies: {},
                     responses: {
@@ -862,15 +863,15 @@ describe('openapiFromHandlers', () => {
         })
     })
 
-    it('headers', () => {
+    it('headers', async () => {
         const h = vi.fn()
-        forAll(
+        await asyncForAll(
             tuple(
                 string(),
                 string(),
                 record(record(json())).map((j) => ({ properties: j, type: 'object', required: [] as string[] })),
             ),
-            ([method, path, schema]) => {
+            async ([method, path, schema]) => {
                 const helloWorld = httpApiHandler({
                     http: {
                         method,
@@ -881,7 +882,7 @@ describe('openapiFromHandlers', () => {
                     } as any,
                 })
 
-                expect(openapiFromHandlers({ helloWorld }, { info: { title, version } })).toEqual({
+                expect(await openapiFromHandlers({ helloWorld }, { info: { title, version } })).toEqual({
                     components: {
                         requestBodies: {},
                         responses: {
@@ -925,15 +926,15 @@ describe('openapiFromHandlers', () => {
         )
     })
 
-    it('path', () => {
+    it('path', async () => {
         const h = vi.fn()
-        forAll(
+        await asyncForAll(
             tuple(
                 string(),
                 string(),
                 record(record(json())).map((j) => ({ properties: j, type: 'object', required: [] as string[] })),
             ),
-            ([method, path, schema]) => {
+            async ([method, path, schema]) => {
                 const helloWorld = httpApiHandler({
                     http: {
                         method,
@@ -944,7 +945,7 @@ describe('openapiFromHandlers', () => {
                     } as any,
                 })
 
-                expect(openapiFromHandlers({ helloWorld }, { info: { title, version } })).toEqual({
+                expect(await openapiFromHandlers({ helloWorld }, { info: { title, version } })).toEqual({
                     components: {
                         requestBodies: {},
                         responses: {
@@ -988,15 +989,15 @@ describe('openapiFromHandlers', () => {
         )
     })
 
-    it('query', () => {
+    it('query', async () => {
         const h = vi.fn()
-        forAll(
+        await asyncForAll(
             tuple(
                 string(),
                 string(),
                 record(record(json())).map((j) => ({ properties: j, type: 'query', required: [] as string[] })),
             ),
-            ([method, path, schema]) => {
+            async ([method, path, schema]) => {
                 const helloWorld = httpApiHandler({
                     http: {
                         method,
@@ -1007,7 +1008,7 @@ describe('openapiFromHandlers', () => {
                     } as any,
                 })
 
-                expect(openapiFromHandlers({ helloWorld }, { info: { title, version } })).toEqual({
+                expect(await openapiFromHandlers({ helloWorld }, { info: { title, version } })).toEqual({
                     components: {
                         requestBodies: {},
                         responses: {

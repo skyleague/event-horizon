@@ -12,6 +12,47 @@ import { validate as PetValidator } from './schemas/pet.schema.js'
 import { validate as StatusValidator } from './schemas/status.schema.js'
 import { validate as TagValidator } from './schemas/tag.schema.js'
 
+export type Status = 'available' | 'pending' | 'sold'
+
+export const Status = {
+    validate: StatusValidator as ValidateFunction<Status>,
+    get schema() {
+        return Status.validate.schema
+    },
+    get errors() {
+        return Status.validate.errors ?? undefined
+    },
+    is: (o: unknown): o is Status => Status.validate(o) === true,
+    parse: (o: unknown): { right: Status } | { left: DefinedError[] } => {
+        if (Status.is(o)) {
+            return { right: o }
+        }
+        return { left: (Status.errors ?? []) as DefinedError[] }
+    },
+} as const
+
+export interface Tag {
+    id?: number | undefined
+    name?: string | undefined
+}
+
+export const Tag = {
+    validate: TagValidator as ValidateFunction<Tag>,
+    get schema() {
+        return Tag.validate.schema
+    },
+    get errors() {
+        return Tag.validate.errors ?? undefined
+    },
+    is: (o: unknown): o is Tag => Tag.validate(o) === true,
+    parse: (o: unknown): { right: Tag } | { left: DefinedError[] } => {
+        if (Tag.is(o)) {
+            return { right: o }
+        }
+        return { left: (Tag.errors ?? []) as DefinedError[] }
+    },
+} as const
+
 export interface Category {
     id: number
     name: string
@@ -82,46 +123,5 @@ export const PetArray = {
             return { right: o }
         }
         return { left: (PetArray.errors ?? []) as DefinedError[] }
-    },
-} as const
-
-export type Status = 'available' | 'pending' | 'sold'
-
-export const Status = {
-    validate: StatusValidator as ValidateFunction<Status>,
-    get schema() {
-        return Status.validate.schema
-    },
-    get errors() {
-        return Status.validate.errors ?? undefined
-    },
-    is: (o: unknown): o is Status => Status.validate(o) === true,
-    parse: (o: unknown): { right: Status } | { left: DefinedError[] } => {
-        if (Status.is(o)) {
-            return { right: o }
-        }
-        return { left: (Status.errors ?? []) as DefinedError[] }
-    },
-} as const
-
-export interface Tag {
-    id?: number | undefined
-    name?: string | undefined
-}
-
-export const Tag = {
-    validate: TagValidator as ValidateFunction<Tag>,
-    get schema() {
-        return Tag.validate.schema
-    },
-    get errors() {
-        return Tag.validate.errors ?? undefined
-    },
-    is: (o: unknown): o is Tag => Tag.validate(o) === true,
-    parse: (o: unknown): { right: Tag } | { left: DefinedError[] } => {
-        if (Tag.is(o)) {
-            return { right: o }
-        }
-        return { left: (Tag.errors ?? []) as DefinedError[] }
     },
 } as const

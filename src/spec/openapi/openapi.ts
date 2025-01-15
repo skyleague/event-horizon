@@ -1,6 +1,7 @@
 import { entriesOf, isArray, isBoolean, omit, omitUndefined, valuesOf } from '@skyleague/axioms'
-import type { OpenapiV3 } from '@skyleague/therefore'
+import type { Node, OpenapiV3 } from '@skyleague/therefore'
 import type { JsonSchema } from '@skyleague/therefore/src/json.js'
+import { Therefore } from '@skyleague/therefore/src/lib/primitives/therefore.js'
 import type {
     Info,
     Operation,
@@ -28,7 +29,10 @@ try {
     $ref = undefined
 }
 
-export function genericJsonSchema<T extends GenericParser>(parser: T | undefined | null): JsonSchema | undefined {
+export function genericJsonSchema<T extends GenericParser>(
+    parser: T | undefined | null,
+    suggestedName: string,
+): Promise<JsonSchema> | JsonSchema | undefined {
     if (!parser) {
         return undefined
     }
@@ -36,7 +40,8 @@ export function genericJsonSchema<T extends GenericParser>(parser: T | undefined
     if ('_def' in parser) {
         // Convert Zod schema to Therefore schema and then to JSON Schema
         if ($ref) {
-            return $ref(parser as ZodNumber).compile().schema as JsonSchema
+            const node: Node = $ref(parser as ZodNumber)
+            return Therefore.jsonschema(node, { fallbackName: suggestedName })
         }
     }
 
@@ -257,17 +262,17 @@ export interface OpenapiOptions extends Partial<OpenapiV3> {
     defaultError?: Schema
 }
 
-export function openapiFromHandlers(handlers: Record<string, unknown>, options: OpenapiOptions) {
+export async function openapiFromHandlers(handlers: Record<string, unknown>, options: OpenapiOptions) {
     const { defaultError = HttpError.schema, openapi: targetOpenapi = '3.1.0' } = options
     const errorDescription = (defaultError as { description?: string }).description ?? 'An error occurred'
 
     // Track schema frequencies for jsonSchemaDialect
-    const schemaFrequencies = new Map<string, number>()
-    const trackSchema = (schema: JsonSchema | undefined) => {
-        if (schema?.$schema) {
-            schemaFrequencies.set(schema.$schema, (schemaFrequencies.get(schema.$schema) ?? 0) + 1)
-        }
-    }
+    // const schemaFrequencies = new Map<string, number>()
+    // const trackSchema = (schema: JsonSchema | undefined) => {
+    //     if (schema?.$schema) {
+    //         schemaFrequencies.set(schema.$schema, (schemaFrequencies.get(schema.$schema) ?? 0) + 1)
+    //     }
+    // }
 
     const openapi: OpenapiV3 = {
         openapi: targetOpenapi,
@@ -295,17 +300,23 @@ export function openapiFromHandlers(handlers: Record<string, unknown>, options: 
     }
 
     // Collect schema information
-    for (const h of valuesOf(handlers)) {
-        const handler = h as EventHandler
-        if ('http' in handler && handler.http.path !== undefined) {
-            for (const key of ['body', 'query', 'path', 'headers'] as const) {
-                trackSchema(genericJsonSchema(handler.http.schema[key]))
-            }
-            for (const r of Object.values(handler.http.schema.responses).filter((r): r is NonNullable<typeof r> => r !== null)) {
-                trackSchema('body' in r ? genericJsonSchema(r.body) : genericJsonSchema(r))
-            }
-        }
-    }
+    // for (const h of valuesOf(handlers)) {
+    //     const handler = h as EventHandler
+    //     if ('http' in handler && handler.http.path !== undefined) {
+    //         for (const key of ['body', 'query', 'path', 'headers'] as const) {
+    //             trackSchema(
+    //                 await genericJsonSchema(handler.http.schema[key], `${handler.http.path}-${handler.http.method}-${key}`),
+    //             )
+    //         }
+    //         for (const r of Object.values(handler.http.schema.responses).filter((r): r is NonNullable<typeof r> => r !== null)) {
+    //             trackSchema(
+    //                 await ('body' in r
+    //                     ? genericJsonSchema(r.body, `${handler.http.path}-${handler.http.method}-response`)
+    //                     : genericJsonSchema(r, `${handler.http.path}-${handler.http.method}-${r.statusCode}-response`)),
+    //             )
+    //         }
+    //     }
+    // }
 
     // Set jsonSchemaDialect if schemas were found
     // if (targetOpenapi === '3.1.0' && schemaFrequencies.size > 0) {
@@ -331,7 +342,10 @@ export function openapiFromHandlers(handlers: Record<string, unknown>, options: 
             const contentType = contentTypeMap[bodyType]
 
             // For OpenAPI 3.0.1, we need to use specific schema types for non-JSON content
-            const bodySchema = genericJsonSchema(handler.http.schema.body)
+            const bodySchema = await genericJsonSchema(
+                handler.http.schema.body,
+                `${handler.http.path}-${handler.http.method}-request-body`,
+            )
             if (bodySchema !== undefined) {
                 // If there's a schema defined, normalize it and create requestBody
                 const reference = normalizeSchema({
@@ -386,7 +400,10 @@ export function openapiFromHandlers(handlers: Record<string, unknown>, options: 
                     } else {
                         const schema = normalizeSchema({
                             ctx: { openapi },
-                            schema: genericJsonSchema(response.body) as Schema,
+                            schema: (await genericJsonSchema(
+                                response.body,
+                                `${handler.http.path}-${handler.http.method}-${statusCode}-response`,
+                            )) as Schema,
                             target: 'responses',
                         }) as Reference
                         responses[statusCode.toString()] = asStatusResponse(schema)
@@ -394,7 +411,10 @@ export function openapiFromHandlers(handlers: Record<string, unknown>, options: 
                 } else {
                     const schema = normalizeSchema({
                         ctx: { openapi },
-                        schema: genericJsonSchema(response) as Schema,
+                        schema: (await genericJsonSchema(
+                            response,
+                            `${handler.http.path}-${handler.http.method}-${statusCode}-response`,
+                        )) as Schema,
                         target: 'responses',
                     }) as Reference
                     responses[statusCode.toString()] = asStatusResponse(schema)
@@ -405,7 +425,10 @@ export function openapiFromHandlers(handlers: Record<string, unknown>, options: 
             }
 
             const parameters: Parameter[] = []
-            const headers = genericJsonSchema(handler.http.schema.headers)
+            const headers = await genericJsonSchema(
+                handler.http.schema.headers,
+                `${handler.http.path}-${handler.http.method}-headers`,
+            )
             if (headers?.properties !== undefined) {
                 parameters.push(
                     ...entriesOf(headers.properties).map(([name, value]) =>
@@ -421,7 +444,7 @@ export function openapiFromHandlers(handlers: Record<string, unknown>, options: 
                 )
             }
 
-            const path = genericJsonSchema(handler.http.schema.path)
+            const path = await genericJsonSchema(handler.http.schema.path, `${handler.http.path}-${handler.http.method}-path`)
             if (path?.properties !== undefined) {
                 parameters.push(
                     ...entriesOf(path.properties).map(([name, value]) =>
@@ -437,7 +460,7 @@ export function openapiFromHandlers(handlers: Record<string, unknown>, options: 
                 )
             }
 
-            const query = genericJsonSchema(handler.http.schema.query)
+            const query = await genericJsonSchema(handler.http.schema.query, `${handler.http.path}-${handler.http.method}-query`)
             if (query?.properties !== undefined) {
                 normalizeSchema({ ctx: { openapi }, schema: query, defsOnly: true, target: 'parameters' })
                 parameters.push(

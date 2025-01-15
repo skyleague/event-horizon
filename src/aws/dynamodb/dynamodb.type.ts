@@ -9,30 +9,6 @@ import type { DefinedError, ValidateFunction } from 'ajv'
 import { validate as DynamoDBStreamRecordValidator } from './schemas/dynamo-db-stream-record.schema.js'
 import { validate as DynamoDBStreamSchemaValidator } from './schemas/dynamo-db-stream-schema.schema.js'
 
-export interface DynamoDBStreamChangeRecord {
-    ApproximateCreationDateTime?: number | undefined
-    Keys: {
-        [k: string]:
-            | {
-                  [k: string]: unknown
-              }
-            | undefined
-    }
-    NewImage?:
-        | {
-              [k: string]: unknown
-          }
-        | undefined
-    OldImage?:
-        | {
-              [k: string]: unknown
-          }
-        | undefined
-    SequenceNumber: string
-    SizeBytes: number
-    StreamViewType: 'NEW_IMAGE' | 'OLD_IMAGE' | 'NEW_AND_OLD_IMAGES' | 'KEYS_ONLY'
-}
-
 export interface DynamoDBStreamRecord {
     eventID: string
     eventName: 'INSERT' | 'MODIFY' | 'REMOVE'
@@ -60,6 +36,30 @@ export const DynamoDBStreamRecord = {
         return { left: (DynamoDBStreamRecord.errors ?? []) as DefinedError[] }
     },
 } as const
+
+export interface DynamoDBStreamChangeRecord {
+    ApproximateCreationDateTime?: number | undefined
+    Keys: {
+        [k: string]:
+            | {
+                  [k: string]: unknown
+              }
+            | undefined
+    }
+    NewImage?:
+        | {
+              [k: string]: unknown
+          }
+        | undefined
+    OldImage?:
+        | {
+              [k: string]: unknown
+          }
+        | undefined
+    SequenceNumber: string
+    SizeBytes: number
+    StreamViewType: 'NEW_IMAGE' | 'OLD_IMAGE' | 'NEW_AND_OLD_IMAGES' | 'KEYS_ONLY'
+}
 
 export interface DynamoDBStreamSchema {
     Records: DynamoDBStreamRecord[]

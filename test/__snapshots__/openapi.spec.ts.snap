@@ -5,11 +5,11 @@ exports[`buids the petstore openapi - zod 1`] = `
   "body": {
     "components": {
       "requestBodies": {
-        "--91-symbolName--": {
+        "Pet": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/--91-symbolName--",
+                "$ref": "#/components/schemas/Pet",
               },
             },
           },
@@ -17,26 +17,6 @@ exports[`buids the petstore openapi - zod 1`] = `
         },
       },
       "responses": {
-        "--113-symbolName--": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/--113-symbolName--",
-              },
-            },
-          },
-          "description": "Pet object from the store",
-        },
-        "--136-symbolName--": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/--136-symbolName--",
-              },
-            },
-          },
-          "description": "A list of Pet objects",
-        },
         "ErrorResponse": {
           "content": {
             "application/json": {
@@ -47,198 +27,28 @@ exports[`buids the petstore openapi - zod 1`] = `
           },
           "description": "The default error error response for both 400 & 500 type errors",
         },
+        "Pet": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Pet",
+              },
+            },
+          },
+          "description": "Pet object from the store",
+        },
+        "PetArray": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PetArray",
+              },
+            },
+          },
+          "description": "A list of Pet objects",
+        },
       },
       "schemas": {
-        "--113-symbolName--": {
-          "additionalProperties": true,
-          "description": "Pet object from the store",
-          "properties": {
-            "category": {
-              "additionalProperties": true,
-              "properties": {
-                "id": {
-                  "type": "integer",
-                },
-                "name": {
-                  "type": "string",
-                },
-              },
-              "required": [
-                "id",
-                "name",
-              ],
-              "type": "object",
-            },
-            "id": {
-              "type": "integer",
-            },
-            "name": {
-              "type": "string",
-            },
-            "photoUrls": {
-              "items": {
-                "type": "string",
-              },
-              "type": "array",
-            },
-            "status": {
-              "enum": [
-                "available",
-                "pending",
-                "sold",
-              ],
-            },
-            "tags": {
-              "items": {
-                "additionalProperties": true,
-                "properties": {
-                  "id": {
-                    "type": "integer",
-                  },
-                  "name": {
-                    "type": "string",
-                  },
-                },
-                "type": "object",
-              },
-              "type": "array",
-            },
-          },
-          "required": [
-            "name",
-            "photoUrls",
-          ],
-          "title": "{{113:symbolName}}",
-          "type": "object",
-        },
-        "--136-symbolName--": {
-          "description": "A list of Pet objects",
-          "items": {
-            "additionalProperties": true,
-            "description": "Pet object from the store",
-            "properties": {
-              "category": {
-                "additionalProperties": true,
-                "properties": {
-                  "id": {
-                    "type": "integer",
-                  },
-                  "name": {
-                    "type": "string",
-                  },
-                },
-                "required": [
-                  "id",
-                  "name",
-                ],
-                "type": "object",
-              },
-              "id": {
-                "type": "integer",
-              },
-              "name": {
-                "type": "string",
-              },
-              "photoUrls": {
-                "items": {
-                  "type": "string",
-                },
-                "type": "array",
-              },
-              "status": {
-                "enum": [
-                  "available",
-                  "pending",
-                  "sold",
-                ],
-              },
-              "tags": {
-                "items": {
-                  "additionalProperties": true,
-                  "properties": {
-                    "id": {
-                      "type": "integer",
-                    },
-                    "name": {
-                      "type": "string",
-                    },
-                  },
-                  "type": "object",
-                },
-                "type": "array",
-              },
-            },
-            "required": [
-              "name",
-              "photoUrls",
-            ],
-            "type": "object",
-          },
-          "title": "{{136:symbolName}}",
-          "type": "array",
-        },
-        "--91-symbolName--": {
-          "additionalProperties": true,
-          "description": "Pet object from the store",
-          "properties": {
-            "category": {
-              "additionalProperties": true,
-              "properties": {
-                "id": {
-                  "type": "integer",
-                },
-                "name": {
-                  "type": "string",
-                },
-              },
-              "required": [
-                "id",
-                "name",
-              ],
-              "type": "object",
-            },
-            "id": {
-              "type": "integer",
-            },
-            "name": {
-              "type": "string",
-            },
-            "photoUrls": {
-              "items": {
-                "type": "string",
-              },
-              "type": "array",
-            },
-            "status": {
-              "enum": [
-                "available",
-                "pending",
-                "sold",
-              ],
-            },
-            "tags": {
-              "items": {
-                "additionalProperties": true,
-                "properties": {
-                  "id": {
-                    "type": "integer",
-                  },
-                  "name": {
-                    "type": "string",
-                  },
-                },
-                "type": "object",
-              },
-              "type": "array",
-            },
-          },
-          "required": [
-            "name",
-            "photoUrls",
-          ],
-          "title": "{{91:symbolName}}",
-          "type": "object",
-        },
         "ErrorResponse": {
           "$schema": "http://json-schema.org/draft-07/schema#",
           "additionalProperties": true,
@@ -260,6 +70,76 @@ exports[`buids the petstore openapi - zod 1`] = `
           "title": "HttpError",
           "type": "object",
         },
+        "Pet": {
+          "additionalProperties": true,
+          "description": "Pet object from the store",
+          "properties": {
+            "category": {
+              "additionalProperties": true,
+              "properties": {
+                "id": {
+                  "type": "integer",
+                },
+                "name": {
+                  "type": "string",
+                },
+              },
+              "required": [
+                "id",
+                "name",
+              ],
+              "type": "object",
+            },
+            "id": {
+              "type": "integer",
+            },
+            "name": {
+              "type": "string",
+            },
+            "photoUrls": {
+              "items": {
+                "type": "string",
+              },
+              "type": "array",
+            },
+            "status": {
+              "enum": [
+                "available",
+                "pending",
+                "sold",
+              ],
+            },
+            "tags": {
+              "items": {
+                "additionalProperties": true,
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                  },
+                  "name": {
+                    "type": "string",
+                  },
+                },
+                "type": "object",
+              },
+              "type": "array",
+            },
+          },
+          "required": [
+            "name",
+            "photoUrls",
+          ],
+          "title": "Pet",
+          "type": "object",
+        },
+        "PetArray": {
+          "description": "A list of Pet objects",
+          "items": {
+            "$ref": "#/components/schemas/Pet",
+          },
+          "title": "PetArray",
+          "type": "array",
+        },
       },
     },
     "info": {
@@ -273,11 +153,11 @@ exports[`buids the petstore openapi - zod 1`] = `
           "description": "Add a new pet to the store",
           "parameters": [],
           "requestBody": {
-            "$ref": "#/components/requestBodies/--91-symbolName--",
+            "$ref": "#/components/requestBodies/Pet",
           },
           "responses": {
             "200": {
-              "$ref": "#/components/responses/--113-symbolName--",
+              "$ref": "#/components/responses/Pet",
             },
             "404": {
               "$ref": "#/components/responses/ErrorResponse",
@@ -307,7 +187,7 @@ exports[`buids the petstore openapi - zod 1`] = `
           ],
           "responses": {
             "200": {
-              "$ref": "#/components/responses/--136-symbolName--",
+              "$ref": "#/components/responses/PetArray",
             },
             "default": {
               "$ref": "#/components/responses/ErrorResponse",

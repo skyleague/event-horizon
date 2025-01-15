@@ -1,6 +1,6 @@
 import type { Dependent } from '@skyleague/axioms'
 import { constant, object } from '@skyleague/axioms'
-import { arbitrary } from '@skyleague/therefore'
+import { type Schema, arbitrary } from '@skyleague/therefore'
 import { APIGatewayRequestAuthorizerEventSchema } from '../../../../aws/apigateway/rest.type.js'
 import type {
     RequestAuthorizerEvent,
@@ -43,9 +43,10 @@ export function restApiAuthorizerEvent<
         'rest'
     >
 > {
-    const headers = request.schema?.headers !== undefined ? arbitrary(request.schema.headers) : constant(undefined)
-    const query = request.schema?.query !== undefined ? arbitrary(request.schema.query) : constant(undefined)
-    const path = request.schema?.path !== undefined ? arbitrary(request.schema.path) : constant(undefined)
+    const headers =
+        request.schema?.headers !== undefined ? arbitrary(request.schema.headers as Schema<unknown>) : constant(undefined)
+    const query = request.schema?.query !== undefined ? arbitrary(request.schema.query as Schema<unknown>) : constant(undefined)
+    const path = request.schema?.path !== undefined ? arbitrary(request.schema.path as Schema<unknown>) : constant(undefined)
     const raw = arbitrary(APIGatewayRequestAuthorizerEventSchema).constant(generation === 'fast')
 
     return raw.chain((r) => {

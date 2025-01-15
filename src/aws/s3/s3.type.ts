@@ -51,6 +51,36 @@ export const S3EventNotificationEventBridgeDetailSchema = {
     },
 } as const
 
+export interface S3RecordSchema {
+    eventVersion: string
+    eventSource: 'aws:s3'
+    awsRegion: string
+    eventTime: string
+    eventName: string
+    userIdentity: S3Identity
+    requestParameters: S3RequestParameters
+    responseElements: S3ResponseElements
+    s3: S3Message
+    glacierEventData?: S3EventRecordGlacierEventData | undefined
+}
+
+export const S3RecordSchema = {
+    validate: S3RecordSchemaValidator as ValidateFunction<S3RecordSchema>,
+    get schema() {
+        return S3RecordSchema.validate.schema
+    },
+    get errors() {
+        return S3RecordSchema.validate.errors ?? undefined
+    },
+    is: (o: unknown): o is S3RecordSchema => S3RecordSchema.validate(o) === true,
+    parse: (o: unknown): { right: S3RecordSchema } | { left: DefinedError[] } => {
+        if (S3RecordSchema.is(o)) {
+            return { right: o }
+        }
+        return { left: (S3RecordSchema.errors ?? []) as DefinedError[] }
+    },
+} as const
+
 export interface S3EventNotificationEventBridgeSchema {
     version: string
     id: string
@@ -92,36 +122,6 @@ export interface S3Message {
         arn: string
     }
 }
-
-export interface S3RecordSchema {
-    eventVersion: string
-    eventSource: 'aws:s3'
-    awsRegion: string
-    eventTime: string
-    eventName: string
-    userIdentity: S3Identity
-    requestParameters: S3RequestParameters
-    responseElements: S3ResponseElements
-    s3: S3Message
-    glacierEventData?: S3EventRecordGlacierEventData | undefined
-}
-
-export const S3RecordSchema = {
-    validate: S3RecordSchemaValidator as ValidateFunction<S3RecordSchema>,
-    get schema() {
-        return S3RecordSchema.validate.schema
-    },
-    get errors() {
-        return S3RecordSchema.validate.errors ?? undefined
-    },
-    is: (o: unknown): o is S3RecordSchema => S3RecordSchema.validate(o) === true,
-    parse: (o: unknown): { right: S3RecordSchema } | { left: DefinedError[] } => {
-        if (S3RecordSchema.is(o)) {
-            return { right: o }
-        }
-        return { left: (S3RecordSchema.errors ?? []) as DefinedError[] }
-    },
-} as const
 
 export interface S3RequestParameters {
     sourceIPAddress: string
