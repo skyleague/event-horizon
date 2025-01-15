@@ -1,6 +1,7 @@
+import { APIGatewayProxyEventSchema } from '@aws-lambda-powertools/parser/schemas'
 import { type Dependent, constant, object } from '@skyleague/axioms'
-import { type Schema, arbitrary } from '@skyleague/therefore'
-import { APIGatewayProxyEventSchema } from '../../../../aws/apigateway/rest.type.js'
+import { arbitrary } from '@skyleague/therefore'
+import type { ZodType } from 'zod'
 import type { AuthorizerSchema, HTTPHandler, HTTPRequest, Responses } from '../../../../events/apigateway/event/types.js'
 import type { SecurityRequirements } from '../../../../events/apigateway/types.js'
 import type { InferFromParser, MaybeGenericParser } from '../../../../parsers/types.js'
@@ -47,10 +48,10 @@ export function restApiEvent<
 > {
     const { bodyType = 'json' } = http
 
-    const body = http.schema.body !== undefined ? arbitrary(http.schema.body as Schema<unknown>) : constant(undefined)
-    const headers = http.schema.headers !== undefined ? arbitrary(http.schema.headers as Schema<unknown>) : constant(undefined)
-    const query = http.schema.query !== undefined ? arbitrary(http.schema.query as Schema<unknown>) : constant(undefined)
-    const path = http.schema.path !== undefined ? arbitrary(http.schema.path as Schema<unknown>) : constant(undefined)
+    const body = http.schema.body !== undefined ? arbitrary(http.schema.body as ZodType) : constant(undefined)
+    const headers = http.schema.headers !== undefined ? arbitrary(http.schema.headers as ZodType) : constant(undefined)
+    const query = http.schema.query !== undefined ? arbitrary(http.schema.query as ZodType) : constant(undefined)
+    const path = http.schema.path !== undefined ? arbitrary(http.schema.path as ZodType) : constant(undefined)
     const raw = arbitrary(APIGatewayProxyEventSchema).constant(generation === 'fast')
 
     return raw.chain((r) => {
@@ -78,6 +79,10 @@ export function restApiEvent<
             event.raw.headers = (event.headers as typeof event.raw.headers) ?? {}
             event.raw.queryStringParameters = (event.query as typeof event.raw.queryStringParameters) ?? {}
             event.raw.pathParameters = (event.path as typeof event.raw.pathParameters) ?? {}
+
+            if (event.raw.requestContext.eventType !== 'MESSAGE') {
+                event.raw.requestContext.messageId = undefined
+            }
 
             return {
                 ...event,

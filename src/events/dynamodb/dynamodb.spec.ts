@@ -1,24 +1,26 @@
-import { dynamodbHandler } from './dynamodb.js'
-
-import { literalSchema, warmerEvent } from '../../../test/schema.js'
-import { KinesisDataStreamSchema } from '../../aws/kinesis/kinesis.type.js'
-import { S3BatchEvent } from '../../aws/s3-batch/s3.type.js'
-import { S3Schema } from '../../aws/s3/s3.type.js'
-import { SecretRotationEvent } from '../../aws/secret-rotation/secret-rotation.type.js'
-import { context } from '../../test/context/context.js'
-
+import {
+    APIGatewayProxyEventSchema,
+    APIGatewayProxyEventV2Schema,
+    APIGatewayRequestAuthorizerEventSchema,
+    APIGatewayRequestAuthorizerEventV2Schema,
+    DynamoDBStreamSchema,
+    EventBridgeSchema,
+    KinesisDataStreamSchema,
+    KinesisFirehoseSchema,
+    S3Schema,
+    SnsSchema,
+    SqsSchema,
+} from '@aws-lambda-powertools/parser/schemas'
 import { asyncForAll, oneOf, random, tuple, unknown } from '@skyleague/axioms'
 import { type Schema, arbitrary } from '@skyleague/therefore'
 import { expect, expectTypeOf, it, vi } from 'vitest'
 import { z } from 'zod'
-import { APIGatewayProxyEventV2Schema, APIGatewayRequestAuthorizerEventV2Schema } from '../../aws/apigateway/http.type.js'
-import { APIGatewayProxyEventSchema, APIGatewayRequestAuthorizerEventSchema } from '../../aws/apigateway/rest.type.js'
-import { DynamoDBStreamSchema } from '../../aws/dynamodb/dynamodb.type.js'
-import { EventBridgeSchema } from '../../aws/eventbridge/eventbridge.type.js'
-import { KinesisFirehoseSchema } from '../../aws/firehose/firehose.type.js'
-import { SnsSchema } from '../../aws/sns/sns.type.js'
-import { SqsSchema } from '../../aws/sqs/sqs.type.js'
+import { literalSchema, warmerEvent } from '../../../test/schema.js'
+import { s3BatchEvent } from '../../aws/s3-batch/s3.schema.js'
+import { secretRotationEvent } from '../../aws/secret-rotation/secret-rotation.schema.js'
+import { context } from '../../test/context/context.js'
 import type { LambdaContext } from '../types.js'
+import { dynamodbHandler } from './dynamodb.js'
 import type { DynamoDBStreamEvent } from './types.js'
 
 it('handles service and config types', () => {
@@ -198,8 +200,8 @@ it('does not handle non dynamodb events', async () => {
                 arbitrary(APIGatewayRequestAuthorizerEventV2Schema),
                 arbitrary(KinesisDataStreamSchema),
                 arbitrary(S3Schema),
-                arbitrary(S3BatchEvent),
-                arbitrary(SecretRotationEvent),
+                arbitrary(s3BatchEvent),
+                arbitrary(secretRotationEvent),
                 arbitrary(SnsSchema),
                 arbitrary(SqsSchema),
                 // arbitrary(DynamoDBStreamSchema),

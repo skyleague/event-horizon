@@ -4,11 +4,14 @@
  */
 /* eslint-disable */
 
-import type { DefinedError, ValidateFunction } from 'ajv'
-
-import { validate as KafkaMskEventSchemaValidator } from './schemas/kafka-msk-event-schema.schema.js'
-import { validate as KafkaRecordSchemaValidator } from './schemas/kafka-record-schema.schema.js'
-import { validate as KafkaSelfManagedEventSchemaValidator } from './schemas/kafka-self-managed-event-schema.schema.js'
+export interface KafkaMskEventSchema {
+    bootstrapServers?: string | null | undefined
+    records: {
+        [k: string]: KafkaRecordSchema[] | undefined
+    }
+    eventSource: 'aws:kafka'
+    eventSourceArn: string
+}
 
 export interface KafkaRecordSchema {
     topic: string
@@ -23,23 +26,6 @@ export interface KafkaRecordSchema {
     }[]
 }
 
-export const KafkaRecordSchema = {
-    validate: KafkaRecordSchemaValidator as ValidateFunction<KafkaRecordSchema>,
-    get schema() {
-        return KafkaRecordSchema.validate.schema
-    },
-    get errors() {
-        return KafkaRecordSchema.validate.errors ?? undefined
-    },
-    is: (o: unknown): o is KafkaRecordSchema => KafkaRecordSchema.validate(o) === true,
-    parse: (o: unknown): { right: KafkaRecordSchema } | { left: DefinedError[] } => {
-        if (KafkaRecordSchema.is(o)) {
-            return { right: o }
-        }
-        return { left: (KafkaRecordSchema.errors ?? []) as DefinedError[] }
-    },
-} as const
-
 export interface KafkaSelfManagedEventSchema {
     bootstrapServers?: string | null | undefined
     records: {
@@ -47,46 +33,3 @@ export interface KafkaSelfManagedEventSchema {
     }
     eventSource: 'SelfManagedKafka'
 }
-
-export const KafkaSelfManagedEventSchema = {
-    validate: KafkaSelfManagedEventSchemaValidator as ValidateFunction<KafkaSelfManagedEventSchema>,
-    get schema() {
-        return KafkaSelfManagedEventSchema.validate.schema
-    },
-    get errors() {
-        return KafkaSelfManagedEventSchema.validate.errors ?? undefined
-    },
-    is: (o: unknown): o is KafkaSelfManagedEventSchema => KafkaSelfManagedEventSchema.validate(o) === true,
-    parse: (o: unknown): { right: KafkaSelfManagedEventSchema } | { left: DefinedError[] } => {
-        if (KafkaSelfManagedEventSchema.is(o)) {
-            return { right: o }
-        }
-        return { left: (KafkaSelfManagedEventSchema.errors ?? []) as DefinedError[] }
-    },
-} as const
-
-export interface KafkaMskEventSchema {
-    bootstrapServers?: string | null | undefined
-    records: {
-        [k: string]: KafkaRecordSchema[] | undefined
-    }
-    eventSource: 'aws:kafka'
-    eventSourceArn: string
-}
-
-export const KafkaMskEventSchema = {
-    validate: KafkaMskEventSchemaValidator as ValidateFunction<KafkaMskEventSchema>,
-    get schema() {
-        return KafkaMskEventSchema.validate.schema
-    },
-    get errors() {
-        return KafkaMskEventSchema.validate.errors ?? undefined
-    },
-    is: (o: unknown): o is KafkaMskEventSchema => KafkaMskEventSchema.validate(o) === true,
-    parse: (o: unknown): { right: KafkaMskEventSchema } | { left: DefinedError[] } => {
-        if (KafkaMskEventSchema.is(o)) {
-            return { right: o }
-        }
-        return { left: (KafkaMskEventSchema.errors ?? []) as DefinedError[] }
-    },
-} as const

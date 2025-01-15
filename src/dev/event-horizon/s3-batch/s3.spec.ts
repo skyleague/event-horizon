@@ -2,7 +2,7 @@ import { forAll } from '@skyleague/axioms'
 import { expect, expectTypeOf } from 'vitest'
 import { it } from 'vitest'
 import { z } from 'zod'
-import { S3BatchEventTask } from '../../../aws/s3-batch/s3.type.js'
+import { s3BatchEventTask } from '../../../aws/s3-batch/s3.schema.js'
 import { s3BatchHandler } from '../../../events/s3-batch/s3-batch.js'
 import type { S3BatchTask } from '../../../events/s3-batch/types.js'
 import { s3BatchTask } from './s3.js'
@@ -36,7 +36,7 @@ it('should properly validate and type S3 event payload', () => {
             expect(request.raw.task.s3Key).toEqual(request.s3Key)
             expect(request.raw.task.s3VersionId).toEqual(request.s3VersionId ?? null)
             expect(request.raw.task.s3BucketArn).toEqual(request.s3BucketArn)
-            expect(S3BatchEventTask.is(request.raw.task)).toBe(true)
+            s3BatchEventTask.parse(request.raw.task)
         },
     )
 })

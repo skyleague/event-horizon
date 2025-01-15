@@ -45,7 +45,17 @@
   },
   "peerDependencies": {
     "@aws-sdk/client-appconfigdata": "^3.726.1",
-    "@aws-sdk/client-secrets-manager": "^3.726.1"
+    "@aws-sdk/client-secrets-manager": "^3.726.1",
+    "@aws-lambda-powertools/parser": "^2.13.0",
+    "zod": "^3.24.1"
+  },
+  "peerDependenciesMeta": {
+    "@aws-lambda-powertools/parser": {
+      "optional": true
+    },
+    "zod": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@aws-lambda-powertools/parser": "^2.13.0",

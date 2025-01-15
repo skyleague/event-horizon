@@ -1,20 +1,23 @@
-import { handleKinesisEvent } from './handler.js'
-
-import { KinesisDataStreamSchema } from '../../aws/kinesis/kinesis.type.js'
-import { EventError } from '../../errors/event-error/event-error.js'
-import { context } from '../../test/context/context.js'
-
+import { KinesisDataStreamSchema } from '@aws-lambda-powertools/parser/schemas'
 import { asyncForAll, json, random, tuple } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
 import { arbitrary } from '@skyleague/therefore'
 import { expect, it, vi } from 'vitest'
+import type { KinesisDataStreamRecord } from '../../aws/kinesis/kinesis.type.js'
+import { EventError } from '../../errors/event-error/event-error.js'
+import { context } from '../../test/context/context.js'
+import { handleKinesisEvent } from './handler.js'
 
 it('binary events does not give failures', async () => {
     await asyncForAll(tuple(arbitrary(KinesisDataStreamSchema), await context({})), async ([{ Records }, ctx]) => {
         ctx.mockClear()
 
         const handler = vi.fn()
-        const response = await handleKinesisEvent({ kinesis: { schema: {}, handler, payloadType: 'binary' } }, Records, ctx)
+        const response = await handleKinesisEvent(
+            { kinesis: { schema: {}, handler, payloadType: 'binary' } },
+            Records as KinesisDataStreamRecord[],
+            ctx,
+        )
 
         expect(response).toEqual(undefined)
 
@@ -39,7 +42,11 @@ it('plaintext events does not give failures', async () => {
         ctx.mockClear()
 
         const handler = vi.fn()
-        const response = await handleKinesisEvent({ kinesis: { schema: {}, handler, payloadType: 'plaintext' } }, Records, ctx)
+        const response = await handleKinesisEvent(
+            { kinesis: { schema: {}, handler, payloadType: 'plaintext' } },
+            Records as KinesisDataStreamRecord[],
+            ctx,
+        )
 
         expect(response).toEqual(undefined)
 
@@ -71,7 +78,11 @@ it('json events does not give failures', async () => {
             ctx.mockClear()
 
             const handler = vi.fn()
-            const response = await handleKinesisEvent({ kinesis: { schema: {}, handler } }, Records, ctx)
+            const response = await handleKinesisEvent(
+                { kinesis: { schema: {}, handler } },
+                Records as KinesisDataStreamRecord[],
+                ctx,
+            )
 
             expect(response).toEqual(undefined)
 
@@ -104,7 +115,11 @@ it('json parse failure, gives failure', async () => {
             ctx.mockClear()
 
             const handler = vi.fn()
-            const response = await handleKinesisEvent({ kinesis: { schema: {}, handler } }, Records, ctx)
+            const response = await handleKinesisEvent(
+                { kinesis: { schema: {}, handler } },
+                Records as KinesisDataStreamRecord[],
+                ctx,
+            )
 
             if (Records.length > 0) {
                 expect(response).toEqual({ batchItemFailures: Records.map((r) => ({ itemIdentifier: r.eventID })) })
@@ -143,7 +158,11 @@ it('schema validation, gives failure', async () => {
             ctx.mockClear()
 
             const handler = vi.fn()
-            const response = await handleKinesisEvent({ kinesis: { schema: { payload: neverTrue }, handler } }, Records, ctx)
+            const response = await handleKinesisEvent(
+                { kinesis: { schema: { payload: neverTrue }, handler } },
+                Records as KinesisDataStreamRecord[],
+                ctx,
+            )
 
             if (Records.length > 0) {
                 expect(response).toEqual({ batchItemFailures: Records.map((r) => ({ itemIdentifier: r.eventID })) })
@@ -172,7 +191,11 @@ it.each([new Error(), 'foobar'])('promise reject with Error, gives failure', asy
         ctx.mockClear()
 
         const handler = vi.fn().mockRejectedValue(error)
-        const response = await handleKinesisEvent({ kinesis: { schema: {}, handler, payloadType: 'binary' } }, Records, ctx)
+        const response = await handleKinesisEvent(
+            { kinesis: { schema: {}, handler, payloadType: 'binary' } },
+            Records as KinesisDataStreamRecord[],
+            ctx,
+        )
 
         if (Records.length > 0) {
             expect(response).toEqual({ batchItemFailures: Records.map((r) => ({ itemIdentifier: r.eventID })) })
@@ -201,7 +224,11 @@ it.each([EventError.badRequest()])('promise reject with client error, gives erro
         ctx.mockClear()
 
         const handler = vi.fn().mockRejectedValue(error)
-        const response = await handleKinesisEvent({ kinesis: { schema: {}, handler, payloadType: 'binary' } }, Records, ctx)
+        const response = await handleKinesisEvent(
+            { kinesis: { schema: {}, handler, payloadType: 'binary' } },
+            Records as KinesisDataStreamRecord[],
+            ctx,
+        )
 
         if (Records.length > 0) {
             expect(response).toEqual({ batchItemFailures: Records.map((r) => ({ itemIdentifier: r.eventID })) })
@@ -232,7 +259,11 @@ it.each([new Error(), 'foobar'])('promise throws with Error, gives failure', asy
         const handler = vi.fn().mockImplementation(() => {
             throw error
         })
-        const response = await handleKinesisEvent({ kinesis: { schema: {}, handler, payloadType: 'binary' } }, Records, ctx)
+        const response = await handleKinesisEvent(
+            { kinesis: { schema: {}, handler, payloadType: 'binary' } },
+            Records as KinesisDataStreamRecord[],
+            ctx,
+        )
 
         if (Records.length > 0) {
             expect(response).toEqual({ batchItemFailures: Records.map((r) => ({ itemIdentifier: r.eventID })) })
@@ -263,7 +294,11 @@ it.each([EventError.badRequest()])('promise throws with client error, gives erro
         const handler = vi.fn().mockImplementation(() => {
             throw error
         })
-        const response = await handleKinesisEvent({ kinesis: { schema: {}, handler, payloadType: 'binary' } }, Records, ctx)
+        const response = await handleKinesisEvent(
+            { kinesis: { schema: {}, handler, payloadType: 'binary' } },
+            Records as KinesisDataStreamRecord[],
+            ctx,
+        )
 
         if (Records.length > 0) {
             expect(response).toEqual({ batchItemFailures: Records.map((r) => ({ itemIdentifier: r.eventID })) })

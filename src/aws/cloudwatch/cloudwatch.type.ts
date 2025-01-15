@@ -4,10 +4,6 @@
  */
 /* eslint-disable */
 
-import type { DefinedError, ValidateFunction } from 'ajv'
-
-import { validate as CloudWatchLogsSchemaValidator } from './schemas/cloud-watch-logs-schema.schema.js'
-
 export interface CloudWatchLogEventSchema {
     id: string
     timestamp: number
@@ -28,20 +24,3 @@ export interface CloudWatchLogsSchema {
         data: string
     }
 }
-
-export const CloudWatchLogsSchema = {
-    validate: CloudWatchLogsSchemaValidator as ValidateFunction<CloudWatchLogsSchema>,
-    get schema() {
-        return CloudWatchLogsSchema.validate.schema
-    },
-    get errors() {
-        return CloudWatchLogsSchema.validate.errors ?? undefined
-    },
-    is: (o: unknown): o is CloudWatchLogsSchema => CloudWatchLogsSchema.validate(o) === true,
-    parse: (o: unknown): { right: CloudWatchLogsSchema } | { left: DefinedError[] } => {
-        if (CloudWatchLogsSchema.is(o)) {
-            return { right: o }
-        }
-        return { left: (CloudWatchLogsSchema.errors ?? []) as DefinedError[] }
-    },
-} as const

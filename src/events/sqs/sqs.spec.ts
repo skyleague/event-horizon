@@ -1,20 +1,25 @@
+import {
+    APIGatewayProxyEventSchema,
+    APIGatewayProxyEventV2Schema,
+    APIGatewayRequestAuthorizerEventSchema,
+    APIGatewayRequestAuthorizerEventV2Schema,
+    DynamoDBStreamSchema,
+    EventBridgeSchema,
+    KinesisDataStreamSchema,
+    KinesisFirehoseSchema,
+    S3Schema,
+    SnsSchema,
+    SqsSchema,
+} from '@aws-lambda-powertools/parser/schemas'
 import { type Try, asyncForAll, oneOf, random, tuple, unknown } from '@skyleague/axioms'
 import { type Schema, arbitrary } from '@skyleague/therefore'
 import type { SQSBatchItemFailure } from 'aws-lambda'
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { z } from 'zod'
 import { literalSchema, warmerEvent } from '../../../test/schema.js'
-import { APIGatewayProxyEventV2Schema, APIGatewayRequestAuthorizerEventV2Schema } from '../../aws/apigateway/http.type.js'
-import { APIGatewayProxyEventSchema, APIGatewayRequestAuthorizerEventSchema } from '../../aws/apigateway/rest.type.js'
-import { DynamoDBStreamSchema } from '../../aws/dynamodb/dynamodb.type.js'
-import { EventBridgeSchema } from '../../aws/eventbridge/eventbridge.type.js'
-import { KinesisFirehoseSchema } from '../../aws/firehose/firehose.type.js'
-import { KinesisDataStreamSchema } from '../../aws/kinesis/kinesis.type.js'
-import { S3BatchEvent } from '../../aws/s3-batch/s3.type.js'
-import { S3Schema } from '../../aws/s3/s3.type.js'
-import { SecretRotationEvent } from '../../aws/secret-rotation/secret-rotation.type.js'
-import { SnsSchema } from '../../aws/sns/sns.type.js'
-import { type SqsRecordSchema, SqsSchema } from '../../aws/sqs/sqs.type.js'
+import { s3BatchEvent } from '../../aws/s3-batch/s3.schema.js'
+import { secretRotationEvent } from '../../aws/secret-rotation/secret-rotation.schema.js'
+import type { SqsRecordSchema } from '../../aws/sqs/sqs.type.js'
 import { context } from '../../test/context/context.js'
 import type { LambdaContext } from '../types.js'
 import { sqsGroupHandler, sqsHandler } from './sqs.js'
@@ -242,8 +247,8 @@ describe('sqsHandler', () => {
                     arbitrary(APIGatewayRequestAuthorizerEventV2Schema),
                     arbitrary(KinesisDataStreamSchema),
                     arbitrary(S3Schema),
-                    arbitrary(S3BatchEvent),
-                    arbitrary(SecretRotationEvent),
+                    arbitrary(s3BatchEvent),
+                    arbitrary(secretRotationEvent),
                     arbitrary(SnsSchema),
                     // arbitrary(SQSEvent),
                     arbitrary(DynamoDBStreamSchema),
@@ -356,8 +361,8 @@ describe('sqsGroupHandler', () => {
                     arbitrary(APIGatewayProxyEventV2Schema),
                     arbitrary(KinesisDataStreamSchema),
                     arbitrary(S3Schema),
-                    arbitrary(S3BatchEvent),
-                    arbitrary(SecretRotationEvent),
+                    arbitrary(s3BatchEvent),
+                    arbitrary(secretRotationEvent),
                     arbitrary(SnsSchema),
                     // arbitrary(SQSEvent),
                     arbitrary(DynamoDBStreamSchema),

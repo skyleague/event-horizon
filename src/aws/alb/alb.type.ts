@@ -4,50 +4,6 @@
  */
 /* eslint-disable */
 
-import type { DefinedError, ValidateFunction } from 'ajv'
-
-import { validate as AlbMultiValueHeadersSchemaValidator } from './schemas/alb-multi-value-headers-schema.schema.js'
-import { validate as AlbSchemaValidator } from './schemas/alb-schema.schema.js'
-
-export interface AlbSchema {
-    httpMethod: string
-    path: string
-    body: string
-    isBase64Encoded: boolean
-    headers?:
-        | {
-              [k: string]: string | undefined
-          }
-        | undefined
-    queryStringParameters?:
-        | {
-              [k: string]: string | undefined
-          }
-        | undefined
-    requestContext: {
-        elb: {
-            targetGroupArn: string
-        }
-    }
-}
-
-export const AlbSchema = {
-    validate: AlbSchemaValidator as ValidateFunction<AlbSchema>,
-    get schema() {
-        return AlbSchema.validate.schema
-    },
-    get errors() {
-        return AlbSchema.validate.errors ?? undefined
-    },
-    is: (o: unknown): o is AlbSchema => AlbSchema.validate(o) === true,
-    parse: (o: unknown): { right: AlbSchema } | { left: DefinedError[] } => {
-        if (AlbSchema.is(o)) {
-            return { right: o }
-        }
-        return { left: (AlbSchema.errors ?? []) as DefinedError[] }
-    },
-} as const
-
 export interface AlbMultiValueHeadersSchema {
     httpMethod: string
     path: string
@@ -76,19 +32,24 @@ export interface AlbMultiValueHeadersSchema {
     }
 }
 
-export const AlbMultiValueHeadersSchema = {
-    validate: AlbMultiValueHeadersSchemaValidator as ValidateFunction<AlbMultiValueHeadersSchema>,
-    get schema() {
-        return AlbMultiValueHeadersSchema.validate.schema
-    },
-    get errors() {
-        return AlbMultiValueHeadersSchema.validate.errors ?? undefined
-    },
-    is: (o: unknown): o is AlbMultiValueHeadersSchema => AlbMultiValueHeadersSchema.validate(o) === true,
-    parse: (o: unknown): { right: AlbMultiValueHeadersSchema } | { left: DefinedError[] } => {
-        if (AlbMultiValueHeadersSchema.is(o)) {
-            return { right: o }
+export interface AlbSchema {
+    httpMethod: string
+    path: string
+    body: string
+    isBase64Encoded: boolean
+    headers?:
+        | {
+              [k: string]: string | undefined
+          }
+        | undefined
+    queryStringParameters?:
+        | {
+              [k: string]: string | undefined
+          }
+        | undefined
+    requestContext: {
+        elb: {
+            targetGroupArn: string
         }
-        return { left: (AlbMultiValueHeadersSchema.errors ?? []) as DefinedError[] }
-    },
-} as const
+    }
+}

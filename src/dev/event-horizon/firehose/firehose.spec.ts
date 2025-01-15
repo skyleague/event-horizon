@@ -1,7 +1,7 @@
 import { forAll, tuple } from '@skyleague/axioms'
 import { expect, expectTypeOf, it } from 'vitest'
 import { z } from 'zod'
-import { KinesisFirehoseRecord } from '../../../aws/firehose/firehose.type.js'
+import { kinesisFirehoseRecord } from '../../../aws/firehose/firehose.schema.js'
 import { firehoseHandler } from '../../../events/firehose/firehose.js'
 import { context } from '../../../test/context/context.js'
 import { firehoseTransformationEvent } from './firehose.js'
@@ -30,7 +30,7 @@ it('should properly validate and type firehose event payload', () => {
             expect(request.payload).toEqual('payload')
 
             expect(request.raw.data).toEqual(JSON.stringify(request.payload))
-            expect(KinesisFirehoseRecord.is(request.raw)).toBe(true)
+            kinesisFirehoseRecord.parse(request.raw)
 
             expectTypeOf(request.payload).toEqualTypeOf<'payload'>()
         },

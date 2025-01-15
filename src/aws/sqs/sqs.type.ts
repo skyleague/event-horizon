@@ -4,43 +4,6 @@
  */
 /* eslint-disable */
 
-import type { DefinedError, ValidateFunction } from 'ajv'
-
-import { validate as SqsRecordSchemaValidator } from './schemas/sqs-record-schema.schema.js'
-import { validate as SqsSchemaValidator } from './schemas/sqs-schema.schema.js'
-
-export interface SqsRecordSchema {
-    messageId: string
-    receiptHandle: string
-    body: string
-    attributes: SqsAttributesSchema
-    messageAttributes: {
-        [k: string]: SqsMsgAttributeSchema | undefined
-    }
-    md5OfBody: string
-    md5OfMessageAttributes?: string | null | undefined
-    eventSource: 'aws:sqs'
-    eventSourceARN: string
-    awsRegion: string
-}
-
-export const SqsRecordSchema = {
-    validate: SqsRecordSchemaValidator as ValidateFunction<SqsRecordSchema>,
-    get schema() {
-        return SqsRecordSchema.validate.schema
-    },
-    get errors() {
-        return SqsRecordSchema.validate.errors ?? undefined
-    },
-    is: (o: unknown): o is SqsRecordSchema => SqsRecordSchema.validate(o) === true,
-    parse: (o: unknown): { right: SqsRecordSchema } | { left: DefinedError[] } => {
-        if (SqsRecordSchema.is(o)) {
-            return { right: o }
-        }
-        return { left: (SqsRecordSchema.errors ?? []) as DefinedError[] }
-    },
-} as const
-
 export interface SqsAttributesSchema {
     ApproximateReceiveCount: string
     ApproximateFirstReceiveTimestamp: string
@@ -61,23 +24,21 @@ export interface SqsMsgAttributeSchema {
     dataType: string
 }
 
+export interface SqsRecordSchema {
+    messageId: string
+    receiptHandle: string
+    body: string
+    attributes: SqsAttributesSchema
+    messageAttributes: {
+        [k: string]: SqsMsgAttributeSchema | undefined
+    }
+    md5OfBody: string
+    md5OfMessageAttributes?: string | null | undefined
+    eventSource: 'aws:sqs'
+    eventSourceARN: string
+    awsRegion: string
+}
+
 export interface SqsSchema {
     Records: SqsRecordSchema[]
 }
-
-export const SqsSchema = {
-    validate: SqsSchemaValidator as ValidateFunction<SqsSchema>,
-    get schema() {
-        return SqsSchema.validate.schema
-    },
-    get errors() {
-        return SqsSchema.validate.errors ?? undefined
-    },
-    is: (o: unknown): o is SqsSchema => SqsSchema.validate(o) === true,
-    parse: (o: unknown): { right: SqsSchema } | { left: DefinedError[] } => {
-        if (SqsSchema.is(o)) {
-            return { right: o }
-        }
-        return { left: (SqsSchema.errors ?? []) as DefinedError[] }
-    },
-} as const

@@ -1,16 +1,15 @@
-import { handleSQSEvent, handleSQSMessageGroup } from './handler.js'
-import type { SQSMessageGroup } from './types.js'
-
-import { type SqsRecordSchema, SqsSchema } from '../../aws/sqs/sqs.type.js'
-import { EventError } from '../../errors/event-error/event-error.js'
-import type { Logger } from '../../observability/logger/logger.js'
-import { context } from '../../test/context/context.js'
-
+import { SqsSchema } from '@aws-lambda-powertools/parser/schemas'
 import { asyncForAll, isFailure, json, random, tuple } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
 import { arbitrary } from '@skyleague/therefore'
 import type { SQSBatchItemFailure, SQSBatchResponse } from 'aws-lambda/trigger/sqs.js'
 import { describe, expect, it, vi } from 'vitest'
+import type { SqsRecordSchema } from '../../aws/sqs/sqs.type.js'
+import { EventError } from '../../errors/event-error/event-error.js'
+import type { Logger } from '../../observability/logger/logger.js'
+import { context } from '../../test/context/context.js'
+import { handleSQSEvent, handleSQSMessageGroup } from './handler.js'
+import type { SQSMessageGroup } from './types.js'
 
 // biome-ignore lint/suspicious/noConfusingVoidType: this is the real type we want here
 function handleMessageGroup({ records }: SQSMessageGroup, { logger }: { logger: Logger }): SQSBatchItemFailure[] | void {

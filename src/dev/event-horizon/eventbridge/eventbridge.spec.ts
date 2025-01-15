@@ -1,7 +1,7 @@
+import { EventBridgeSchema } from '@aws-lambda-powertools/parser/schemas'
 import { forAll, tuple } from '@skyleague/axioms'
 import { expect, expectTypeOf, it } from 'vitest'
 import { z } from 'zod'
-import { EventBridgeSchema } from '../../../aws/eventbridge/eventbridge.type.js'
 import { eventBridgeHandler } from '../../../events/eventbridge/eventbridge.js'
 import { context } from '../../../test/context/context.js'
 import { eventBridgeEvent } from './eventbridge.js'
@@ -27,7 +27,7 @@ it('should properly validate and type eventbridge event payload', () => {
             expect(request.payload).toEqual('payload')
 
             expect(request.raw.detail).toEqual(request.payload)
-            expect(EventBridgeSchema.is(request.raw)).toBe(true)
+            EventBridgeSchema.parse(request.raw)
 
             expectTypeOf(request.payload).toEqualTypeOf<'payload'>()
         },

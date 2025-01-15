@@ -1,15 +1,14 @@
-import { Context } from '../../aws/lambda/context.type.js'
+import { inspect } from 'node:util'
+import type { Arbitrary, Dependent } from '@skyleague/axioms'
+import { constant, isFunction, object, string } from '@skyleague/axioms'
+import { arbitrary } from '@skyleague/therefore'
+import type { ZodType } from 'zod'
+import { context as contextSchema } from '../../aws/lambda/context.schema.js'
 import type { AsConfig } from '../../events/common/config.js'
 import type { ProfileSchema } from '../../events/common/functions/profile-handler.js'
 import type { Config, EventHandlerDefinition, LambdaContext, Services } from '../../events/types.js'
 import type { MaybeGenericParser } from '../../parsers/types.js'
 import { mockLogger, mockMetrics, mockTracer } from '../mock/mock.js'
-
-import type { Arbitrary, Dependent } from '@skyleague/axioms'
-import { constant, isFunction, object, string } from '@skyleague/axioms'
-import { type Schema, arbitrary } from '@skyleague/therefore'
-
-import { inspect } from 'node:util'
 
 export async function context<Configuration = undefined, Service = undefined, Profile extends MaybeGenericParser = undefined>({
     config,
@@ -22,7 +21,7 @@ export async function context<Configuration = undefined, Service = undefined, Pr
     profile?: ProfileSchema<Profile>
 } = {}): Promise<Dependent<LambdaContext<Configuration, Service, Profile> & { mockClear: () => void }>> {
     const configObj = isFunction(config) ? await config() : config
-    const ctxArb = arbitrary(Context).map((ctx) => {
+    const ctxArb = arbitrary(contextSchema).map((ctx) => {
         return {
             ...ctx,
             getRemainingTimeInMillis: () => 10000,
@@ -49,9 +48,9 @@ export async function context<Configuration = undefined, Service = undefined, Pr
         services: constant(isFunction(services) ? await services(configObj as AsConfig<Configuration>) : services) as Arbitrary<
             LambdaContext<Configuration, Service, Profile>['services']
         >,
-        profile: (profile?.schema !== undefined
-            ? arbitrary(profile.schema as Schema<unknown>)
-            : constant(undefined)) as Arbitrary<LambdaContext<Configuration, Service, Profile>['profile']>,
+        profile: (profile?.schema !== undefined ? arbitrary(profile.schema as ZodType) : constant(undefined)) as Arbitrary<
+            LambdaContext<Configuration, Service, Profile>['profile']
+        >,
 
         getRemainingTimeInMillis: constant(() => 10000),
     })

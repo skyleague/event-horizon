@@ -4,10 +4,6 @@
  */
 /* eslint-disable */
 
-import type { DefinedError, ValidateFunction } from 'ajv'
-
-import { validate as EventBridgeSchemaValidator } from './schemas/event-bridge-schema.schema.js'
-
 export interface EventBridgeSchema {
     version: string
     id: string
@@ -20,20 +16,3 @@ export interface EventBridgeSchema {
     detail: unknown
     'replay-name'?: string | undefined
 }
-
-export const EventBridgeSchema = {
-    validate: EventBridgeSchemaValidator as ValidateFunction<EventBridgeSchema>,
-    get schema() {
-        return EventBridgeSchema.validate.schema
-    },
-    get errors() {
-        return EventBridgeSchema.validate.errors ?? undefined
-    },
-    is: (o: unknown): o is EventBridgeSchema => EventBridgeSchema.validate(o) === true,
-    parse: (o: unknown): { right: EventBridgeSchema } | { left: DefinedError[] } => {
-        if (EventBridgeSchema.is(o)) {
-            return { right: o }
-        }
-        return { left: (EventBridgeSchema.errors ?? []) as DefinedError[] }
-    },
-} as const
