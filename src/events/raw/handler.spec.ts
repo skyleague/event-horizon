@@ -3,7 +3,7 @@ import { handleRawEvent } from './handler.js'
 import { EventError } from '../../errors/event-error/event-error.js'
 import { context } from '../../test/context/context.js'
 
-import { asyncForAll, failure, json, tuple } from '@skyleague/axioms'
+import { asyncForAll, failure, json, thrown, tuple } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
 import { expect, it, vi } from 'vitest'
 
@@ -35,9 +35,13 @@ it('schema validation, gives failure', async () => {
         ctx.mockClear()
 
         const handler = vi.fn()
-        const response = await handleRawEvent({ raw: { schema: { payload: neverTrue }, handler } }, value, ctx)
+        const response = await handleRawEvent({ raw: { schema: { payload: { ...neverTrue, errors: [] } }, handler } }, value, ctx)
 
-        expect(response).toEqual(EventError.validation())
+        expect(response).toEqual(
+            EventError.validation({
+                errors: [],
+            }),
+        )
 
         expect(handler).not.toHaveBeenCalled()
 
@@ -49,14 +53,14 @@ it('schema validation, gives failure', async () => {
     })
 })
 
-it.each([new Error(), EventError.badRequest(), 'foobar'])('promise reject with Error, gives failure', async (error) => {
+it.each([new Error(), EventError.badRequest(), 'foobar'])('%s - promise reject with Error, gives failure', async (error) => {
     await asyncForAll(tuple(json(), await context({})), async ([value, ctx]) => {
         ctx.mockClear()
 
         const handler = vi.fn().mockRejectedValue(error)
         const response = await handleRawEvent({ raw: { schema: {}, handler } }, value, ctx)
 
-        expect(response).toEqual(failure(error))
+        expect(response).toEqual(thrown(failure(error)))
 
         expect(ctx.logger.info).toHaveBeenNthCalledWith(1, '[raw] start', {
             event: value,
@@ -66,7 +70,7 @@ it.each([new Error(), EventError.badRequest(), 'foobar'])('promise reject with E
     })
 })
 
-it.each([new Error(), EventError.badRequest(), 'foobar'])('promise throws with Error, gives failure', async (error) => {
+it.each([new Error(), EventError.badRequest(), 'foobar'])('%s - promise throws with Error, gives failure', async (error) => {
     await asyncForAll(tuple(json(), await context({})), async ([value, ctx]) => {
         ctx.mockClear()
 
@@ -75,7 +79,7 @@ it.each([new Error(), EventError.badRequest(), 'foobar'])('promise throws with E
         })
         const response = await handleRawEvent({ raw: { schema: {}, handler } }, value, ctx)
 
-        expect(response).toEqual(failure(error))
+        expect(response).toEqual(thrown(failure(error)))
 
         expect(ctx.logger.info).toHaveBeenNthCalledWith(1, '[raw] start', {
             event: value,

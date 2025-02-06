@@ -1,7 +1,8 @@
-import { S3Schema, SqsSchema } from '@aws-lambda-powertools/parser/schemas'
+import { SqsSchema as ParserSqsSchema, S3Schema } from '@aws-lambda-powertools/parser/schemas'
 import { array, asyncForAll, constant, random, tuple, unknown } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
 import { expect, it, vi } from 'vitest'
+import type { SqsSchema } from '../../aws/sqs/sqs.type.js'
 import { context } from '../../test/context/context.js'
 import { mockLogger, mockMetrics, mockTracer } from '../../test/mock/mock.js'
 import { s3Handler } from '../s3/s3.js'
@@ -99,7 +100,7 @@ it('handles sqs -> s3 events', async () => {
 
     await asyncForAll(
         tuple(
-            arbitrary(SqsSchema)
+            arbitrary(ParserSqsSchema)
                 .chain((sqs) => {
                     return tuple(
                         constant(sqs),
@@ -124,7 +125,7 @@ it('handles sqs -> s3 events', async () => {
             s3.mockClear()
             s3.mockReturnValue(ret)
 
-            const _response = await handler(sqsEvent, ctx.raw)
+            const _response = await handler(sqsEvent as SqsSchema, ctx.raw)
             let call = 1
             let loggerOffset = 0
             for (const [i, sqsRecord] of sqsEvent.Records.entries()) {
@@ -156,4 +157,4 @@ it('handles sqs -> s3 events', async () => {
             }
         },
     )
-})
+}, 10000)

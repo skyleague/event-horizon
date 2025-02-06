@@ -1,7 +1,8 @@
-import { EventBridgeSchema, SqsSchema } from '@aws-lambda-powertools/parser/schemas'
+import { EventBridgeSchema, SqsSchema as ParserSqsSchema } from '@aws-lambda-powertools/parser/schemas'
 import { array, asyncForAll, constant, tuple, unknown } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
 import { expect, it, vi } from 'vitest'
+import type { SqsSchema } from '../../aws/sqs/sqs.type.js'
 import { context } from '../../test/context/context.js'
 import { mockLogger, mockMetrics, mockTracer } from '../../test/mock/mock.js'
 import { eventBridgeHandler } from '../eventbridge/eventbridge.js'
@@ -25,7 +26,7 @@ it('handles sqs -> eventbridge events', async () => {
 
     await asyncForAll(
         tuple(
-            arbitrary(SqsSchema)
+            arbitrary(ParserSqsSchema)
                 .chain((sqs) => {
                     return tuple(
                         constant(sqs),
@@ -50,7 +51,7 @@ it('handles sqs -> eventbridge events', async () => {
             eventBridge.mockClear()
             eventBridge.mockReturnValue(ret)
 
-            const _response = await handler(sqsEvent, ctx.raw)
+            const _response = await handler(sqsEvent as SqsSchema, ctx.raw)
             for (const [i, sqsRecord] of sqsEvent.Records.entries()) {
                 expect(handler.logger?.info).toHaveBeenNthCalledWith(4 * i + 1, '[sqs] start', {
                     event: expect.objectContaining({

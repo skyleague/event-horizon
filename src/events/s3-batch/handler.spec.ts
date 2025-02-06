@@ -72,7 +72,7 @@ it('events do not give failures', async () => {
     )
 })
 
-it.each([new Error(), 'foobar'])('promise reject with Error, gives failure', async (error) => {
+it.each([new Error(), 'foobar'])('%s - promise reject with Error, gives failure', async (error) => {
     await asyncForAll(tuple(arbitrary(s3BatchEvent), await context({})), async ([event, ctx]) => {
         ctx.mockClear()
 
@@ -182,7 +182,7 @@ it.each([EventError.badRequest()])('promise reject with client error, gives erro
     })
 })
 
-it.each([new Error(), 'foobar'])('promise throws with Error, gives failure', async (error) => {
+it.each([new Error(), 'foobar'])('%s - promise throws with Error, gives failure', async (error) => {
     await asyncForAll(tuple(arbitrary(s3BatchEvent), await context({})), async ([event, ctx]) => {
         ctx.mockClear()
 

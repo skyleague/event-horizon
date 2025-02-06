@@ -408,7 +408,7 @@ describe('schema validation, gives failure', () => {
     })
 })
 
-describe.each([new Error(), 'foobar'])('promise reject with Error, gives failure', (error) => {
+describe.each([new Error(), 'foobar'])('%s - promise reject with Error, gives failure', (error) => {
     it('handleSQSEvent', async () => {
         await asyncForAll(tuple(arbitrary(SqsSchema), await context({})), async ([{ Records }, ctx]) => {
             ctx.mockClear()
@@ -497,7 +497,7 @@ describe.each([new Error(), 'foobar'])('promise reject with Error, gives failure
     })
 })
 
-describe.each([EventError.badRequest()])('promise reject with error error, gives errors', (error) => {
+describe.each([EventError.badRequest()])('%s - promise reject with Error error, gives errors', (error) => {
     it('handleSQSEvent', async () => {
         await asyncForAll(tuple(arbitrary(SqsSchema), await context({})), async ([{ Records }, ctx]) => {
             ctx.mockClear()
@@ -586,7 +586,7 @@ describe.each([EventError.badRequest()])('promise reject with error error, gives
     })
 })
 
-describe.each([new Error(), 'foobar'])('promise throws with Error, gives failure', (error) => {
+describe.each([new Error(), 'foobar'])('%s - promise throws with Error, gives failure', (error) => {
     it('handleSQSEvent', async () => {
         await asyncForAll(tuple(arbitrary(SqsSchema), await context({})), async ([{ Records }, ctx]) => {
             ctx.mockClear()

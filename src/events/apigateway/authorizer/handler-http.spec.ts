@@ -194,52 +194,58 @@ it('headers schema validation, gives failure', async () => {
     )
 })
 
-it.each([new Error(), EventError.internalServerError(), 'foobar'])('promise reject with Error, gives failure', async (error) => {
-    const h = vi.fn()
-    const handler = httpApiAuthorizer({
-        request: {
-            schema: {},
-            handler: h,
-        },
-    })
-    await asyncForAll(tuple(httpApiAuthorizerEvent(handler), await context({})), async ([req, ctx]) => {
-        ctx.mockClear()
-
-        h.mockRejectedValue(error)
-        await expect(() => handleAuthorizerEvent(handler, req.raw, ctx)).rejects.toThrowError('Unauthorized')
-
-        expect(ctx.logger.info).toHaveBeenNthCalledWith(1, '[authorizer] start', {
-            request: expect.any(Object),
+it.each([new Error(), EventError.internalServerError(), 'foobar'])(
+    '%s - promise reject with Error, gives failure',
+    async (error) => {
+        const h = vi.fn()
+        const handler = httpApiAuthorizer({
+            request: {
+                schema: {},
+                handler: h,
+            },
         })
-        expect(ctx.logger.info).toHaveBeenNthCalledWith(2, '[authorizer] sent', {
-            error: new Error('Unauthorized'),
-        })
-        expect(ctx.logger.error).toHaveBeenCalledWith('Error found', expect.any(EventError))
-    })
-})
+        await asyncForAll(tuple(httpApiAuthorizerEvent(handler), await context({})), async ([req, ctx]) => {
+            ctx.mockClear()
 
-it.each([new Error(), EventError.internalServerError(), 'foobar'])('promise throws with Error, gives failure', async (error) => {
-    const h = vi.fn()
-    const handler = httpApiAuthorizer({
-        request: {
-            schema: {},
-            handler: h,
-        },
-    })
-    await asyncForAll(tuple(httpApiAuthorizerEvent(handler), await context({})), async ([req, ctx]) => {
-        ctx.mockClear()
+            h.mockRejectedValue(error)
+            await expect(() => handleAuthorizerEvent(handler, req.raw, ctx)).rejects.toThrowError('Unauthorized')
 
-        h.mockImplementation(() => {
-            throw error
+            expect(ctx.logger.info).toHaveBeenNthCalledWith(1, '[authorizer] start', {
+                request: expect.any(Object),
+            })
+            expect(ctx.logger.info).toHaveBeenNthCalledWith(2, '[authorizer] sent', {
+                error: new Error('Unauthorized'),
+            })
+            expect(ctx.logger.error).toHaveBeenCalledWith('Error found', expect.any(EventError))
         })
-        await expect(() => handleAuthorizerEvent(handler, req.raw, ctx)).rejects.toThrowError('Unauthorized')
+    },
+)
 
-        expect(ctx.logger.info).toHaveBeenNthCalledWith(1, '[authorizer] start', {
-            request: expect.any(Object),
+it.each([new Error(), EventError.internalServerError(), 'foobar'])(
+    '%s - promise throws with Error, gives failure',
+    async (error) => {
+        const h = vi.fn()
+        const handler = httpApiAuthorizer({
+            request: {
+                schema: {},
+                handler: h,
+            },
         })
-        expect(ctx.logger.info).toHaveBeenNthCalledWith(2, '[authorizer] sent', {
-            error: new Error('Unauthorized'),
+        await asyncForAll(tuple(httpApiAuthorizerEvent(handler), await context({})), async ([req, ctx]) => {
+            ctx.mockClear()
+
+            h.mockImplementation(() => {
+                throw error
+            })
+            await expect(() => handleAuthorizerEvent(handler, req.raw, ctx)).rejects.toThrowError('Unauthorized')
+
+            expect(ctx.logger.info).toHaveBeenNthCalledWith(1, '[authorizer] start', {
+                request: expect.any(Object),
+            })
+            expect(ctx.logger.info).toHaveBeenNthCalledWith(2, '[authorizer] sent', {
+                error: new Error('Unauthorized'),
+            })
+            expect(ctx.logger.error).toHaveBeenCalledWith('Error found', expect.any(EventError))
         })
-        expect(ctx.logger.error).toHaveBeenCalledWith('Error found', expect.any(EventError))
-    })
-})
+    },
+)
