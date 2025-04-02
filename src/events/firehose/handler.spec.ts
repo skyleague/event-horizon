@@ -4,7 +4,7 @@ import type { JsonValue } from '@skyleague/axioms/types'
 import { arbitrary } from '@skyleague/therefore'
 import { expect, it, vi } from 'vitest'
 import { alwaysTrueSchema, neverTrueSchema } from '../../../test/schema.js'
-import { EventError } from '../../errors/event-error/event-error.js'
+import { EventError, ValidationError } from '../../errors/event-error/event-error.js'
 import { context } from '../../test/context/context.js'
 import { handleFirehoseTransformation } from './handler.js'
 
@@ -324,14 +324,7 @@ it('result schema validation, gives failure', async () => {
                     response: undefined,
                 })
 
-                expect(ctx.logger.error).toHaveBeenNthCalledWith(
-                    i + 1,
-                    expect.any(String),
-                    EventError.validation({
-                        // we did not feed this property
-                        errors: [],
-                    }),
-                )
+                expect(ctx.logger.error).toHaveBeenNthCalledWith(i + 1, expect.any(String), expect.any(ValidationError))
             }
         },
     )

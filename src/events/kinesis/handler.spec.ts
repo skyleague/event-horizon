@@ -180,7 +180,13 @@ it('schema validation, gives failure', async () => {
                     response: { itemIdentifier: record.eventID },
                 })
 
-                expect(ctx.logger.error).toHaveBeenNthCalledWith(i + 1, expect.any(String), EventError.validation())
+                expect(ctx.logger.error).toHaveBeenNthCalledWith(
+                    i + 1,
+                    expect.any(String),
+                    EventError.validation({
+                        errors: [],
+                    }),
+                )
             }
         },
     )

@@ -5,7 +5,7 @@ import { arbitrary } from '@skyleague/therefore'
 import type { SQSBatchItemFailure, SQSBatchResponse } from 'aws-lambda/trigger/sqs.js'
 import { describe, expect, it, vi } from 'vitest'
 import type { SqsRecordSchema } from '../../aws/sqs/sqs.type.js'
-import { EventError } from '../../errors/event-error/event-error.js'
+import { EventError, ValidationError } from '../../errors/event-error/event-error.js'
 import type { Logger } from '../../observability/logger/logger.js'
 import { context } from '../../test/context/context.js'
 import { handleSQSEvent, handleSQSMessageGroup } from './handler.js'
@@ -332,11 +332,18 @@ describe('schema validation, gives failure', () => {
                         response: { itemIdentifier: record.messageId },
                     })
 
-                    expect(ctx.logger.error).toHaveBeenNthCalledWith(i + 1, expect.any(String), EventError.validation())
+                    expect(ctx.logger.error).toHaveBeenNthCalledWith(
+                        i + 1,
+                        expect.any(String),
+                        EventError.validation({
+                            errors: [],
+                        }),
+                    )
                 }
             },
         )
     })
+
     it('handleSQSMessageGroup', async () => {
         const neverTrue = {
             is: () => false,
@@ -401,7 +408,7 @@ describe('schema validation, gives failure', () => {
 
                 expect(ctx.logger.error).toHaveBeenCalledTimes(Records.length)
                 for (const [i, _] of Records.entries()) {
-                    expect(ctx.logger.error).toHaveBeenNthCalledWith(i + 1, expect.any(String), EventError.validation())
+                    expect(ctx.logger.error).toHaveBeenNthCalledWith(i + 1, expect.any(String), expect.any(ValidationError))
                 }
             },
         )
