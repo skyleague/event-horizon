@@ -2,6 +2,7 @@ import { EventError, httpStatusCodes } from './event-error.js'
 
 import { constants, asTry, forAll, integer, string, tuple } from '@skyleague/axioms'
 import { expect, it } from 'vitest'
+import { z } from 'zod'
 
 it('EventError === EventError', () => {
     expect(EventError.is(EventError.badGateway())).toBe(true)
@@ -115,4 +116,62 @@ it('level - level overrides default', () => {
     forAll(tuple(integer({ min: 0, max: 600 }), constants('warning', 'info', 'error')), ([statusCode, level]) => {
         expect(new EventError(undefined, { statusCode, level }).level).toBe(level)
     })
+})
+
+it('correctly keeps zod validation errors', () => {
+    const failure = z
+        .object({
+            name: z.string(),
+        })
+        .safeParse({
+            name: 1,
+        })
+    if (failure.success) {
+        throw new Error('should not succeed')
+    }
+    const e = EventError.validation(failure.error)
+    expect(e).toMatchInlineSnapshot(`
+      [validation: [
+        {
+          "code": "invalid_type",
+          "expected": "string",
+          "received": "number",
+          "path": [
+            "name"
+          ],
+          "message": "Expected string, received number"
+        }
+      ]]
+    `)
+
+    expect(e.issues).toEqual(failure.error.issues)
+})
+
+it('correctly keeps zod validation errors - full failure', () => {
+    const failure = z
+        .object({
+            name: z.string(),
+        })
+        .safeParse({
+            name: 1,
+        })
+    if (failure.success) {
+        throw new Error('should not succeed')
+    }
+    const e = EventError.validation(failure)
+    expect(e).toMatchInlineSnapshot(`
+      [validation: [
+        {
+          "code": "invalid_type",
+          "expected": "string",
+          "received": "number",
+          "path": [
+            "name"
+          ],
+          "message": "Expected string, received number"
+        }
+      ]]
+    `)
+
+    expect(e.issues).toEqual(failure.error.issues)
 })

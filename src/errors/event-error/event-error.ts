@@ -1,9 +1,10 @@
-import { asArray, isError, isObject, isThrown } from '@skyleague/axioms'
+import { asArray, isError, isObject, isThrown, omitUndefined } from '@skyleague/axioms'
 import type { Exact } from '@skyleague/axioms/types'
 import type { ErrorObject } from 'ajv'
 import { HttpError } from '../../events/apigateway/event/functions/http-error.type.js'
 import type { HTTPHeaders, HTTPMethod } from '../../events/apigateway/types.js'
 import type { Logger } from '../../observability/logger/logger.js'
+import type { StandardSchemaV1 } from './standard-schema.js'
 
 export const httpStatusCodes: Record<number, string | undefined> = {
     100: 'Continue',
@@ -220,34 +221,88 @@ export class EventError extends Error implements HttpError {
                       location?: string
                   }
                 | {
-                      issues?:
-                          | {
-                                message: string
-                                path?: PropertyKey[]
-                            }[]
-                          | null
-                          | undefined
-                      location?: string
+                      issues: {
+                          message: string
+                          path?: (string | number)[]
+                      }[]
+                      message: string
                   }
                 | {
                       left?: ErrorObject[] | null | undefined
                       location?: string
                   }
+                | {
+                      success: false
+                      error: {
+                          issues: {
+                              message: string
+                              path?: (string | number)[]
+                          }[]
+                          message: string
+                      }
+                      data?: never
+                  }
+                | StandardSchemaV1.FailureResult
             ) = {},
-    ): EventError {
-        const { location, statusCode = 400 } = options
-        const errors = 'left' in options ? options.left : 'errors' in options ? options.errors : []
-        const message =
-            location !== undefined ? `${errors?.[0]?.message ?? 'validation failed'} in ${location}` : errors?.[0]?.message
-        return new EventError(message, {
+    ): ValidationError {
+        const { statusCode = 400 } = options
+        const { name, errors, issues, location, message } = (() => {
+            const defaultMessage = 'validation failed'
+            const fromErrorObject = (errors: ErrorObject[] | null | undefined, location?: string) => {
+                const issues =
+                    errors?.map((err) => ({
+                        message: err.message ?? 'Unknown validation error',
+                        path: err.instancePath?.split('/').filter((segment) => segment.length > 0),
+                    })) ?? []
+
+                const errorMessage = errors?.find((error) => error.message !== '')?.message ?? defaultMessage
+                const message = location ? `${errorMessage} in ${location}` : errorMessage
+
+                return { name: undefined, errors, issues, message, location }
+            }
+            const errorObject = 'success' in options && options.success === false ? options.error : options
+            if ('issues' in errorObject && errorObject.issues) {
+                if ('message' in errorObject) {
+                    // zod
+                    return {
+                        name: undefined,
+                        errors: undefined,
+                        message: errorObject.message,
+                        issues: errorObject.issues,
+                        location: undefined,
+                    }
+                }
+                // standard schema
+                return {
+                    name: undefined,
+                    errors: undefined,
+                    message: errorObject.issues.find((issue) => issue.message !== '')?.message ?? defaultMessage,
+                    issues: errorObject.issues,
+                    location: undefined,
+                }
+            }
+
+            if ('errors' in options && options.errors) {
+                return fromErrorObject(options.errors, options.location)
+            }
+            if ('left' in options && options.left) {
+                return fromErrorObject(options.left, options.location)
+            }
+
+            return { name: undefined, errors: undefined, location: undefined, message: defaultMessage, issues: [] }
+        })()
+
+        return new ValidationError(message, {
             statusCode,
-            attributes: {
+            ctor: EventError.validation,
+            ...options,
+            attributes: omitUndefined({
                 ...(isObject(options.attributes) ? options.attributes : { value: options.attributes }),
                 location,
                 errors,
-            },
-            ctor: EventError.validation,
-            ...options,
+            }),
+            name,
+            issues,
         })
     }
 
@@ -415,5 +470,23 @@ export class EventError extends Error implements HttpError {
 
     public static loopDetected<T extends Exact<EventOptions, T>>(message?: ErrorLike, options?: T): EventError {
         return new EventError(message, { statusCode: 508, ctor: EventError.loopDetected, ...options })
+    }
+}
+
+export interface Issue {
+    readonly message: string
+    readonly path?: ReadonlyArray<PropertyKey | PathSegment> | undefined
+}
+
+export interface PathSegment {
+    readonly key: PropertyKey
+}
+
+export class ValidationError extends EventError {
+    public readonly issues: readonly Issue[]
+
+    public constructor(message?: ErrorLike, options: EventOptions & { issues?: readonly Issue[] } = {}) {
+        super(message, options)
+        this.issues = options.issues ?? []
     }
 }
