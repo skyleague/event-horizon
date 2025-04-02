@@ -621,7 +621,7 @@ describe('eventHandler', () => {
                     },
                 ) as LambdaHandler
 
-                await expect(() => handler(request, ctx.raw)).rejects.toEqual(ret)
+                await expect(() => handler(request, ctx.raw)).rejects.toEqual(EventError.from(ret))
                 expect(config).toHaveBeenCalledTimes(1)
                 expect(config).toHaveBeenCalledWith()
                 expect(services).toHaveBeenCalledTimes(1)

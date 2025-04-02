@@ -235,7 +235,7 @@ it('payload schema validation, gives failure', async () => {
                 })
             }
             const response = await handleFirehoseTransformation(
-                { firehose: { schema: { payload: neverTrueSchema }, handler } },
+                { firehose: { schema: { payload: { ...neverTrueSchema, errors: [] } }, handler } },
                 records,
                 ctx,
             )
@@ -260,7 +260,14 @@ it('payload schema validation, gives failure', async () => {
                     response: undefined,
                 })
 
-                expect(ctx.logger.error).toHaveBeenNthCalledWith(i + 1, expect.any(String), EventError.validation())
+                expect(ctx.logger.error).toHaveBeenNthCalledWith(
+                    i + 1,
+                    expect.any(String),
+                    EventError.validation({
+                        // we did not feed this property
+                        errors: [],
+                    }),
+                )
             }
         },
     )
@@ -287,7 +294,12 @@ it('result schema validation, gives failure', async () => {
                 })
             }
             const response = await handleFirehoseTransformation(
-                { firehose: { schema: { payload: alwaysTrueSchema, result: neverTrueSchema }, handler } },
+                {
+                    firehose: {
+                        schema: { payload: alwaysTrueSchema, result: { ...neverTrueSchema, errors: [] } },
+                        handler,
+                    },
+                },
                 records,
                 ctx,
             )
@@ -312,13 +324,20 @@ it('result schema validation, gives failure', async () => {
                     response: undefined,
                 })
 
-                expect(ctx.logger.error).toHaveBeenNthCalledWith(i + 1, expect.any(String), EventError.validation())
+                expect(ctx.logger.error).toHaveBeenNthCalledWith(
+                    i + 1,
+                    expect.any(String),
+                    EventError.validation({
+                        // we did not feed this property
+                        errors: [],
+                    }),
+                )
             }
         },
     )
 })
 
-it.each([new Error(), 'foobar'])('promise reject with Error, gives failure', async (error) => {
+it.each([new Error(), 'foobar'])('%s - promise reject with Error, gives failure', async (error) => {
     await asyncForAll(tuple(arbitrary(KinesisFirehoseSchema), await context({})), async ([{ records }, ctx]) => {
         ctx.mockClear()
 
@@ -392,7 +411,7 @@ it.each([EventError.badRequest()])('promise reject with client error, gives erro
     })
 })
 
-it.each([new Error(), 'foobar'])('promise throws with Error, gives failure', async (error) => {
+it.each([new Error(), 'foobar'])('%s - promise throws with Error, gives failure', async (error) => {
     await asyncForAll(tuple(arbitrary(KinesisFirehoseSchema), await context({})), async ([{ records }, ctx]) => {
         ctx.mockClear()
 

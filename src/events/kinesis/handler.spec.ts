@@ -186,7 +186,7 @@ it('schema validation, gives failure', async () => {
     )
 })
 
-it.each([new Error(), 'foobar'])('promise reject with Error, gives failure', async (error) => {
+it.each([new Error(), 'foobar'])('%s - promise reject with Error, gives failure', async (error) => {
     await asyncForAll(tuple(arbitrary(KinesisDataStreamSchema), await context({})), async ([{ Records }, ctx]) => {
         ctx.mockClear()
 
@@ -252,7 +252,7 @@ it.each([EventError.badRequest()])('promise reject with client error, gives erro
     })
 })
 
-it.each([new Error(), 'foobar'])('promise throws with Error, gives failure', async (error) => {
+it.each([new Error(), 'foobar'])('%s - promise throws with Error, gives failure', async (error) => {
     await asyncForAll(tuple(arbitrary(KinesisDataStreamSchema), await context({})), async ([{ Records }, ctx]) => {
         ctx.mockClear()
 

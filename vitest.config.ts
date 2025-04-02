@@ -12,15 +12,6 @@ export default defineConfig({
         },
         fakeTimers: {
             now: new Date(2022, 1, 10).getTime(),
-            toFake: [
-                // 'setTimeout',
-                // 'setImmediate',
-                'clearTimeout',
-                'setInterval',
-                'clearInterval',
-                'clearImmediate',
-                'Date',
-            ],
         },
     },
 })

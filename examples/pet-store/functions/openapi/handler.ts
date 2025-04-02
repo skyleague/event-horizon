@@ -1,4 +1,4 @@
-import packageJSON from '../../../../package.json' assert { type: 'json' }
+import packageJSON from '../../../../package.json' with { type: 'json' }
 import { httpApiHandler } from '../../../../src/events/apigateway/event/http.js'
 import { openapiFromHandlers } from '../../../../src/spec/openapi/openapi.js'
 

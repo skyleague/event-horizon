@@ -5,7 +5,7 @@ import { EventError } from '../../errors/event-error/event-error.js'
 import { context } from '../../test/context/context.js'
 
 import { DescribeSecretCommand, SecretsManager, SecretsManagerClient } from '@aws-sdk/client-secrets-manager'
-import { asyncForAll, failure, tuple } from '@skyleague/axioms'
+import { asyncForAll, failure, thrown, tuple } from '@skyleague/axioms'
 import { mockClient } from 'aws-sdk-client-mock'
 import { beforeEach, expect, it, vi } from 'vitest'
 
@@ -74,7 +74,7 @@ it('schema validation, gives failure', async () => {
     })
 })
 
-it.each([new Error()])('promise reject with Error, gives failure', async (error) => {
+it.each([new Error()])('%s - promise reject with Error, gives failure', async (error) => {
     await asyncForAll(tuple(secretRotationEvent(), await context({ services })), async ([rotation, ctx]) => {
         ctx.mockClear()
         mockSecrets.reset()
@@ -102,7 +102,7 @@ it.each([new Error()])('promise reject with Error, gives failure', async (error)
     })
 })
 
-it.each([new Error(), EventError.badRequest(), 'foobar'])('promise throws with Error, gives failure', async (error) => {
+it.each([new Error(), EventError.badRequest(), 'foobar'])('%s - promise throws with Error, gives failure', async (error) => {
     await asyncForAll(tuple(secretRotationEvent(), await context({ services })), async ([rotation, ctx]) => {
         ctx.mockClear()
         mockSecrets.reset()
@@ -119,7 +119,7 @@ it.each([new Error(), EventError.badRequest(), 'foobar'])('promise throws with E
         })
         const response = await handleSecretRotationEvent({ services, secretRotation: { handler } }, rotation.raw, ctx)
 
-        expect(response).toEqual(failure(error))
+        expect(response).toEqual(thrown(failure(error)))
 
         expect(handler).toHaveBeenCalledWith(expect.objectContaining({ raw: rotation.raw }), ctx)
 

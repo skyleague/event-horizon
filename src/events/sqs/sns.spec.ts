@@ -1,7 +1,8 @@
-import { SnsRecordSchema, SqsSchema } from '@aws-lambda-powertools/parser/schemas'
+import { SqsSchema as ParserSqsSchema, SnsRecordSchema } from '@aws-lambda-powertools/parser/schemas'
 import { array, asyncForAll, constant, random, tuple, unknown } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
 import { expect, it, vi } from 'vitest'
+import type { SqsSchema } from '../../aws/sqs/sqs.type.js'
 import { context } from '../../test/context/context.js'
 import { mockLogger, mockMetrics, mockTracer } from '../../test/mock/mock.js'
 import { snsHandler } from '../sns/sns.js'
@@ -139,7 +140,7 @@ it('handles sqs -> sns events', async () => {
 
     await asyncForAll(
         tuple(
-            arbitrary(SqsSchema)
+            arbitrary(ParserSqsSchema)
                 .chain((sqs) => {
                     return tuple(
                         constant(sqs),
@@ -164,7 +165,7 @@ it('handles sqs -> sns events', async () => {
             sns.mockClear()
             sns.mockReturnValue(ret)
 
-            const _response = await handler(sqsEvent, ctx.raw)
+            const _response = await handler(sqsEvent as SqsSchema, ctx.raw)
             for (const [i, sqsRecord] of sqsEvent.Records.entries()) {
                 expect(handler.logger?.info).toHaveBeenNthCalledWith(4 * i + 1, '[sqs] start', {
                     event: expect.objectContaining({

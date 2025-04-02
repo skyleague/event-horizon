@@ -268,79 +268,85 @@ it.each([httpApiHandler, restApiHandler])('headers schema validation, gives fail
     })
 })
 
-it.each([new Error(), EventError.internalServerError(), 'foobar'])('promise reject with Error, gives failure', async (error) => {
-    const h = vi.fn()
-    const handler = httpApiHandler({
-        http: {
-            method,
-            path,
-            schema: { responses: {} },
-            handler: h,
-        },
-    })
-    await asyncForAll(tuple(httpApiEvent(handler), await context({})), async ([req, ctx]) => {
-        ctx.mockClear()
-
-        h.mockRejectedValue(error)
-        const response = await handleHTTPEvent(handler, req.raw, ctx)
-
-        expect(response).toEqual({
-            statusCode: 500,
-            body: expect.stringContaining('Error'),
-            headers: { 'Content-Type': 'application/json' },
-        })
-
-        expect(ctx.logger.info).toHaveBeenNthCalledWith(1, `[http] ${handler.http.path} start`, {
-            request: expect.any(Object),
-        })
-        expect(ctx.logger.info).toHaveBeenNthCalledWith(2, `[http] ${handler.http.path} sent 500`, {
-            response: {
-                statusCode: 500,
+it.each([new Error(), EventError.internalServerError(), 'foobar'])(
+    '%s - promise reject with Error, gives failure',
+    async (error) => {
+        const h = vi.fn()
+        const handler = httpApiHandler({
+            http: {
+                method,
+                path,
+                schema: { responses: {} },
+                handler: h,
             },
         })
-        expect(ctx.logger.error).toHaveBeenCalledWith('Error found', expect.any(EventError))
-    })
-})
+        await asyncForAll(tuple(httpApiEvent(handler), await context({})), async ([req, ctx]) => {
+            ctx.mockClear()
 
-it.each([new Error(), EventError.internalServerError(), 'foobar'])('promise throws with Error, gives failure', async (error) => {
-    const h = vi.fn()
-    const handler = httpApiHandler({
-        http: {
-            method,
-            path,
-            schema: { responses: {} },
-            handler: h,
-        },
-    })
-    await asyncForAll(tuple(httpApiEvent(handler), await context({})), async ([req, ctx]) => {
-        ctx.mockClear()
+            h.mockRejectedValue(error)
+            const response = await handleHTTPEvent(handler, req.raw, ctx)
 
-        h.mockImplementation(() => {
-            throw error
-        })
-
-        const response = await handleHTTPEvent(handler, req.raw, ctx)
-
-        expect(response).toEqual({
-            statusCode: 500,
-            body: expect.stringContaining('Error'),
-            headers: { 'Content-Type': 'application/json' },
-        })
-
-        expect(ctx.logger.info).toHaveBeenNthCalledWith(1, `[http] ${handler.http.path} start`, {
-            request: expect.any(Object),
-        })
-        expect(ctx.logger.info).toHaveBeenNthCalledWith(2, `[http] ${handler.http.path} sent 500`, {
-            response: {
+            expect(response).toEqual({
                 statusCode: 500,
-            },
+                body: expect.stringContaining('Error'),
+                headers: { 'Content-Type': 'application/json' },
+            })
+
+            expect(ctx.logger.info).toHaveBeenNthCalledWith(1, `[http] ${handler.http.path} start`, {
+                request: expect.any(Object),
+            })
+            expect(ctx.logger.info).toHaveBeenNthCalledWith(2, `[http] ${handler.http.path} sent 500`, {
+                response: {
+                    statusCode: 500,
+                },
+            })
+            expect(ctx.logger.error).toHaveBeenCalledWith('Error found', expect.any(EventError))
         })
-        expect(ctx.logger.error).toHaveBeenCalledWith('Error found', expect.any(EventError))
-    })
-})
+    },
+)
 
 it.each([new Error(), EventError.internalServerError(), 'foobar'])(
-    'promise throws with Error, custom error serializer',
+    '%s - promise throws with Error, gives failure',
+    async (error) => {
+        const h = vi.fn()
+        const handler = httpApiHandler({
+            http: {
+                method,
+                path,
+                schema: { responses: {} },
+                handler: h,
+            },
+        })
+        await asyncForAll(tuple(httpApiEvent(handler), await context({})), async ([req, ctx]) => {
+            ctx.mockClear()
+
+            h.mockImplementation(() => {
+                throw error
+            })
+
+            const response = await handleHTTPEvent(handler, req.raw, ctx)
+
+            expect(response).toEqual({
+                statusCode: 500,
+                body: expect.stringContaining('Error'),
+                headers: { 'Content-Type': 'application/json' },
+            })
+
+            expect(ctx.logger.info).toHaveBeenNthCalledWith(1, `[http] ${handler.http.path} start`, {
+                request: expect.any(Object),
+            })
+            expect(ctx.logger.info).toHaveBeenNthCalledWith(2, `[http] ${handler.http.path} sent 500`, {
+                response: {
+                    statusCode: 500,
+                },
+            })
+            expect(ctx.logger.error).toHaveBeenCalledWith('Error found', expect.any(EventError))
+        })
+    },
+)
+
+it.each([new Error(), EventError.internalServerError(), 'foobar'])(
+    '%s - promise throws with Error, , custom error serializer',
     async (error) => {
         const h = vi.fn()
         const seralizer = vi.fn()

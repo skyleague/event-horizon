@@ -21,10 +21,10 @@ it('should properly validate and type SNS event payload', () => {
             }),
         ),
         (request) => {
-            expect(request.payload).toEqual('payload')
+            const parsed = KinesisDataStreamRecord.parse(request.raw)
 
-            expect(request.raw.kinesis.data).toEqual(JSON.stringify(request.payload))
-            KinesisDataStreamRecord.parse(request.raw)
+            expect(request.payload).toEqual('payload')
+            expect(parsed.kinesis.data).toEqual(request.payload)
 
             expectTypeOf(request.payload).toEqualTypeOf<'payload'>()
         },

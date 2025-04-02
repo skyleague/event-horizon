@@ -7,9 +7,9 @@ import {
     EventBridgeSchema,
     KinesisDataStreamSchema,
     KinesisFirehoseSchema,
+    SqsSchema as ParserSqsSchema,
     S3Schema,
     SnsSchema,
-    SqsSchema,
 } from '@aws-lambda-powertools/parser/schemas'
 import { type Try, asyncForAll, oneOf, random, tuple, unknown } from '@skyleague/axioms'
 import { type Schema, arbitrary } from '@skyleague/therefore'
@@ -19,7 +19,7 @@ import { z } from 'zod'
 import { literalSchema, warmerEvent } from '../../../test/schema.js'
 import { s3BatchEvent } from '../../aws/s3-batch/s3.schema.js'
 import { secretRotationEvent } from '../../aws/secret-rotation/secret-rotation.schema.js'
-import type { SqsRecordSchema } from '../../aws/sqs/sqs.type.js'
+import type { SqsRecordSchema, SqsSchema } from '../../aws/sqs/sqs.type.js'
 import { context } from '../../test/context/context.js'
 import type { LambdaContext } from '../types.js'
 import { sqsGroupHandler, sqsHandler } from './sqs.js'
@@ -34,11 +34,11 @@ describe('sqsHandler', () => {
             },
             { _kernel: sqs },
         )
-        await asyncForAll(tuple(arbitrary(SqsSchema), unknown(), await context(handler)), async ([event, ret, ctx]) => {
+        await asyncForAll(tuple(arbitrary(ParserSqsSchema), unknown(), await context(handler)), async ([event, ret, ctx]) => {
             sqs.mockClear()
             sqs.mockReturnValue(ret)
 
-            const response = await handler._options.handler(event, ctx)
+            const response = await handler._options.handler(event as SqsSchema, ctx)
             expect(response).toBe(ret)
             expect(sqs).toHaveBeenCalledWith(expect.anything(), event.Records, ctx)
         })
@@ -289,11 +289,11 @@ describe('sqsGroupHandler', () => {
             },
             { _kernel: sqs },
         )
-        await asyncForAll(tuple(arbitrary(SqsSchema), unknown(), await context(handler)), async ([event, ret, ctx]) => {
+        await asyncForAll(tuple(arbitrary(ParserSqsSchema), unknown(), await context(handler)), async ([event, ret, ctx]) => {
             sqs.mockClear()
             sqs.mockReturnValue(ret)
 
-            const response = await handler._options.handler(event, ctx)
+            const response = await handler._options.handler(event as SqsSchema, ctx)
             expect(response).toBe(ret)
             expect(sqs).toHaveBeenCalledWith(expect.anything(), event.Records, ctx)
         })

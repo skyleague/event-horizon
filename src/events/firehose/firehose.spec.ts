@@ -6,7 +6,7 @@ import {
     DynamoDBStreamSchema,
     EventBridgeSchema,
     KinesisDataStreamSchema,
-    KinesisFirehoseSchema,
+    KinesisFirehoseSchema as ParserKinesisFirehoseSchema,
     S3Schema,
     SnsSchema,
     SqsSchema,
@@ -16,7 +16,7 @@ import { arbitrary } from '@skyleague/therefore'
 import { expect, expectTypeOf, it, vi } from 'vitest'
 import { type Schema, z } from 'zod'
 import { literalSchema, warmerEvent } from '../../../test/schema.js'
-import type { KinesisFirehoseRecord } from '../../aws/firehose/firehose.type.js'
+import type { KinesisFirehoseRecord, KinesisFirehoseSchema } from '../../aws/firehose/firehose.type.js'
 import { s3BatchEvent } from '../../aws/s3-batch/s3.schema.js'
 import { secretRotationEvent } from '../../aws/secret-rotation/secret-rotation.schema.js'
 import { context } from '../../test/context/context.js'
@@ -32,14 +32,17 @@ it('handles firehose events', async () => {
         },
         { _kernel: firehose },
     )
-    await asyncForAll(tuple(arbitrary(KinesisFirehoseSchema), unknown(), await context(handler)), async ([event, ret, ctx]) => {
-        firehose.mockClear()
-        firehose.mockReturnValue(ret)
+    await asyncForAll(
+        tuple(arbitrary(ParserKinesisFirehoseSchema), unknown(), await context(handler)),
+        async ([event, ret, ctx]) => {
+            firehose.mockClear()
+            firehose.mockReturnValue(ret)
 
-        const response = await handler._options.handler(event, ctx)
-        expect(response).toBe(ret)
-        expect(firehose).toHaveBeenCalledWith(expect.anything(), event.records, ctx)
-    })
+            const response = await handler._options.handler(event as KinesisFirehoseSchema, ctx)
+            expect(response).toBe(ret)
+            expect(firehose).toHaveBeenCalledWith(expect.anything(), event.records, ctx)
+        },
+    )
 })
 
 it('handles schema types', () => {

@@ -7,7 +7,7 @@ export function coerce<T extends GenericParser>(parser: T | undefined, input: un
         }
         if ('_def' in parser) {
             const parsed = parser.safeParse(input)
-            return parsed.success ? parsed.data : input
+            return parsed.success ? parsed.data : (input as InferFromParser<T>)
         }
     }
 

@@ -1,5 +1,5 @@
 import { SnsSchema } from '@aws-lambda-powertools/parser/schemas'
-import { asyncForAll, failure, json, random, tuple } from '@skyleague/axioms'
+import { asyncForAll, failure, json, random, thrown, tuple } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
 import { arbitrary } from '@skyleague/therefore'
 import { expect, it, vi } from 'vitest'
@@ -172,7 +172,7 @@ it('schema validation, gives failure', async () => {
     )
 })
 
-it.each([new Error(), EventError.badRequest(), 'foobar'])('promise reject with Error, gives failure', async (error) => {
+it.each([new Error(), EventError.badRequest(), 'foobar'])('%s - promise reject with Error, gives failure', async (error) => {
     await asyncForAll(tuple(arbitrary(SnsSchema), await context()), async ([{ Records }, ctx]) => {
         ctx.mockClear()
 
@@ -180,7 +180,7 @@ it.each([new Error(), EventError.badRequest(), 'foobar'])('promise reject with E
         const response = await handleSNSEvent({ sns: { schema: {}, handler, payloadType: 'binary' } }, Records, ctx)
 
         if (Records.length > 0) {
-            expect(response).toEqual(failure(error))
+            expect(response).toEqual(thrown(failure(error)))
         }
 
         for (const [i, record] of Records.entries()) {
@@ -205,7 +205,7 @@ it.each([new Error(), EventError.badRequest(), 'foobar'])('promise reject with E
     })
 })
 
-it.each([new Error(), EventError.badRequest(), 'foobar'])('promise throws with Error, gives failure', async (error) => {
+it.each([new Error(), EventError.badRequest(), 'foobar'])('%s - promise throws with Error, gives failure', async (error) => {
     await asyncForAll(tuple(arbitrary(SnsSchema), await context()), async ([{ Records }, ctx]) => {
         ctx.mockClear()
 
@@ -215,7 +215,7 @@ it.each([new Error(), EventError.badRequest(), 'foobar'])('promise throws with E
         const response = await handleSNSEvent({ sns: { schema: {}, handler, payloadType: 'binary' } }, Records, ctx)
 
         if (Records.length > 0) {
-            expect(response).toEqual(failure(error))
+            expect(response).toEqual(thrown(failure(error)))
         }
 
         for (const [i, record] of Records.entries()) {
