@@ -369,6 +369,33 @@ describe('eventHandler', () => {
         })
     })
 
+    it('early exit fully resolved on warmer object', async () => {
+        const warmer = '__WARMER__'
+        await asyncForAll(tuple(configArbitrary, unknown(), await context()), async ([c, s, ctx]) => {
+            const handlerImpl = vi.fn()
+            const config = vi.fn().mockResolvedValue(c)
+            const services = vi.fn().mockResolvedValue(s)
+            const handler = eventHandler(
+                {
+                    config,
+                    services,
+                },
+                { handler: handlerImpl },
+            ) as LambdaHandler
+
+            expect(await handler({ [warmer]: s }, ctx.raw)).toBe(undefined)
+            expect(config).toHaveBeenCalledTimes(1)
+            expect(config).toHaveBeenCalledWith()
+            expect(services).toHaveBeenCalledTimes(1)
+            expect(services).toHaveBeenCalledWith(asConfig(c))
+            if (isObject(c)) {
+                expect(services).toHaveBeenCalledWith({ [configTag]: c })
+            }
+
+            expect(handlerImpl).not.toHaveBeenCalled()
+        })
+    })
+
     const tokenArbitrary = string({ minLength: 1 })
     it('configuration is loaded into profile successfully', async () => {
         const appConfigData = new AppConfigData({})
