@@ -222,7 +222,7 @@ export function normalizeSchema({
         converted.oneOf = converted.oneOf.map((i) => normalizeSchema({ ctx, schema: i }))
     }
 
-    if (converted.type === 'array') {
+    if (converted.type === 'array' || (Array.isArray(converted.type) && converted.type.includes('array'))) {
         if (converted.items !== undefined) {
             if (isArray(converted.items)) {
                 converted.items = converted.items.map((i) => normalizeSchema({ ctx, schema: i }))
@@ -230,7 +230,7 @@ export function normalizeSchema({
                 converted.items = normalizeSchema({ ctx, schema: converted.items })
             }
         }
-    } else if (converted.type === 'object') {
+    } else if (converted.type === 'object' || (Array.isArray(converted.type) && converted.type.includes('object'))) {
         if (converted.properties !== undefined) {
             for (const [key, c] of entriesOf(converted.properties)) {
                 converted.properties[key] = normalizeSchema({ ctx, schema: c })
