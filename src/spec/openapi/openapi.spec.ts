@@ -35,19 +35,46 @@ describe('jsonptrToName', () => {
 describe('addComponent', () => {
     let openapi: any = {}
     it('adds components', () => {
-        forAll(tuple(string(), record(json())), ([title, schema]) => {
+        forAll(tuple(string(), record(json()), string()), ([title, schema, name]) => {
             openapi = {}
-            expect(addComponent({ ctx: { openapi } as any, schema: { ...schema, title }, sanitize: false })).toEqual(title)
-            expect(openapi.components.schemas[title]).toEqual({ ...schema, title })
+            expect(
+                addComponent({
+                    ctx: { openapi, id: () => name } as any,
+                    schema: { ...schema, title },
+                    sanitize: false,
+                    referenceToName: {},
+                    jsonptrs: {},
+                    ptrToReference: {},
+                }),
+            ).toEqual(title)
+            expect(openapi.components.schemas[name]).toEqual({ ...schema, title })
         })
     })
 
     it('only adds first value', () => {
         forAll(tuple(string(), record(json()), record(json())), ([title, schema1, schema2]) => {
             openapi = {}
-            expect(addComponent({ ctx: { openapi } as any, schema: { ...schema1, title }, sanitize: false })).toEqual(title)
-            expect(addComponent({ ctx: { openapi } as any, schema: { ...schema2, title }, sanitize: false })).toEqual(title)
-            expect(openapi.components.schemas[title]).toEqual({ ...schema1, title })
+            expect(
+                addComponent({
+                    ctx: { openapi, id: () => '1' } as any,
+                    schema: { ...schema1, title },
+                    sanitize: false,
+                    referenceToName: {},
+                    jsonptrs: {},
+                    ptrToReference: {},
+                }),
+            ).toEqual(title)
+            expect(
+                addComponent({
+                    ctx: { openapi, id: () => '2' } as any,
+                    schema: { ...schema2, title },
+                    sanitize: false,
+                    referenceToName: {},
+                    jsonptrs: {},
+                    ptrToReference: {},
+                }),
+            ).toEqual(title)
+            expect(openapi.components.schemas['1']).toEqual({ ...schema1, title })
         })
     })
 })
@@ -62,7 +89,14 @@ describe('ensureTarget', () => {
             ),
             ([ptr, name]) => {
                 openapi = {}
-                ensureTarget({ openapi } as any, `#/${ptr}/${name}`, target)
+                ensureTarget({
+                    ctx: { openapi, id: () => name } as any,
+                    ptr: `#/${ptr}/${name}`,
+                    target,
+                    schema: {},
+                    referenceToName: {},
+                    ptrToReference: {},
+                })
                 expect(openapi.components[target][name]).toEqual({
                     description: '',
                     content: {
@@ -85,7 +119,14 @@ describe('ensureTarget', () => {
             ),
             ([ptr, name]) => {
                 openapi = {}
-                ensureTarget({ openapi } as any, `#/${ptr}/${name}`, 'parameters')
+                ensureTarget({
+                    ctx: { openapi, id: () => name } as any,
+                    ptr: `#/${ptr}/${name}`,
+                    target: 'parameters',
+                    schema: {},
+                    referenceToName: {},
+                    ptrToReference: {},
+                })
                 expect(openapi.components.parameters[name]).toEqual({
                     $ref: `#/components/schemas/${name}`,
                 })
@@ -101,7 +142,14 @@ describe('ensureTarget', () => {
             ),
             ([ptr, name]: [string, string]) => {
                 openapi = {}
-                ensureTarget({ openapi } as any, `#/${ptr}/${name}`, 'schemas')
+                ensureTarget({
+                    ctx: { openapi } as any,
+                    ptr: `#/${ptr}/${name}`,
+                    target: 'schemas',
+                    schema: {},
+                    referenceToName: {},
+                    ptrToReference: {},
+                })
                 expect(openapi.components.schemas).toEqual({})
             },
         )
@@ -119,12 +167,22 @@ describe('normalizeSchema', () => {
             ).map(([jsonschema, ptr, name]) => [{ ...jsonschema, $ref: `#/${ptr}/${name}` }, ptr, name] as const),
             ([jsonschema, ptr, name]) => {
                 openapi = {}
-                expect(normalizeSchema({ ctx: { openapi } as any, schema: jsonschema as any })).toEqual({
+                expect(
+                    normalizeSchema({
+                        ctx: { openapi, id: () => name } as any,
+                        schema: jsonschema as any,
+                        components: {},
+                        jsonptrs: {},
+                        referenceToName: {},
+                        ptrToReference: {},
+                    }),
+                ).toEqual({
                     ...jsonschema,
                     $ref: `#/${ptr}/${name}`,
                 })
                 expect(openapi.components.schemas).toEqual({})
             },
+            { counterExample: [{ $ref: '#/a/R' }, 'a', 'R'] },
         )
     })
 
@@ -137,7 +195,17 @@ describe('normalizeSchema', () => {
             ).map(([jsonschema, ptr, name]) => [{ ...jsonschema, $ref: `#/${ptr}/${name}` }, ptr, name] as const),
             ([jsonschema, ptr, name]) => {
                 openapi = {}
-                expect(normalizeSchema({ ctx: { openapi } as any, schema: jsonschema as any, target: 'parameters' })).toEqual({
+                expect(
+                    normalizeSchema({
+                        ctx: { openapi, id: () => name } as any,
+                        schema: jsonschema as any,
+                        target: 'parameters',
+                        components: {},
+                        jsonptrs: {},
+                        referenceToName: {},
+                        ptrToReference: {},
+                    }),
+                ).toEqual({
                     ...jsonschema,
                     $ref: `#/${ptr}/${name}`,
                 })
@@ -157,7 +225,17 @@ describe('normalizeSchema', () => {
             ).map(([jsonschema, ptr, name]) => [{ ...jsonschema, $ref: `#/${ptr}/${name}` }, ptr, name] as const),
             ([jsonschema, ptr, name]) => {
                 openapi = {}
-                expect(normalizeSchema({ ctx: { openapi } as any, schema: jsonschema as any, target: target })).toEqual({
+                expect(
+                    normalizeSchema({
+                        ctx: { openapi, id: () => name } as any,
+                        schema: jsonschema as any,
+                        target: target,
+                        components: {},
+                        jsonptrs: {},
+                        referenceToName: {},
+                        ptrToReference: {},
+                    }),
+                ).toEqual({
                     ...jsonschema,
                     $ref: `#/${ptr}/${name}`,
                 })
@@ -187,7 +265,16 @@ describe('normalizeSchema', () => {
             ),
             ([jsonschema, definition, name]) => {
                 openapi = {}
-                expect(normalizeSchema({ ctx: { openapi } as any, schema: jsonschema as any })).toEqual({
+                expect(
+                    normalizeSchema({
+                        ctx: { openapi, id: () => name } as any,
+                        schema: jsonschema as any,
+                        components: {},
+                        jsonptrs: {},
+                        referenceToName: {},
+                        ptrToReference: {},
+                    }),
+                ).toEqual({
                     ...omit(jsonschema, ['$defs']),
                     anyOf: [
                         {
@@ -212,7 +299,16 @@ describe('normalizeSchema', () => {
             ),
             ([jsonschema, definition, name]) => {
                 openapi = {}
-                expect(normalizeSchema({ ctx: { openapi } as any, schema: jsonschema as any })).toEqual({
+                expect(
+                    normalizeSchema({
+                        ctx: { openapi, id: () => name } as any,
+                        schema: jsonschema as any,
+                        components: {},
+                        jsonptrs: {},
+                        referenceToName: {},
+                        ptrToReference: {},
+                    }),
+                ).toEqual({
                     ...omit(jsonschema, ['$defs']),
                     oneOf: [
                         {
@@ -237,7 +333,16 @@ describe('normalizeSchema', () => {
             ),
             ([jsonschema, definition, name]) => {
                 openapi = {}
-                expect(normalizeSchema({ ctx: { openapi } as any, schema: jsonschema as any })).toEqual({
+                expect(
+                    normalizeSchema({
+                        ctx: { openapi, id: () => name } as any,
+                        schema: jsonschema as any,
+                        components: {},
+                        jsonptrs: {},
+                        referenceToName: {},
+                        ptrToReference: {},
+                    }),
+                ).toEqual({
                     ...omit(jsonschema, ['$defs']),
                     items: {
                         $ref: `#/components/schemas/${name}`,
@@ -260,7 +365,16 @@ describe('normalizeSchema', () => {
             ),
             ([jsonschema, definition, name]) => {
                 openapi = {}
-                expect(normalizeSchema({ ctx: { openapi } as any, schema: jsonschema as any })).toEqual({
+                expect(
+                    normalizeSchema({
+                        ctx: { openapi, id: () => name } as any,
+                        schema: jsonschema as any,
+                        components: {},
+                        jsonptrs: {},
+                        referenceToName: {},
+                        ptrToReference: {},
+                    }),
+                ).toEqual({
                     ...omit(jsonschema, ['$defs']),
                     items: [
                         {
@@ -290,7 +404,16 @@ describe('normalizeSchema', () => {
             ),
             ([jsonschema, definition, name]) => {
                 openapi = {}
-                expect(normalizeSchema({ ctx: { openapi } as any, schema: jsonschema as any })).toEqual({
+                expect(
+                    normalizeSchema({
+                        ctx: { openapi, id: () => name } as any,
+                        schema: jsonschema as any,
+                        jsonptrs: {},
+                        referenceToName: {},
+                        components: {},
+                        ptrToReference: {},
+                    }),
+                ).toEqual({
                     ...omit(jsonschema, ['$defs']),
                     properties: { [name]: { $ref: `#/components/schemas/${name}` } },
                 })
@@ -316,7 +439,16 @@ describe('normalizeSchema', () => {
             ),
             ([jsonschema, definition, name]) => {
                 openapi = {}
-                expect(normalizeSchema({ ctx: { openapi } as any, schema: jsonschema as any })).toEqual({
+                expect(
+                    normalizeSchema({
+                        ctx: { openapi, id: () => name } as any,
+                        schema: jsonschema as any,
+                        jsonptrs: {},
+                        referenceToName: {},
+                        components: {},
+                        ptrToReference: {},
+                    }),
+                ).toEqual({
                     ...omit(jsonschema, ['$defs']),
                     patternProperties: { [name]: { $ref: `#/components/schemas/${name}` } },
                 })
@@ -342,7 +474,16 @@ describe('normalizeSchema', () => {
             ),
             ([jsonschema, definition, name]) => {
                 openapi = {}
-                expect(normalizeSchema({ ctx: { openapi } as any, schema: jsonschema as any })).toEqual({
+                expect(
+                    normalizeSchema({
+                        ctx: { openapi, id: () => name } as any,
+                        schema: jsonschema as any,
+                        jsonptrs: {},
+                        referenceToName: {},
+                        components: {},
+                        ptrToReference: {},
+                    }),
+                ).toEqual({
                     ...omit(jsonschema, ['$defs']),
                     additionalProperties: { $ref: `#/components/schemas/${name}` },
                 })
@@ -372,14 +513,30 @@ describe('normalizeSchema', () => {
                 .filter(([_, __, name, title]) => name !== title),
             ([jsonschema, definition, name, title]) => {
                 openapi = {}
-                expect(normalizeSchema({ ctx: { openapi } as any, schema: jsonschema as any })).toEqual({
+                let id = 0
+
+                expect(
+                    normalizeSchema({
+                        ctx: {
+                            openapi,
+                            id: () => {
+                                return ++id
+                            },
+                        } as any,
+                        schema: jsonschema as any,
+                        jsonptrs: {},
+                        referenceToName: {},
+                        components: {},
+                        ptrToReference: {},
+                    }),
+                ).toEqual({
                     $ref: `#/components/schemas/${title}`,
                 })
                 expect(openapi.components.schemas).toEqual({
-                    [name]: definition,
-                    [title]: {
+                    '1': definition,
+                    '2': {
                         ...omit(jsonschema, ['$defs']),
-                        properties: { [name]: { $ref: `#/components/schemas/${name}` } },
+                        properties: { [name]: { $ref: '#/components/schemas/1' } },
                     },
                 })
             },
@@ -403,7 +560,17 @@ describe('normalizeSchema', () => {
             ),
             ([jsonschema, definition, name]) => {
                 openapi = {}
-                expect(normalizeSchema({ ctx: { openapi } as any, schema: jsonschema as any, defsOnly: true })).toEqual({})
+                expect(
+                    normalizeSchema({
+                        ctx: { openapi, id: () => name } as any,
+                        schema: jsonschema as any,
+                        defsOnly: true,
+                        jsonptrs: {},
+                        referenceToName: {},
+                        components: {},
+                        ptrToReference: {},
+                    }),
+                ).toEqual({})
                 expect(openapi.components.schemas).toEqual({ [name]: definition })
             },
         )

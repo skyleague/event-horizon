@@ -1,8 +1,9 @@
-import { entriesOf, isArray, isBoolean, omit, omitUndefined, valuesOf } from '@skyleague/axioms'
+import { entriesOf, isArray, isBoolean, objectHasher, omit, omitUndefined, valuesOf } from '@skyleague/axioms'
 import type { Node, OpenapiV3 } from '@skyleague/therefore'
 import type { JsonSchema } from '@skyleague/therefore/src/json.js'
 import { Therefore } from '@skyleague/therefore/src/lib/primitives/therefore.js'
 import type {
+    Components,
     Info,
     Operation,
     Parameter,
@@ -20,6 +21,8 @@ import type { GenericParser } from '../../parsers/types.js'
 
 interface JsonSchemaContext {
     openapi: OpenapiV3
+
+    id: (object: JsonSchema) => string
 }
 
 let $ref: typeof import('@skyleague/therefore')['$ref'] | undefined
@@ -63,8 +66,19 @@ export function addComponent({
     ctx,
     schema,
     name,
+    jsonptrs,
+    referenceToName,
+    ptrToReference,
     sanitize = true,
-}: { ctx: JsonSchemaContext; schema: JsonSchema | Schema; name?: string; sanitize?: boolean }): string {
+}: {
+    ctx: JsonSchemaContext
+    schema: JsonSchema | Schema
+    name?: string
+    jsonptrs: Record<string, string>
+    referenceToName: Record<string, string>
+    ptrToReference: Record<string, string>
+    sanitize?: boolean
+}): string {
     const { openapi } = ctx
 
     const _component = schema.title ?? name
@@ -73,37 +87,60 @@ export function addComponent({
     if (component === undefined) {
         throw new Error('Component name is required')
     }
+
     openapi.components ??= {}
     openapi.components.schemas ??= {}
-    openapi.components.schemas[component] ??= schema as Schema
+    const id = ctx.id(schema as JsonSchema)
+
+    openapi.components.schemas[id] ??= schema as Schema
+
+    jsonptrs[`#/components/schemas/${component}`] = `#/components/schemas/${id}`
+    referenceToName[id] = component
+    ptrToReference[`#/$defs/${component}`] = `#/components/schemas/${id}`
 
     return component
 }
 
-export function ensureTarget(
-    ctx: JsonSchemaContext,
-    ptr: string,
-    target: 'parameters' | 'requestBodies' | 'responses' | 'schemas',
-) {
+export function ensureTarget({
+    ctx,
+    ptr,
+    target,
+    schema,
+    referenceToName,
+    ptrToReference,
+}: {
+    ctx: JsonSchemaContext
+    ptr: string
+    target: 'parameters' | 'requestBodies' | 'responses' | 'schemas'
+    schema: JsonSchema
+    referenceToName: Record<string, string>
+    ptrToReference: Record<string, string>
+}) {
     ctx.openapi.components ??= {}
     ctx.openapi.components[target] ??= {}
     const targetSchemas = ctx.openapi.components[target]
     if (targetSchemas !== undefined && target !== 'schemas') {
         const name = jsonptrToName(ptr)
+
+        const reffed = ptrToReference[ptr]
+
+        const id = reffed !== undefined ? reffed.replace('#/components/schemas/', '') : ctx.id(schema)
+        referenceToName[id] = name
+
         if (['requestBodies', 'responses'].includes(target)) {
-            targetSchemas[name] = {
-                description: (ctx.openapi.components.schemas?.[name] as Schema | undefined)?.description ?? '',
+            targetSchemas[id] = {
+                description: (ctx.openapi.components.schemas?.[id] as Schema | undefined)?.description ?? '',
                 content: {
                     'application/json': {
                         schema: {
-                            $ref: `#/components/schemas/${name}`,
+                            $ref: `#/components/schemas/${id}`,
                         },
                     },
                 },
             }
         } else {
-            targetSchemas[name] = {
-                $ref: `#/components/schemas/${name}`,
+            targetSchemas[id] = {
+                $ref: `#/components/schemas/${id}`,
             }
         }
     }
@@ -177,6 +214,10 @@ function convertToOpenAPISchema(schema: JsonSchema, openapiVersion: '3.0.1' | '3
 export function normalizeSchema({
     ctx,
     schema,
+    components,
+    jsonptrs,
+    referenceToName,
+    ptrToReference,
     target = 'schemas',
     defsOnly = false,
 }: {
@@ -184,6 +225,10 @@ export function normalizeSchema({
     schema: JsonSchema | Reference | Schema
     target?: 'parameters' | 'requestBodies' | 'responses' | 'schemas'
     defsOnly?: boolean
+    components: Components
+    jsonptrs: Record<string, string>
+    referenceToName: Record<string, string>
+    ptrToReference: Record<string, string>
 }): JsonSchema | Reference {
     // check by reference
     if (schema === EventError.schema) {
@@ -199,7 +244,14 @@ export function normalizeSchema({
     if (converted.$defs !== undefined) {
         for (const [name, def] of entriesOf(converted.$defs)) {
             if (def !== undefined) {
-                addComponent({ ctx, schema: normalizeSchema({ ctx, schema: def }), name })
+                addComponent({
+                    ctx,
+                    schema: normalizeSchema({ ctx, schema: def, components, jsonptrs, referenceToName, ptrToReference }),
+                    name,
+                    jsonptrs,
+                    referenceToName,
+                    ptrToReference,
+                })
             }
         }
 
@@ -208,47 +260,92 @@ export function normalizeSchema({
     }
 
     if ('$ref' in converted && converted.$ref !== undefined) {
-        ensureTarget(ctx, converted.$ref, target)
-        return { ...converted, $ref: converted.$ref.replace('#/$defs/', `#/components/${target}/`) }
+        ensureTarget({ ctx, ptr: converted.$ref, target, schema: converted, referenceToName, ptrToReference })
+
+        const ref = converted.$ref.replace('#/$defs/', `#/components/${target}/`)
+        const ptr = jsonptrs[ref]
+        if (ptr === undefined) {
+            // throw new Error(`Reference ${converted.$ref} not found in jsonptrs`)
+            return {
+                ...converted,
+                $ref:
+                    ptrToReference[converted.$ref]?.replace('#/components/schemas/', `#/components/${target}/`) ?? converted.$ref,
+            }
+        }
+        return { ...converted, $ref: ptr }
     }
 
     if (defsOnly) {
         return {}
     }
     if (converted.anyOf !== undefined) {
-        converted.anyOf = converted.anyOf.map((i) => normalizeSchema({ ctx, schema: i }))
+        converted.anyOf = converted.anyOf.map((i) =>
+            normalizeSchema({ ctx, schema: i, components, jsonptrs, referenceToName, ptrToReference }),
+        )
     }
     if (converted.oneOf !== undefined) {
-        converted.oneOf = converted.oneOf.map((i) => normalizeSchema({ ctx, schema: i }))
+        converted.oneOf = converted.oneOf.map((i) =>
+            normalizeSchema({ ctx, schema: i, components, jsonptrs, referenceToName, ptrToReference }),
+        )
     }
 
     if (converted.type === 'array' || (Array.isArray(converted.type) && converted.type.includes('array'))) {
         if (converted.items !== undefined) {
             if (isArray(converted.items)) {
-                converted.items = converted.items.map((i) => normalizeSchema({ ctx, schema: i }))
+                converted.items = converted.items.map((i) =>
+                    normalizeSchema({ ctx, schema: i, components, jsonptrs, referenceToName, ptrToReference }),
+                )
             } else {
-                converted.items = normalizeSchema({ ctx, schema: converted.items })
+                converted.items = normalizeSchema({
+                    ctx,
+                    schema: converted.items,
+                    components,
+                    jsonptrs,
+                    referenceToName,
+                    ptrToReference,
+                })
             }
         }
     } else if (converted.type === 'object' || (Array.isArray(converted.type) && converted.type.includes('object'))) {
         if (converted.properties !== undefined) {
             for (const [key, c] of entriesOf(converted.properties)) {
-                converted.properties[key] = normalizeSchema({ ctx, schema: c })
+                converted.properties[key] = normalizeSchema({
+                    ctx,
+                    schema: c,
+                    components,
+                    jsonptrs,
+                    referenceToName,
+                    ptrToReference,
+                })
             }
         }
         if (converted.patternProperties !== undefined) {
             for (const [key, c] of entriesOf(converted.patternProperties)) {
-                converted.patternProperties[key] = normalizeSchema({ ctx, schema: c })
+                converted.patternProperties[key] = normalizeSchema({
+                    ctx,
+                    schema: c,
+                    components,
+                    jsonptrs,
+                    referenceToName,
+                    ptrToReference,
+                })
             }
         }
         if (converted.additionalProperties !== undefined && !isBoolean(converted.additionalProperties)) {
-            converted.additionalProperties = normalizeSchema({ ctx, schema: converted.additionalProperties })
+            converted.additionalProperties = normalizeSchema({
+                ctx,
+                schema: converted.additionalProperties,
+                components,
+                jsonptrs,
+                referenceToName,
+                ptrToReference,
+            })
         }
     }
 
     if (converted.title !== undefined) {
-        const name = addComponent({ ctx, schema: converted })
-        ensureTarget(ctx, `#/components/${target}/${name}`, target)
+        const name = addComponent({ ctx, schema: converted, jsonptrs, referenceToName, ptrToReference })
+        ensureTarget({ ctx, ptr: `#/components/${target}/${name}`, target, schema: converted, referenceToName, ptrToReference })
         return { $ref: `#/components/${target}/${name}` }
     }
 
@@ -264,6 +361,21 @@ export interface OpenapiOptions extends Partial<OpenapiV3> {
 
 export async function openapiFromHandlers(handlers: Record<string, unknown>, options: OpenapiOptions) {
     const { defaultError = HttpError.schema, openapi: targetOpenapi = '3.1.0' } = options
+    const referenceToName: Record<string, string> = {}
+    const jsonptrs: Record<string, string> = {}
+
+    const idMapper = new WeakMap<JsonSchema, string>()
+
+    const id = (object: JsonSchema) => {
+        if (idMapper.has(object)) {
+            // biome-ignore lint/style/noNonNullAssertion: we just checked that the object is in the map
+            return idMapper.get(object)!
+        }
+        const hash = `{{${objectHasher.hash(JSON.stringify({ ...object, $schema: undefined, title: undefined }))}}}`
+        idMapper.set(object, hash)
+        return hash
+    }
+
     const errorDescription = (defaultError as { description?: string }).description ?? 'An error occurred'
 
     // Track schema frequencies for jsonSchemaDialect
@@ -347,11 +459,16 @@ export async function openapiFromHandlers(handlers: Record<string, unknown>, opt
                 `${handler.http.path}-${handler.http.method}-request-body`,
             )
             if (bodySchema !== undefined) {
+                const ptrToReference: Record<string, string> = {}
                 // If there's a schema defined, normalize it and create requestBody
                 const reference = normalizeSchema({
-                    ctx: { openapi },
+                    ctx: { openapi, id },
                     schema: bodySchema,
                     target: 'requestBodies',
+                    components: {},
+                    jsonptrs,
+                    referenceToName,
+                    ptrToReference,
                 }) as Reference
                 requestBody =
                     '$ref' in reference
@@ -377,6 +494,7 @@ export async function openapiFromHandlers(handlers: Record<string, unknown>, opt
             // For JSON bodyType with no schema, requestBody remains undefined
             const responses: Responses = {}
             for (const [statusCode, response] of entriesOf(handler.http.schema.responses)) {
+                const ptrToReference: Record<string, string> = {}
                 function asStatusResponse(schema: JsonSchema | Reference) {
                     if ('$ref' in schema) {
                         return schema
@@ -399,23 +517,31 @@ export async function openapiFromHandlers(handlers: Record<string, unknown>, opt
                         }
                     } else {
                         const schema = normalizeSchema({
-                            ctx: { openapi },
+                            ctx: { openapi, id },
                             schema: (await genericJsonSchema(
                                 response.body,
                                 `${handler.http.path}-${handler.http.method}-${statusCode}-response`,
                             )) as Schema,
                             target: 'responses',
+                            components: {},
+                            jsonptrs,
+                            referenceToName,
+                            ptrToReference,
                         }) as Reference
                         responses[statusCode.toString()] = asStatusResponse(schema)
                     }
                 } else {
                     const schema = normalizeSchema({
-                        ctx: { openapi },
+                        ctx: { openapi, id },
                         schema: (await genericJsonSchema(
                             response,
                             `${handler.http.path}-${handler.http.method}-${statusCode}-response`,
                         )) as Schema,
                         target: 'responses',
+                        components: {},
+                        jsonptrs,
+                        referenceToName,
+                        ptrToReference,
                     }) as Reference
                     responses[statusCode.toString()] = asStatusResponse(schema)
                 }
@@ -462,7 +588,17 @@ export async function openapiFromHandlers(handlers: Record<string, unknown>, opt
 
             const query = await genericJsonSchema(handler.http.schema.query, `${handler.http.path}-${handler.http.method}-query`)
             if (query?.properties !== undefined) {
-                normalizeSchema({ ctx: { openapi }, schema: query, defsOnly: true, target: 'parameters' })
+                const ptrToReference: Record<string, string> = {}
+                normalizeSchema({
+                    ctx: { openapi, id },
+                    schema: query,
+                    defsOnly: true,
+                    target: 'parameters',
+                    components: {},
+                    jsonptrs,
+                    referenceToName,
+                    ptrToReference,
+                })
                 parameters.push(
                     ...entriesOf(query.properties).map(([name, value]) =>
                         omitUndefined({
@@ -472,9 +608,13 @@ export async function openapiFromHandlers(handlers: Record<string, unknown>, opt
                             description: value.description,
                             deprecated: value.deprecated,
                             schema: normalizeSchema({
-                                ctx: { openapi },
+                                ctx: { openapi, id },
                                 schema: value as unknown as Schema,
                                 target: 'parameters',
+                                components: {},
+                                jsonptrs,
+                                referenceToName,
+                                ptrToReference,
                             }) as Reference,
                         } as const),
                     ),
@@ -497,6 +637,26 @@ export async function openapiFromHandlers(handlers: Record<string, unknown>, opt
             }
         }
     }
+    // Make sure that all values in referenceToName are unique, by adding a suffix to the duplicates
+    const nameCounters = new Map<string, number>()
+    const uniqueReferenceToName = Object.fromEntries(
+        Object.entries(referenceToName).map(([key, value]) => {
+            // Get the current counter for this name
+            const counter = nameCounters.get(value) ?? 0
+            // Increment the counter for next use of this name
+            nameCounters.set(value, counter + 1)
+            // Only add suffix if it's not the first occurrence
+            return [key, counter === 0 ? value : `${value}-${counter + 1}`]
+        }),
+    )
 
-    return openapi
+    // We want to replace all UUIDs in $ref strings with their corresponding names from referenceToName.
+    // This is done using a regex replace with a replacer function that looks up the UUID in referenceToName.
+    const openapiStr = JSON.stringify(openapi, null, 2).replace(/(\{\{.*\}\})/g, (match) => {
+        const name = uniqueReferenceToName[match]
+        // If a mapping exists, use the name; otherwise, leave the original UUID.
+        return name !== undefined ? name : match
+    })
+
+    return JSON.parse(openapiStr)
 }

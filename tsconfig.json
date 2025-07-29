@@ -1,4 +1,19 @@
 {
-  "extends": "@skyleague/node-standards/tsconfig.base.json",
-  "include": ["src/**/*", "examples/**/*", "test/**/*", "index.ts"]
+  "extends": "@total-typescript/tsconfig/tsc/no-dom/library",
+  "exclude": ["docs/**/*"],
+  "compilerOptions": {
+    /* https://github.com/total-typescript/tsconfig/issues/17 */
+    "lib": ["esnext"],
+
+    /* Additional strictness */
+    "erasableSyntaxOnly": true,
+    "noPropertyAccessFromIndexSignature": false,
+    "exactOptionalPropertyTypes": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "noUncheckedSideEffectImports": true,
+
+    "noEmit": true,
+    "outDir": ".dist"
+  }
 }

@@ -34,19 +34,19 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@aws-lambda-powertools/logger": "^2.17.0",
-    "@aws-lambda-powertools/metrics": "^2.17.0",
-    "@aws-lambda-powertools/parameters": "^2.17.0",
-    "@aws-lambda-powertools/parser": "^2.17.0",
-    "@aws-lambda-powertools/tracer": "^2.17.0",
+    "@aws-lambda-powertools/logger": "^2.23.0",
+    "@aws-lambda-powertools/metrics": "^2.23.0",
+    "@aws-lambda-powertools/parameters": "^2.23.0",
+    "@aws-lambda-powertools/parser": "^2.23.0",
+    "@aws-lambda-powertools/tracer": "^2.23.0",
     "@skyleague/axioms": "^6.5.1",
     "@types/aws-lambda": "^8.10.148",
     "secure-json-parse": "^4.0.0"
   },
   "peerDependencies": {
-    "@aws-sdk/client-appconfigdata": "^3.777.0",
-    "@aws-sdk/client-secrets-manager": "^3.777.0",
-    "zod": "^3.24.2"
+    "@aws-sdk/client-appconfigdata": "^3.840.0",
+    "@aws-sdk/client-secrets-manager": "^3.840.0",
+    "zod": "^3.25.76"
   },
   "peerDependenciesMeta": {
     "zod": {
@@ -54,18 +54,18 @@
     }
   },
   "devDependencies": {
-    "@aws-lambda-powertools/parser": "^2.17.0",
-    "@aws-sdk/client-eventbridge": "^3.777.0",
-    "@skyleague/node-standards": "^10.0.1",
-    "@skyleague/therefore": "^7.14.0",
-    "@types/node": "^22.13.14",
+    "@aws-lambda-powertools/parser": "^2.23.0",
+    "@aws-sdk/client-eventbridge": "^3.844.0",
+    "@skyleague/node-standards": "^11.0.3",
+    "@skyleague/therefore": "^7.15.6",
+    "@types/node": "^22.16.2",
     "aws-sdk-client-mock": "^4.1.0",
     "aws-sdk-client-mock-jest": "^4.1.0",
-    "got": "^14.4.6",
-    "nock": "^14.0.2",
+    "got": "^14.4.7",
+    "nock": "^14.0.5",
     "type-testing": "^0.2.0",
-    "typescript": "^5.8.2",
-    "zod": "^3.24.2"
+    "typescript": "^5.8.3",
+    "zod": "^3.25.76"
   },
   "engines": {
     "node": ">=22"
@@ -76,6 +76,7 @@
     "registry": "https://registry.npmjs.org"
   },
   "node-standards": {
-    "extends": ["library", "docusaurus"]
+    "extends": ["library", "docusaurus"],
+    "ignorePatterns": ["tsconfig.json"]
   }
 }
