@@ -1,12 +1,10 @@
-import type { RawHandler } from './types.js'
-
-import { ioLogger } from '../functions/io-logger.js'
-import { ioValidate } from '../functions/io-validate.js'
-import type { LambdaContext } from '../types.js'
-
 import type { Try } from '@skyleague/axioms'
 import { mapTry, tryAsValue } from '@skyleague/axioms'
 import type { MaybeGenericParser } from '../../parsers/types.js'
+import { ioLogger } from '../functions/io-logger.js'
+import { ioValidate } from '../functions/io-validate.js'
+import type { LambdaContext } from '../types.js'
+import type { RawHandler } from './types.js'
 
 export async function handleRawEvent<
     Configuration,

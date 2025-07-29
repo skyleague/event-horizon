@@ -1,4 +1,4 @@
-import type { SqsRecordSchema } from '../../../aws/sqs/sqs.type.js'
+import type { SqsRecordSchema } from '../../../aws/sqs.js'
 import { parseJSON } from '../../../parsers/json/json.js'
 import type { SQSEvent, SQSEventHandler } from '../types.js'
 

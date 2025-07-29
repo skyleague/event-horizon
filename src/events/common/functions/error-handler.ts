@@ -1,7 +1,6 @@
+import { isError } from '@skyleague/axioms'
 import { EventError } from '../../../errors/event-error/event-error.js'
 import type { LambdaContext } from '../../types.js'
-
-import { isError } from '@skyleague/axioms'
 
 export function errorHandler({ logger }: LambdaContext): {
     onError: (error: Error | unknown) => EventError

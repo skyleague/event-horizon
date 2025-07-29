@@ -1,12 +1,10 @@
-import { handleEventBridgeEvent } from './handler.js'
-
+import { asyncForAll, failure, json, thrown, tuple } from '@skyleague/axioms'
+import { expect, it, vi } from 'vitest'
 import { alwaysTrueSchema, neverTrueSchema } from '../../../test/schema.js'
 import { eventBridgeEvent } from '../../dev/event-horizon/eventbridge/eventbridge.js'
 import { EventError } from '../../errors/event-error/event-error.js'
 import { context } from '../../test/context/context.js'
-
-import { asyncForAll, failure, json, thrown, tuple } from '@skyleague/axioms'
-import { expect, it, vi } from 'vitest'
+import { handleEventBridgeEvent } from './handler.js'
 
 it('success does not give failures', async () => {
     const h = vi.fn()

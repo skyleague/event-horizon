@@ -1,28 +1,10 @@
 import { EventBridgeSchema as AWSEventBridgeSchema } from '@aws-lambda-powertools/parser/schemas'
 import type { Dependent } from '@skyleague/axioms'
 import { tuple, unknown } from '@skyleague/axioms'
-import { $moduleRef, type Schema, arbitrary } from '@skyleague/therefore'
-import { $ref, $string, $unknown, type Node } from '@skyleague/therefore'
+import { arbitrary, type Schema } from '@skyleague/therefore'
 import type { EventBridgeSchema } from '../../../aws/eventbridge/eventbridge.type.js'
 import type { EventBridgeEvent, EventBridgeHandler } from '../../../events/eventbridge/types.js'
 import type { InferFromParser, MaybeGenericParser } from '../../../parsers/types.js'
-
-export const eventBridgeSchemaSymbol = $moduleRef('@aws-lambda-powertools/parser/schemas', 'EventBridgeSchema')
-
-export function $eventBridge({
-    detailType = $string(),
-    detail = $unknown(),
-}: {
-    detailType?: Node
-    detail?: Node
-} = {}) {
-    const schema = $ref(AWSEventBridgeSchema)
-    schema._toZod = eventBridgeSchemaSymbol
-    return schema.extend({
-        'detail-type': detailType,
-        detail: detail,
-    })
-}
 
 export function eventBridgeEvent<
     Configuration,

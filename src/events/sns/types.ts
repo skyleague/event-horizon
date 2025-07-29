@@ -1,6 +1,6 @@
 import type { Try } from '@skyleague/axioms'
 import type { Promisable } from '@skyleague/axioms/types'
-import type { SnsNotificationSchema } from '../../aws/sns/sns.type.js'
+import type { SnsNotificationSchema } from '../../aws/sns.js'
 import type { InferFromParser, MaybeGenericParser } from '../../parsers/types.js'
 import type { EventHandlerDefinition, LambdaContext } from '../types.js'
 

@@ -2,7 +2,7 @@ import { SqsSchema as ParserSqsSchema, S3Schema } from '@aws-lambda-powertools/p
 import { array, asyncForAll, constant, random, tuple, unknown } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
 import { expect, it, vi } from 'vitest'
-import type { SqsSchema } from '../../aws/sqs/sqs.type.js'
+import type { SqsSchema } from '../../aws/sqs.js'
 import { context } from '../../test/context/context.js'
 import { mockLogger, mockMetrics, mockTracer } from '../../test/mock/mock.js'
 import { s3Handler } from '../s3/s3.js'

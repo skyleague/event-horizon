@@ -1,7 +1,6 @@
-import type { S3BatchTaskResult } from '../types.js'
-
 import { isString } from '@skyleague/axioms'
 import type { S3BatchEventTask, S3BatchResultResult } from 'aws-lambda'
+import type { S3BatchTaskResult } from '../types.js'
 
 export function s3BatchSerializeResult<Result>() {
     return {

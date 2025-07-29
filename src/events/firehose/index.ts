@@ -1,7 +1,7 @@
+export { firehoseHandler } from './firehose.js'
 export type {
-    FirehoseTransformationResult,
     FirehoseTransformationEvent,
     FirehoseTransformationEventHandler,
     FirehoseTransformationHandler,
+    FirehoseTransformationResult,
 } from './types.js'
-export { firehoseHandler } from './firehose.js'

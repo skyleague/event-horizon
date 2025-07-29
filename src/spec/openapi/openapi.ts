@@ -13,8 +13,7 @@ import type {
     Schema,
 } from '@skyleague/therefore/src/types/openapi.type.js'
 import type { ZodNumber } from 'zod'
-import { EventError } from '../../errors/event-error/event-error.js'
-import { HttpError } from '../../events/apigateway/event/functions/http-error.type.js'
+import { HttpError } from '../../events/apigateway/event/functions/http-error.js'
 import type { SecurityRequirement, SecurityRequirements } from '../../events/apigateway/types.js'
 import type { EventHandler } from '../../events/common/types.js'
 import type { GenericParser } from '../../parsers/types.js'
@@ -231,11 +230,10 @@ export function normalizeSchema({
     ptrToReference: Record<string, string>
 }): JsonSchema | Reference {
     // check by reference
-    if (schema === EventError.schema) {
+    if (schema === (HttpError.schema as unknown)) {
         return { $ref: '#/components/responses/ErrorResponse' }
     }
     const jsonschema = structuredClone(schema) as unknown as JsonSchema
-    // biome-ignore lint/performance/noDelete: we need to remove the $schema property
     delete jsonschema.$schema
 
     // Convert schema to OpenAPI compatible version
@@ -255,7 +253,6 @@ export function normalizeSchema({
             }
         }
 
-        // biome-ignore lint/performance/noDelete: we need to remove the $defs property
         delete converted.$defs
     }
 
@@ -442,7 +439,7 @@ export async function openapiFromHandlers(handlers: Record<string, unknown>, opt
         if ('http' in handler && handler.http.path !== undefined) {
             openapi.paths[handler.http.path] ??= {}
 
-            let requestBody: Reference | RequestBody | undefined = undefined
+            let requestBody: Reference | RequestBody | undefined
             const bodyType = handler.http.bodyType ?? 'json'
             // Map handler body types to content types and schemas
             const contentTypeMap = {

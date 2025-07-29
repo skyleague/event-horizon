@@ -1,8 +1,7 @@
-import { LogFormatter } from './formatter.js'
+import { Logger as AwsLogger } from '@aws-lambda-powertools/logger'
 
 import { serviceConstants } from '../../constants.js'
-
-import { Logger as AwsLogger } from '@aws-lambda-powertools/logger'
+import { LogFormatter } from './formatter.js'
 
 export type LogItemObject = {
     [key: string]: unknown

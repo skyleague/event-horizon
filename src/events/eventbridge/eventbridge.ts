@@ -1,11 +1,10 @@
-import { handleEventBridgeEvent } from './handler.js'
-import type { EventBridgeHandler } from './types.js'
-
 import { EventError } from '../../errors/event-error/event-error.js'
 import type { MaybeGenericParser } from '../../parsers/types.js'
 import type { EventHandlerFn } from '../common/event.js'
 import { eventHandler } from '../common/event.js'
 import type { DefaultServices } from '../types.js'
+import { handleEventBridgeEvent } from './handler.js'
+import type { EventBridgeHandler } from './types.js'
 
 export function eventBridgeHandler<
     D,

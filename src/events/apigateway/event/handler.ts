@@ -1,8 +1,8 @@
 import type { Try } from '@skyleague/axioms'
 import { mapTry, recoverTry } from '@skyleague/axioms'
 import type { APIGatewayProxyResult, APIGatewayProxyResultV2 } from 'aws-lambda'
-import type { APIGatewayProxyEventV2Schema } from '../../../aws/apigateway/http.type.js'
-import type { APIGatewayProxyEventSchema } from '../../../aws/apigateway/rest.type.js'
+import type { APIGatewayProxyEventV2Schema } from '../../../aws/http.js'
+import type { APIGatewayProxyEventSchema } from '../../../aws/rest.js'
 import type { MaybeGenericParser } from '../../../parsers/types.js'
 import { ioLoggerChild } from '../../functions/io-logger-child.js'
 import type { LambdaContext, ResponseFromHandler } from '../../types.js'
@@ -12,8 +12,7 @@ import { httpIOLogger } from './functions/io-logger.js'
 import { httpIOValidate } from './functions/io-validate.js'
 import { httpParseEvent } from './functions/parse-event.js'
 import { httpSerializeResponse } from './functions/serialize-response.js'
-import type { AuthorizerSchema, HTTPEventHandler, HTTPHandler, HTTPResponse, Responses } from './types.js'
-import type { GatewayVersion } from './types.js'
+import type { AuthorizerSchema, GatewayVersion, HTTPEventHandler, HTTPHandler, HTTPResponse, Responses } from './types.js'
 
 export async function handleHTTPEvent<
     Configuration,

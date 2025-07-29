@@ -3,8 +3,8 @@ import type {
     APIGatewayIAMAuthorizerResult,
     APIGatewaySimpleAuthorizerResult,
 } from 'aws-lambda'
-import type { APIGatewayRequestAuthorizerEventV2Schema } from '../../../../aws/apigateway/http.type.js'
-import type { APIGatewayRequestAuthorizerEventSchema } from '../../../../aws/apigateway/rest.type.js'
+import type { APIGatewayRequestAuthorizerEventV2Schema } from '../../../../aws/http.js'
+import type { APIGatewayRequestAuthorizerEventSchema } from '../../../../aws/rest.js'
 import type { AuthorizerReponse } from '../types.js'
 
 export function authorizerSerializeResponse() {

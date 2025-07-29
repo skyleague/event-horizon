@@ -1,13 +1,11 @@
-import { handleSecretRotationEvent } from './handler.js'
-
-import { secretRotationEvent } from '../../dev/event-horizon/secret-rotation/secret-rotation.js'
-import { EventError } from '../../errors/event-error/event-error.js'
-import { context } from '../../test/context/context.js'
-
 import { DescribeSecretCommand, SecretsManager, SecretsManagerClient } from '@aws-sdk/client-secrets-manager'
 import { asyncForAll, failure, thrown, tuple } from '@skyleague/axioms'
 import { mockClient } from 'aws-sdk-client-mock'
 import { beforeEach, expect, it, vi } from 'vitest'
+import { secretRotationEvent } from '../../dev/event-horizon/secret-rotation/secret-rotation.js'
+import { EventError } from '../../errors/event-error/event-error.js'
+import { context } from '../../test/context/context.js'
+import { handleSecretRotationEvent } from './handler.js'
 
 const mockSecrets = mockClient(SecretsManagerClient)
 const services = {

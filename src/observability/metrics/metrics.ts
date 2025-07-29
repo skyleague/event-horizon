@@ -1,7 +1,6 @@
-import { metricsConstants, serviceConstants } from '../../constants.js'
-
 import type { MetricUnit } from '@aws-lambda-powertools/metrics'
 import { Metrics as AWSMetrics } from '@aws-lambda-powertools/metrics'
+import { metricsConstants, serviceConstants } from '../../constants.js'
 
 export type Dimensions = Record<string, string>
 export type Metric = (typeof MetricUnit)[keyof typeof MetricUnit]

@@ -1,4 +1,4 @@
-import type { SnsRecordSchema } from '../../../aws/sns/sns.type.js'
+import type { SnsRecordSchema } from '../../../aws/sns.js'
 import { parseJSON } from '../../../parsers/json/json.js'
 import type { SNSEvent, SNSEventHandler } from '../types.js'
 

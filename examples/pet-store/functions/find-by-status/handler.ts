@@ -1,9 +1,8 @@
-import { Pet, PetArray } from '../../lib/models.type.js'
-import { Query } from './request.type.js'
-
 import { array, random } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
+import { z } from 'zod'
 import { httpApiHandler } from '../../../../src/events/apigateway/event/http.js'
+import { pet, petArray, status } from '../../lib/models.js'
 
 export const handler = httpApiHandler({
     summary: 'Finds Pets by status',
@@ -12,9 +11,11 @@ export const handler = httpApiHandler({
         method: 'get',
         path: '/pet/findByStatus',
         schema: {
-            query: Query,
+            query: z.object({
+                status: status,
+            }),
             responses: {
-                200: PetArray,
+                200: petArray,
             },
         },
         handler: ({ query }, { logger }) => {
@@ -22,7 +23,7 @@ export const handler = httpApiHandler({
                 status: query.status,
             })
 
-            const petsArb = array(arbitrary(Pet))
+            const petsArb = array(arbitrary(pet))
             return {
                 statusCode: 200,
                 body: random(petsArb).filter((p) => p.status === query.status),

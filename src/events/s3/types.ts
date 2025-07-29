@@ -1,6 +1,6 @@
 import type { Try } from '@skyleague/axioms'
 import type { Promisable } from '@skyleague/axioms/types'
-import type { S3RecordSchema } from '../../aws/s3/s3.type.js'
+import type { S3RecordSchema } from '../../aws/s3.js'
 import type { MaybeGenericParser } from '../../parsers/types.js'
 import type { EventHandlerDefinition, LambdaContext } from '../types.js'
 

@@ -1,5 +1,7 @@
 import {
     APIGatewayProxyEventSchema,
+    APIGatewayProxyEventV2Schema,
+    APIGatewayRequestAuthorizerEventSchema,
     DynamoDBStreamSchema,
     EventBridgeSchema,
     KinesisDataStreamSchema,
@@ -9,13 +11,10 @@ import {
     SqsSchema,
 } from '@aws-lambda-powertools/parser/schemas'
 import { asyncForAll, oneOf, random, tuple, unknown } from '@skyleague/axioms'
-import { type Schema, arbitrary } from '@skyleague/therefore'
+import { arbitrary, type Schema } from '@skyleague/therefore'
 import { expect, expectTypeOf, it, vi } from 'vitest'
 import { z } from 'zod'
 import { literalSchema, warmerEvent } from '../../../../test/schema.js'
-import { APIGatewayProxyEventV2Schema } from '../../../aws/apigateway/http.schema.js'
-import { APIGatewayRequestAuthorizerEventSchema as AWSAPIGatewayRequestAuthorizerEventSchema } from '../../../aws/apigateway/rest.schema.js'
-import type { APIGatewayRequestAuthorizerEventSchema } from '../../../aws/apigateway/rest.type.js'
 import { s3BatchEvent } from '../../../aws/s3-batch/s3.schema.js'
 import { secretRotationEvent } from '../../../aws/secret-rotation/secret-rotation.schema.js'
 import { context } from '../../../test/context/context.js'
@@ -37,12 +36,12 @@ it('handles authorizer events', async () => {
     )
 
     await asyncForAll(
-        tuple(arbitrary(AWSAPIGatewayRequestAuthorizerEventSchema), unknown(), await context(handler)),
+        tuple(arbitrary(APIGatewayRequestAuthorizerEventSchema), unknown(), await context(handler)),
         async ([event, ret, ctx]) => {
             http.mockClear()
             http.mockReturnValue(ret)
 
-            const response = await handler._options.handler(event as APIGatewayRequestAuthorizerEventSchema, ctx)
+            const response = await handler._options.handler(event as z.infer<typeof APIGatewayRequestAuthorizerEventSchema>, ctx)
             expect(response).toBe(ret)
             expect(http).toHaveBeenCalledWith(expect.anything(), event, ctx)
         },
@@ -153,7 +152,7 @@ it('handles schema types - zod', () => {
                         readonly in: 'header'
                     }
                 }>()
-                expectTypeOf(request.raw).toEqualTypeOf<APIGatewayRequestAuthorizerEventSchema>()
+                expectTypeOf(request.raw).toEqualTypeOf<z.infer<typeof APIGatewayRequestAuthorizerEventSchema>>()
 
                 return {
                     isAuthorized: true,
@@ -193,7 +192,7 @@ it('handles schema types - default', () => {
                 expectTypeOf(request.query).toEqualTypeOf<HTTPQueryParameters>()
                 expectTypeOf(request.headers).toEqualTypeOf<HTTPHeaders>()
                 expectTypeOf(request.security).toEqualTypeOf<[]>()
-                expectTypeOf(request.raw).toEqualTypeOf<APIGatewayRequestAuthorizerEventSchema>()
+                expectTypeOf(request.raw).toEqualTypeOf<z.infer<typeof APIGatewayRequestAuthorizerEventSchema>>()
 
                 return {
                     isAuthorized: true,

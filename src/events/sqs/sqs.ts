@@ -1,17 +1,13 @@
 import type { Try } from '@skyleague/axioms'
-import type { SnsNotificationSchema, SnsRecordSchema } from '../../aws/sns/sns.type.js'
-import type {} from '../../aws/sns/sns.type.js'
-import type { SqsRecordSchema } from '../../aws/sqs/sqs.type.js'
+import type { SnsNotificationSchema, SnsRecordSchema } from '../../aws/sns.js'
+import type { SqsRecordSchema } from '../../aws/sqs.js'
 import { EventError } from '../../errors/event-error/event-error.js'
 import type { MaybeGenericParser } from '../../parsers/types.js'
 import { type EventHandlerFn, eventHandler } from '../common/event.js'
 import type { RawRequest } from '../common/raw-aws.js'
-import type { LambdaContext } from '../types.js'
-import type { DefaultServices } from '../types.js'
-import { handleSQSEvent } from './handler.js'
-import { handleSQSMessageGroup } from './handler.js'
-import type { SQSEnvelopeHandler, SQSEvent, SQSHandler } from './types.js'
-import type { SQSGroupHandler } from './types.js'
+import type { DefaultServices, LambdaContext } from '../types.js'
+import { handleSQSEvent, handleSQSMessageGroup } from './handler.js'
+import type { SQSEnvelopeHandler, SQSEvent, SQSGroupHandler, SQSHandler } from './types.js'
 
 export function sqsHandler<
     D,
@@ -65,7 +61,7 @@ export function sqsHandler<
 function fromEnvelope<Configuration, Service extends DefaultServices | undefined, Profile extends MaybeGenericParser>({
     envelope,
 }: SQSEnvelopeHandler<Configuration, Service, Profile>): EventHandlerFn<Configuration, Service, Profile> {
-    const { services, config, profile, ...definition } = envelope
+    const { services: _services, config: _config, profile: _profile, ...definition } = envelope
     return sqsHandler({
         ...definition,
         sqs: {

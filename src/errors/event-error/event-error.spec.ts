@@ -1,8 +1,7 @@
-import { EventError, httpStatusCodes } from './event-error.js'
-
-import { constants, asTry, forAll, integer, string, tuple } from '@skyleague/axioms'
+import { asTry, constants, forAll, integer, string, tuple } from '@skyleague/axioms'
 import { expect, it } from 'vitest'
 import { z } from 'zod'
+import { EventError, httpStatusCodes } from './event-error.js'
 
 it('EventError === EventError', () => {
     expect(EventError.is(EventError.badGateway())).toBe(true)
@@ -133,13 +132,12 @@ it('correctly keeps zod validation errors', () => {
     expect(e).toMatchInlineSnapshot(`
       [validation: [
         {
-          "code": "invalid_type",
           "expected": "string",
-          "received": "number",
+          "code": "invalid_type",
           "path": [
             "name"
           ],
-          "message": "Expected string, received number"
+          "message": "Invalid input: expected string, received number"
         }
       ]]
     `)
@@ -162,13 +160,12 @@ it('correctly keeps zod validation errors - full failure', () => {
     expect(e).toMatchInlineSnapshot(`
       [validation: [
         {
-          "code": "invalid_type",
           "expected": "string",
-          "received": "number",
+          "code": "invalid_type",
           "path": [
             "name"
           ],
-          "message": "Expected string, received number"
+          "message": "Invalid input: expected string, received number"
         }
       ]]
     `)

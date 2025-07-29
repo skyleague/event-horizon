@@ -2,7 +2,7 @@ import { EventBridgeSchema, SqsSchema as ParserSqsSchema } from '@aws-lambda-pow
 import { array, asyncForAll, constant, tuple, unknown } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
 import { expect, it, vi } from 'vitest'
-import type { SqsSchema } from '../../aws/sqs/sqs.type.js'
+import type { SqsSchema } from '../../aws/sqs.js'
 import { context } from '../../test/context/context.js'
 import { mockLogger, mockMetrics, mockTracer } from '../../test/mock/mock.js'
 import { eventBridgeHandler } from '../eventbridge/eventbridge.js'

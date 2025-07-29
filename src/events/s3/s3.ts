@@ -1,4 +1,4 @@
-import type { S3RecordSchema } from '../../aws/s3/s3.type.js'
+import type { S3RecordSchema } from '../../aws/s3.js'
 import { EventError } from '../../errors/event-error/event-error.js'
 import type { MaybeGenericParser } from '../../parsers/types.js'
 import { type EventHandlerFn, eventHandler } from '../common/event.js'

@@ -1,13 +1,11 @@
-import { secretValidateEvent } from './validate-event.js'
-
+import { DescribeSecretCommand, SecretsManager, SecretsManagerClient } from '@aws-sdk/client-secrets-manager'
+import { asyncForAll, Nothing, tuple } from '@skyleague/axioms'
+import { mockClient } from 'aws-sdk-client-mock'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { secretRotationEvent } from '../../../dev/event-horizon/secret-rotation/secret-rotation.js'
 import { EventError } from '../../../errors/event-error/event-error.js'
 import { context } from '../../../test/context/context.js'
-
-import { DescribeSecretCommand, SecretsManager, SecretsManagerClient } from '@aws-sdk/client-secrets-manager'
-import { Nothing, asyncForAll, tuple } from '@skyleague/axioms'
-import { mockClient } from 'aws-sdk-client-mock'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { secretValidateEvent } from './validate-event.js'
 
 describe('validate', () => {
     const mockSecrets = mockClient(SecretsManagerClient)

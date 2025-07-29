@@ -2,18 +2,23 @@ name: Typescript Package CI
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    types:
-      - opened
-      - synchronize
+    types: [opened, synchronize]
   workflow_dispatch:
     inputs:
       beta_release:
         description: Create beta release
-        required: true
         type: boolean
+        default: false
+        required: false
+
+env:
+  NODE_VERSION: '22'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref == 'refs/heads/main' && 'main' || github.head_ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   optimize_ci:
@@ -21,25 +26,70 @@ jobs:
     outputs:
       skip: ${{ steps.check_skip.outputs.skip }}
     steps:
-      - name: Optimize CI
+      - uses: withgraphite/graphite-ci-action@main
         id: check_skip
-        uses: withgraphite/graphite-ci-action@main
         with:
           graphite_token: ${{ secrets.GRAPHITE_CI_OPTIMIZER_TOKEN }}
 
-  typescript:
-    needs: [optimize_ci]
+  validate:
+    needs: optimize_ci
     if: needs.optimize_ci.outputs.skip == 'false'
-    uses: skyleague/node-standards/.github/workflows/reusable-typescript.yml@main
-    secrets:
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+    runs-on: ubuntu-latest
+    outputs:
+      artifact-name: build-artifacts
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - run: npm ci --ignore-scripts
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - run: node --run lint
+      - run: node --run check:project
+      - run: node --run check:types
+      - run: node --run check:coverage
+      - run: node --run build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: .dist
+          compression-level: 9
+          include-hidden-files: true
 
   release:
-    needs: [typescript,optimize_ci]
-    if: needs.optimize_ci.outputs.skip == 'false'
-    uses: skyleague/node-standards/.github/workflows/reusable-release.yml@main
-    with:
-      build_artifact_name: ${{ needs.typescript.outputs.artifact-name }}
-      beta_release: ${{ inputs.beta_release || false }}
-    secrets:
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+    needs: validate
+    if: |
+      needs.optimize_ci.outputs.skip == 'false' &&
+      github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      packages: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.validate.outputs.artifact-name }}
+          path: .dist
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - run: npm ci --ignore-scripts
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          
+      - run: npx semantic-release
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BETA_RELEASE: ${{ inputs.beta_release }}

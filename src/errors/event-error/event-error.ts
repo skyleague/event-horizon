@@ -1,7 +1,7 @@
 import { asArray, isError, isObject, isThrown, omitUndefined } from '@skyleague/axioms'
 import type { Exact } from '@skyleague/axioms/types'
 import type { ErrorObject } from 'ajv'
-import { HttpError } from '../../events/apigateway/event/functions/http-error.type.js'
+import { HttpError } from '../../events/apigateway/event/functions/http-error.js'
 import type { HTTPHeaders, HTTPMethod } from '../../events/apigateway/types.js'
 import type { Logger } from '../../observability/logger/logger.js'
 import type { StandardSchemaV1 } from './standard-schema.js'
@@ -112,11 +112,8 @@ export class EventError extends Error implements HttpError {
     public statusCode: number
     public attributes: unknown | undefined
 
-    public static validate = HttpError.validate
     public static schema = HttpError.schema
-    public static errors = HttpError.errors
     public static is = HttpError.is
-    public static parse = HttpError.parse
 
     public constructor(
         message?: ErrorLike,
@@ -223,7 +220,7 @@ export class EventError extends Error implements HttpError {
                 | {
                       issues: {
                           message: string
-                          path?: (string | number)[]
+                          path?: (string | number | symbol)[]
                       }[]
                       message: string
                   }
@@ -236,7 +233,7 @@ export class EventError extends Error implements HttpError {
                       error: {
                           issues: {
                               message: string
-                              path?: (string | number)[]
+                              path?: (string | number | symbol)[]
                           }[]
                           message: string
                       }

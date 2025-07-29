@@ -1,8 +1,8 @@
+export { httpApiHandler, restApiHandler } from './http.js'
 export type {
-    HTTPRequest,
-    HTTPResponse,
     GatewayVersion,
     HTTPEventHandler,
     HTTPHandler,
+    HTTPRequest,
+    HTTPResponse,
 } from './types.js'
-export { httpApiHandler, restApiHandler } from './http.js'

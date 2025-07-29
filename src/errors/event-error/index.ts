@@ -1,1 +1,1 @@
-export { EventError, type EventOptions, type ErrorLike } from './event-error.js'
+export { type ErrorLike, EventError, type EventOptions } from './event-error.js'

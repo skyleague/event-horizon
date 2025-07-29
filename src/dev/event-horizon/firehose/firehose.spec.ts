@@ -1,7 +1,7 @@
+import { KinesisFirehoseRecordSchema } from '@aws-lambda-powertools/parser/schemas'
 import { forAll, tuple } from '@skyleague/axioms'
 import { expect, expectTypeOf, it } from 'vitest'
 import { z } from 'zod'
-import { kinesisFirehoseRecord } from '../../../aws/firehose/firehose.schema.js'
 import { firehoseHandler } from '../../../events/firehose/firehose.js'
 import { context } from '../../../test/context/context.js'
 import { firehoseTransformationEvent } from './firehose.js'
@@ -29,8 +29,8 @@ it('should properly validate and type firehose event payload', () => {
         (request) => {
             expect(request.payload).toEqual('payload')
 
-            expect(request.raw.data).toEqual(JSON.stringify(request.payload))
-            kinesisFirehoseRecord.parse(request.raw)
+            expect(request.raw.data).toEqual(Buffer.from(JSON.stringify(request.payload)).toString('base64'))
+            KinesisFirehoseRecordSchema.parse(request.raw)
 
             expectTypeOf(request.payload).toEqualTypeOf<'payload'>()
         },

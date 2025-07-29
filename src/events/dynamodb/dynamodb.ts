@@ -1,4 +1,4 @@
-import type { DynamoDBStreamRecord } from '../../aws/dynamodb/dynamodb.type.js'
+import type { DynamoDBStreamRecord } from '../../aws/dynamodb.js'
 import { EventError } from '../../errors/event-error/event-error.js'
 import type { MaybeGenericParser } from '../../parsers/types.js'
 import { type EventHandlerFn, eventHandler } from '../common/event.js'

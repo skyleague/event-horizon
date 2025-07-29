@@ -1,9 +1,9 @@
-import { type Try, eitherAsValue, isLeft, mapLeft, mapRight, mapTry, parallelLimit, tryToEither } from '@skyleague/axioms'
+import { eitherAsValue, isLeft, mapLeft, mapRight, mapTry, parallelLimit, type Try, tryToEither } from '@skyleague/axioms'
 import type { SQSBatchItemFailure, SQSBatchResponse } from 'aws-lambda'
-import type { SqsRecordSchema } from '../../aws/sqs/sqs.type.js'
+import type { SqsRecordSchema } from '../../aws/sqs.js'
 import type { InferFromParser, MaybeGenericParser } from '../../parsers/types.js'
-import { ioLoggerChild } from '../functions/io-logger-child.js'
 import { ioLogger } from '../functions/io-logger.js'
+import { ioLoggerChild } from '../functions/io-logger-child.js'
 import { ioValidate } from '../functions/io-validate.js'
 import type { LambdaContext } from '../types.js'
 import { sqsErrorHandler } from './functions/error-handler.js'
@@ -29,7 +29,7 @@ export async function handleSQSEvent<
     const ioLoggerFn = ioLogger({ type: 'sqs' }, context)
     const ioLoggerChildFn = ioLoggerChild(context, context.logger)
 
-    let failures: SQSBatchItemFailure[] | undefined = undefined
+    let failures: SQSBatchItemFailure[] | undefined
     for (const [i, event] of events.entries()) {
         const item = { item: i }
 
@@ -80,7 +80,7 @@ export async function handleSQSMessageGroup<
     const parseEventFn = sqsParseEvent(sqs)
     const ioValidateFn = ioValidate<SQSEvent>()
 
-    let failures: SQSBatchItemFailure[] | undefined = undefined
+    let failures: SQSBatchItemFailure[] | undefined
     const sqsEvents = await Promise.all(
         events.entries().map(async ([i, event]) => {
             const sqsEvent = await mapTry(event, (e) => {
