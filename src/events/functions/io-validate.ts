@@ -3,6 +3,7 @@ import type { Simplify } from '@skyleague/axioms/types'
 import { EventError } from '../../errors/event-error/event-error.js'
 import { safeParse } from '../../parsers/parse.js'
 import type { InferFromParser, MaybeGenericParser } from '../../parsers/types.js'
+
 type MappedSchema<T, Key extends keyof T | undefined, ST> = Key extends keyof T
     ? Simplify<Exclude<T, Key> & { [k in Key]: ST }>
     : never

@@ -8,12 +8,12 @@ import {
     SnsSchema,
     SqsSchema,
 } from '@aws-lambda-powertools/parser/schemas'
-import { constants, alpha, asyncForAll, oneOf, random, tuple, unknown } from '@skyleague/axioms'
-import { type Schema, arbitrary } from '@skyleague/therefore'
+import { alpha, asyncForAll, constants, oneOf, random, tuple, unknown } from '@skyleague/axioms'
+import { arbitrary, type Schema } from '@skyleague/therefore'
 import { expect, expectTypeOf, it, vi } from 'vitest'
 import { z } from 'zod'
 import { literalSchema, warmerEvent } from '../../../../test/schema.js'
-import type { APIGatewayProxyEventSchema } from '../../../aws/apigateway/rest.type.js'
+import type { APIGatewayProxyEventSchema } from '../../../aws/rest.js'
 import { s3BatchEvent } from '../../../aws/s3-batch/s3.schema.js'
 import { secretRotationEvent } from '../../../aws/secret-rotation/secret-rotation.schema.js'
 import { restApiEvent } from '../../../dev/event-horizon/apigateway/event/rest.js'
@@ -987,14 +987,7 @@ it('handles authorizer schema types - jwt - zod', () => {
                                 {
                                     foo: z.ZodLiteral<'jwt'>
                                 },
-                                'strip',
-                                z.ZodTypeAny,
-                                {
-                                    foo: 'jwt'
-                                },
-                                {
-                                    foo: 'jwt'
-                                }
+                                z.core.$strip
                             >
                         }
                     >
@@ -1037,14 +1030,7 @@ it('handles authorizer schema types - jwt - zod', () => {
                         {
                             foo: z.ZodLiteral<'jwt'>
                         },
-                        'strip',
-                        z.ZodTypeAny,
-                        {
-                            foo: 'jwt'
-                        },
-                        {
-                            foo: 'jwt'
-                        }
+                        z.core.$strip
                     >
                 }
             >,
@@ -1231,14 +1217,7 @@ it('handles authorizer schema types - lambda - zod', () => {
                                 {
                                     foo: z.ZodLiteral<'jwt'>
                                 },
-                                'strip',
-                                z.ZodTypeAny,
-                                {
-                                    foo: 'jwt'
-                                },
-                                {
-                                    foo: 'jwt'
-                                }
+                                z.core.$strip
                             >
                         }
                     >
@@ -1278,14 +1257,7 @@ it('handles authorizer schema types - lambda - zod', () => {
                         {
                             foo: z.ZodLiteral<'jwt'>
                         },
-                        'strip',
-                        z.ZodTypeAny,
-                        {
-                            foo: 'jwt'
-                        },
-                        {
-                            foo: 'jwt'
-                        }
+                        z.core.$strip
                     >
                 }
             >,

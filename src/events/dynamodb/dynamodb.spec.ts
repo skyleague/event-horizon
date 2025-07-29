@@ -12,7 +12,7 @@ import {
     SqsSchema,
 } from '@aws-lambda-powertools/parser/schemas'
 import { asyncForAll, oneOf, random, tuple, unknown } from '@skyleague/axioms'
-import { type Schema, arbitrary } from '@skyleague/therefore'
+import { arbitrary, type Schema } from '@skyleague/therefore'
 import { expect, expectTypeOf, it, vi } from 'vitest'
 import { z } from 'zod'
 import { literalSchema, warmerEvent } from '../../../test/schema.js'

@@ -14,7 +14,7 @@ import {
 import { SecretsManager } from '@aws-sdk/client-secrets-manager'
 import { asyncForAll, oneOf, random, tuple, unknown } from '@skyleague/axioms'
 import type { SetRequired } from '@skyleague/axioms/types'
-import { type Schema, arbitrary } from '@skyleague/therefore'
+import { arbitrary, type Schema } from '@skyleague/therefore'
 import { expect, expectTypeOf, it, vi } from 'vitest'
 import { literalSchema, warmerEvent } from '../../../test/schema.js'
 import { s3BatchEvent } from '../../aws/s3-batch/s3.schema.js'

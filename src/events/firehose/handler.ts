@@ -1,21 +1,19 @@
-import { firehoseErrorHandler } from './functions/error-handler.js'
-import { firehoseParseEvent } from './functions/parse-event.js'
-import { firehoseSerializeTransformation } from './functions/serialize-transformation.js'
-import type { FirehoseTransformationEvent, FirehoseTransformationResult } from './types.js'
-import type { FirehoseTransformationHandler } from './types.js'
-
-import { ioLogger } from '../functions/io-logger.js'
-import { ioValidate } from '../functions/io-validate.js'
-import type { DefaultServices, LambdaContext } from '../types.js'
-
 import type { Try } from '@skyleague/axioms'
 import { isSuccess, mapTry, transformTry } from '@skyleague/axioms'
 import type {
     FirehoseTransformationResult as AWSFirehoseTransformationResult,
     FirehoseTransformationResultRecord,
 } from 'aws-lambda'
-import type { KinesisFirehoseRecord } from '../../aws/firehose/firehose.type.js'
+import type { KinesisFirehoseRecord } from '../../aws/firehose.js'
 import type { MaybeGenericParser } from '../../parsers/types.js'
+
+import { ioLogger } from '../functions/io-logger.js'
+import { ioValidate } from '../functions/io-validate.js'
+import type { DefaultServices, LambdaContext } from '../types.js'
+import { firehoseErrorHandler } from './functions/error-handler.js'
+import { firehoseParseEvent } from './functions/parse-event.js'
+import { firehoseSerializeTransformation } from './functions/serialize-transformation.js'
+import type { FirehoseTransformationEvent, FirehoseTransformationHandler, FirehoseTransformationResult } from './types.js'
 
 export async function handleFirehoseTransformation<
     const Configuration,

@@ -1,13 +1,13 @@
+import { S3Schema } from '@aws-lambda-powertools/parser/schemas'
 import { asyncForAll, failure, thrown, tuple } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
 import { expect, it, vi } from 'vitest'
-import { s3Schema } from '../../aws/s3/s3.schema.js'
 import { EventError } from '../../errors/event-error/event-error.js'
 import { context } from '../../test/context/context.js'
 import { handleS3Event } from './handler.js'
 
 it('events do not give failures', async () => {
-    await asyncForAll(tuple(arbitrary(s3Schema), await context({})), async ([{ Records }, ctx]) => {
+    await asyncForAll(tuple(arbitrary(S3Schema), await context({})), async ([{ Records }, ctx]) => {
         ctx.mockClear()
 
         const handler = vi.fn()
@@ -32,7 +32,7 @@ it('events do not give failures', async () => {
 })
 
 it.each([new Error(), EventError.badRequest(), 'foobar'])('%s - promise reject with Error, gives failure', async (error) => {
-    await asyncForAll(tuple(arbitrary(s3Schema), await context({})), async ([{ Records }, ctx]) => {
+    await asyncForAll(tuple(arbitrary(S3Schema), await context({})), async ([{ Records }, ctx]) => {
         ctx.mockClear()
 
         const handler = vi.fn().mockRejectedValue(error)
@@ -63,7 +63,7 @@ it.each([new Error(), EventError.badRequest(), 'foobar'])('%s - promise reject w
 })
 
 it.each([new Error(), EventError.badRequest(), 'foobar'])('%s - promise throws with Error, gives failure', async (error) => {
-    await asyncForAll(tuple(arbitrary(s3Schema), await context({})), async ([{ Records }, ctx]) => {
+    await asyncForAll(tuple(arbitrary(S3Schema), await context({})), async ([{ Records }, ctx]) => {
         ctx.mockClear()
 
         const handler = vi.fn().mockImplementation(() => {

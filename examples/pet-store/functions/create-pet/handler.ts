@@ -1,6 +1,6 @@
 import { EventError } from '../../../../src/errors/event-error/event-error.js'
 import { httpApiHandler } from '../../../../src/events/apigateway/event/http.js'
-import { Pet } from '../../lib/models.type.js'
+import { pet } from '../../lib/models.js'
 
 export const handler = httpApiHandler({
     description: 'Add a new pet to the store',
@@ -8,9 +8,9 @@ export const handler = httpApiHandler({
         method: 'post',
         path: '/pet',
         schema: {
-            body: Pet,
+            body: pet,
             responses: {
-                200: Pet,
+                200: pet,
                 404: EventError,
             },
         },

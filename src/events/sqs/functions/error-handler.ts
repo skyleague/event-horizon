@@ -1,8 +1,7 @@
-import type { SqsRecordSchema } from '../../../aws/sqs/sqs.type.js'
+import type { SQSBatchItemFailure } from 'aws-lambda'
+import type { SqsRecordSchema } from '../../../aws/sqs.js'
 import { EventError } from '../../../errors/event-error/event-error.js'
 import type { LambdaContext } from '../../types.js'
-
-import type { SQSBatchItemFailure } from 'aws-lambda'
 
 export function sqsErrorHandler({ logger, isSensitive }: Pick<LambdaContext, 'logger' | 'isSensitive'>) {
     return {

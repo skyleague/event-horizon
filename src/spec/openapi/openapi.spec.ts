@@ -14,7 +14,7 @@ import {
     tuple,
 } from '@skyleague/axioms'
 import { describe, expect, it, vi } from 'vitest'
-import { HttpError } from '../../events/apigateway/event/functions/http-error.type.js'
+import { HttpError } from '../../events/apigateway/event/functions/http-error.js'
 import { httpApiHandler } from '../../events/apigateway/event/http.js'
 import { addComponent, ensureTarget, jsonptrToName, normalizeSchema, openapiFromHandlers } from './openapi.js'
 
@@ -600,7 +600,7 @@ describe('openapiFromHandlers', () => {
                     responses: {
                         ErrorResponse: {
                             content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } },
-                            description: (HttpError.schema as { description: string }).description,
+                            description: HttpError.schema.description,
                         },
                     },
                     schemas: {

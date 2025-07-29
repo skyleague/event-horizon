@@ -1,3 +1,82 @@
 {
-  "extends": ["@skyleague/node-standards/biome"]
+  "vcs": { "clientKind": "git", "enabled": true, "useIgnoreFile": true },
+  "files": {
+    "ignoreUnknown": true
+  },
+  "formatter": {
+    "includes": ["**", "!**/sst-env.d.ts"],
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 4,
+    "lineWidth": 130
+  },
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  },
+  "linter": {
+    "includes": ["**", "!**/sst-env.d.ts"],
+    "enabled": true,
+    "domains": {
+      "test": "recommended"
+    },
+    "rules": {
+      "recommended": true,
+      "style": {
+        "noNamespace": "error",
+        "useForOf": "error",
+        "noParameterProperties": "error",
+        "useBlockStatements": "error",
+        "useShorthandAssign": "error",
+        "useConsistentArrayType": {
+          "level": "error",
+          "options": {
+            "syntax": "shorthand"
+          }
+        }
+      },
+      "suspicious": {
+        "useAwait": "error",
+        "noEvolvingTypes": "error"
+      },
+      "correctness": {
+        "noUnusedVariables": "error",
+        "noUnusedImports": "error",
+        "useHookAtTopLevel": "error"
+      },
+      "nursery": {
+        "noMisusedPromises": "error"
+      }
+    }
+  },
+  "javascript": {
+    "formatter": {
+      "semicolons": "asNeeded",
+      "arrowParentheses": "always",
+      "quoteStyle": "single"
+    }
+  },
+  "json": {
+    "formatter": {
+      "indentWidth": 2
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["**/*.spec.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noNonNullAssertion": "off"
+          },
+          "suspicious": {
+            "noExplicitAny": "off"
+          }
+        }
+      }
+    }
+  ]
 }

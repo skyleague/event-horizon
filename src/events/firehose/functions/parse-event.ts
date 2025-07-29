@@ -1,4 +1,4 @@
-import type { KinesisFirehoseRecord } from '../../../aws/firehose/firehose.type.js'
+import type { KinesisFirehoseRecord } from '../../../aws/firehose.js'
 import { parseJSON } from '../../../parsers/json/json.js'
 import type { FirehoseTransformationEvent, FirehoseTransformationEventHandler } from '../types.js'
 

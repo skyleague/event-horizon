@@ -1,6 +1,5 @@
-import type { LambdaContext } from '../../types.js'
-
 import type { Segment, Subsegment } from 'aws-xray-sdk-core'
+import type { LambdaContext } from '../../types.js'
 
 export function traceInvocation<Context extends LambdaContext>({
     tracer,

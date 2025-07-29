@@ -1,11 +1,11 @@
 import type { Try } from '@skyleague/axioms'
 import type { IfEmptyObject, IsNever, Promisable, Simplify } from '@skyleague/axioms/types'
-import type { APIGatewayProxyEventV2Schema, RequestContextV2Authorizer } from '../../../aws/apigateway/http.type.js'
-import type { APIGatewayEventRequestContext, APIGatewayProxyEventSchema } from '../../../aws/apigateway/rest.type.js'
+import type { APIGatewayProxyEventV2Schema, RequestContextV2Authorizer } from '../../../aws/http.js'
+import type { APIGatewayEventRequestContext, APIGatewayProxyEventSchema } from '../../../aws/rest.js'
 import type { GenericParser, InferFromParser, MaybeGenericParser } from '../../../parsers/types.js'
 import type { EventHandlerDefinition, LambdaContext } from '../../types.js'
 import type { HTTPHeaders, HTTPMethod, HTTPPathParameters, HTTPQueryParameters, SecurityRequirements } from '../types.js'
-import type { HttpError } from './functions/http-error.type.js'
+import type { HttpError } from './functions/http-error.js'
 
 export type GatewayVersion = 'http' | 'rest'
 

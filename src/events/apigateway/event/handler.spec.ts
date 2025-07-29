@@ -1,4 +1,4 @@
-import { constants, alpha, asyncForAll, integer, isString, json, object, random, tuple } from '@skyleague/axioms'
+import { alpha, asyncForAll, constants, integer, isString, json, object, random, tuple } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
 import { expect, it, vi } from 'vitest'
 import { httpApiEvent } from '../../../dev/event-horizon/apigateway/event/http.js'

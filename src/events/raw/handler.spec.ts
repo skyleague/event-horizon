@@ -1,11 +1,9 @@
-import { handleRawEvent } from './handler.js'
-
-import { EventError } from '../../errors/event-error/event-error.js'
-import { context } from '../../test/context/context.js'
-
 import { asyncForAll, failure, json, thrown, tuple } from '@skyleague/axioms'
 import type { Schema } from '@skyleague/therefore'
 import { expect, it, vi } from 'vitest'
+import { EventError } from '../../errors/event-error/event-error.js'
+import { context } from '../../test/context/context.js'
+import { handleRawEvent } from './handler.js'
 
 it('success does not give failures', async () => {
     await asyncForAll(tuple(json(), json(), await context({})), async ([value, ret, ctx]) => {

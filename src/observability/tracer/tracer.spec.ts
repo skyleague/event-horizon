@@ -1,8 +1,7 @@
-import { createTracer } from './tracer.js'
-
 import type { Tracer as AWSTracer } from '@aws-lambda-powertools/tracer'
 import { asyncForAll, string, tuple, unknown } from '@skyleague/axioms'
 import { beforeEach, expect, it, vi } from 'vitest'
+import { createTracer } from './tracer.js'
 
 const subsegment = {
     close: vi.fn(),

@@ -1,11 +1,10 @@
-import type { DefaultServices, EventHandlerDefinition, LambdaContext } from '../types.js'
-
 import type { Try } from '@skyleague/axioms'
 import type { Promisable } from '@skyleague/axioms/types'
 import type { SQSBatchItemFailure } from 'aws-lambda'
-import type { SqsRecordSchema } from '../../aws/sqs/sqs.type.js'
+import type { SqsRecordSchema } from '../../aws/sqs.js'
 import type { InferFromParser, MaybeGenericParser } from '../../parsers/types.js'
 import type { EventHandlerFn } from '../common/event.js'
+import type { DefaultServices, EventHandlerDefinition, LambdaContext } from '../types.js'
 
 export interface SQSEvent<Payload = unknown> {
     messageGroupId: string

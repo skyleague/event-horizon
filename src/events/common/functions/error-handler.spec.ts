@@ -1,10 +1,8 @@
-import { errorHandler } from './error-handler.js'
-
-import { EventError } from '../../../errors/event-error/event-error.js'
-import { context } from '../../../test/context/context.js'
-
 import { forAll, string, tuple, unknown } from '@skyleague/axioms'
 import { expect, it } from 'vitest'
+import { EventError } from '../../../errors/event-error/event-error.js'
+import { context } from '../../../test/context/context.js'
+import { errorHandler } from './error-handler.js'
 
 it('unrelated error becomes internal server event error', async () => {
     forAll(tuple(await context(), unknown()), ([ctx, error]) => {

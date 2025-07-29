@@ -1,7 +1,6 @@
-import { tracer } from '../../observability/tracer/tracer.js'
-
 import { AppConfigData } from '@aws-sdk/client-appconfigdata'
 import { memoize } from '@skyleague/axioms'
+import { tracer } from '../../observability/tracer/tracer.js'
 
 /**
  * @group Services

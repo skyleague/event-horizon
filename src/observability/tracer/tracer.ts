@@ -1,6 +1,5 @@
-import { serviceConstants } from '../../constants.js'
-
 import { Tracer as AWSTracer } from '@aws-lambda-powertools/tracer'
+import { serviceConstants } from '../../constants.js'
 
 export interface Tracer {
     instance: AWSTracer

@@ -1,5 +1,5 @@
 import { SqsRecordSchema } from '@aws-lambda-powertools/parser/schemas'
-import { type Try, forAll, tuple } from '@skyleague/axioms'
+import { forAll, type Try, tuple } from '@skyleague/axioms'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { z } from 'zod'
 import { sqsGroupHandler, sqsHandler } from '../../../events/sqs/sqs.js'

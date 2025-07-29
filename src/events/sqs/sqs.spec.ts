@@ -11,15 +11,15 @@ import {
     S3Schema,
     SnsSchema,
 } from '@aws-lambda-powertools/parser/schemas'
-import { type Try, asyncForAll, oneOf, random, tuple, unknown } from '@skyleague/axioms'
-import { type Schema, arbitrary } from '@skyleague/therefore'
+import { asyncForAll, oneOf, random, type Try, tuple, unknown } from '@skyleague/axioms'
+import { arbitrary, type Schema } from '@skyleague/therefore'
 import type { SQSBatchItemFailure } from 'aws-lambda'
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { z } from 'zod'
 import { literalSchema, warmerEvent } from '../../../test/schema.js'
 import { s3BatchEvent } from '../../aws/s3-batch/s3.schema.js'
 import { secretRotationEvent } from '../../aws/secret-rotation/secret-rotation.schema.js'
-import type { SqsRecordSchema, SqsSchema } from '../../aws/sqs/sqs.type.js'
+import type { SqsRecordSchema, SqsSchema } from '../../aws/sqs.js'
 import { context } from '../../test/context/context.js'
 import type { LambdaContext } from '../types.js'
 import { sqsGroupHandler, sqsHandler } from './sqs.js'

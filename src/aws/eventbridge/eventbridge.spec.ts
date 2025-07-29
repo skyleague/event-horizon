@@ -1,9 +1,8 @@
+import type { UndefinedOnPartialDeep } from '@skyleague/axioms/types'
 import type { EventBridgeEvent } from 'aws-lambda'
+import type { Equal, Expect } from 'type-testing'
 import { it } from 'vitest'
 import type { EventBridgeSchema } from './eventbridge.type.js'
-
-import type { UndefinedOnPartialDeep } from '@skyleague/axioms/types'
-import type { Equal, Expect } from 'type-testing'
 
 it('type is compatible', () => {
     type _test_events = Expect<Equal<EventBridgeSchema, EventBridgeEvent<string, unknown>>>

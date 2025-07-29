@@ -1,5 +1,5 @@
 import { APIGatewayProxyEventSchema } from '@aws-lambda-powertools/parser/schemas'
-import { type Dependent, constant, object } from '@skyleague/axioms'
+import { constant, type Dependent, object } from '@skyleague/axioms'
 import { arbitrary } from '@skyleague/therefore'
 import type { ZodType } from 'zod'
 import type { AuthorizerSchema, HTTPHandler, HTTPRequest, Responses } from '../../../../events/apigateway/event/types.js'

@@ -1,12 +1,8 @@
 import 'tsx'
 import { expect, it } from 'vitest'
-import { handlerJson } from '../examples/pet-store/functions/openapi/handler.js'
-import { handlerJson as handlerJsonZod } from '../examples/pet-zod/functions/openapi/handler.js'
+import * as handlers from '../examples/pet-store/functions/index.js'
+import { openapiFromHandlers } from '../src/spec/openapi/openapi.js'
 
 it('buids the petstore openapi', async () => {
-    expect(await handlerJson.http.handler()).toMatchSnapshot()
-})
-
-it('buids the petstore openapi - zod', async () => {
-    expect(await handlerJsonZod.http.handler()).toMatchSnapshot()
+    expect(await openapiFromHandlers(handlers, { info: { title: 'title', version: '1.0.0' } })).toMatchSnapshot()
 })

@@ -1,6 +1,5 @@
 {
   "extends": "@total-typescript/tsconfig/tsc/no-dom/library",
-  "exclude": ["docs/**/*"],
   "compilerOptions": {
     /* https://github.com/total-typescript/tsconfig/issues/17 */
     "lib": ["esnext"],

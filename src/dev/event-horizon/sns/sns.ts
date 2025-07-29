@@ -1,7 +1,7 @@
 import { SnsNotificationSchema } from '@aws-lambda-powertools/parser/schemas'
 import type { Dependent } from '@skyleague/axioms'
 import { object, unknown } from '@skyleague/axioms'
-import { type Schema, arbitrary } from '@skyleague/therefore'
+import { arbitrary, type Schema } from '@skyleague/therefore'
 import type { SNSEvent, SNSHandler } from '../../../events/sns/types.js'
 import type { InferFromParser, MaybeGenericParser } from '../../../parsers/types.js'
 

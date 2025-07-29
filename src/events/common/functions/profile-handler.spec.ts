@@ -1,7 +1,3 @@
-import { profileHandler } from './profile-handler.js'
-
-import { EventError } from '../../../errors/event-error/event-error.js'
-
 import {
     AppConfigData,
     AppConfigDataClient,
@@ -11,6 +7,8 @@ import {
 import { asyncForAll, constant, json, object, oneOf, record, string } from '@skyleague/axioms'
 import { mockClient } from 'aws-sdk-client-mock'
 import { expect, it, vi } from 'vitest'
+import { EventError } from '../../../errors/event-error/event-error.js'
+import { profileHandler } from './profile-handler.js'
 
 const tokenArbitrary = string({ minLength: 1 })
 const appConfigDataMock = mockClient(AppConfigDataClient)
@@ -147,7 +145,7 @@ it('retrieve initial configuration and updates, and validates', async () => {
 
             expect(await handler.before()).toEqual(config)
 
-            vi.setSystemTime(new Date().getTime() + 10)
+            vi.setSystemTime(Date.now() + 10)
 
             expect(await handler.before()).toEqual(config)
 
@@ -181,7 +179,7 @@ it('retrieve initial configuration and ignores empty configurations, and validat
 
             expect(await handler.before()).toEqual(config)
 
-            vi.setSystemTime(new Date().getTime() + 10)
+            vi.setSystemTime(Date.now() + 10)
 
             expect(await handler.before()).toEqual(config)
 

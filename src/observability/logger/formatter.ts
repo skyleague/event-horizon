@@ -1,7 +1,6 @@
-import { EventError } from '../../errors/event-error/event-error.js'
-
 import { LogFormatter as AWSLogFormatter, LogItem } from '@aws-lambda-powertools/logger'
 import type { LogAttributes, UnformattedAttributes } from '@aws-lambda-powertools/logger/types'
+import { EventError } from '../../errors/event-error/event-error.js'
 
 export class LogFormatter extends AWSLogFormatter {
     public formatAttributes(attributes: UnformattedAttributes, additionalLogAttributes: LogAttributes): LogItem {
@@ -27,7 +26,7 @@ export class LogFormatter extends AWSLogFormatter {
 
     public override formatError(error: Error | EventError): LogAttributes {
         const formatted = super.formatError(error)
-        if (EventError.is(error)) {
+        if (error instanceof EventError) {
             return {
                 ...formatted,
                 attributes: error.attributes,

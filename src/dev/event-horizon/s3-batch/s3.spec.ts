@@ -1,6 +1,5 @@
 import { forAll } from '@skyleague/axioms'
-import { expect, expectTypeOf } from 'vitest'
-import { it } from 'vitest'
+import { expect, expectTypeOf, it } from 'vitest'
 import { z } from 'zod'
 import { s3BatchEventTask } from '../../../aws/s3-batch/s3.schema.js'
 import { s3BatchHandler } from '../../../events/s3-batch/s3-batch.js'

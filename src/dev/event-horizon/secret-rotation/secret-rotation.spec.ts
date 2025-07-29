@@ -1,6 +1,5 @@
 import { forAll } from '@skyleague/axioms'
-import { expect, expectTypeOf } from 'vitest'
-import { it } from 'vitest'
+import { expect, expectTypeOf, it } from 'vitest'
 import { secretRotationEvent as secretRotationEventSchema } from '../../../aws/secret-rotation/secret-rotation.schema.js'
 import { secretRotationHandler } from '../../../events/secret-rotation/secret-rotation.js'
 import type { SecretRotationRequest } from '../../../events/secret-rotation/types.js'

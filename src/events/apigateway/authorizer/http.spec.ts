@@ -1,5 +1,6 @@
 import {
     APIGatewayProxyEventSchema,
+    APIGatewayProxyEventV2Schema,
     APIGatewayRequestAuthorizerEventV2Schema as AWSAPIGatewayRequestAuthorizerEventV2Schema,
     DynamoDBStreamSchema,
     EventBridgeSchema,
@@ -10,12 +11,11 @@ import {
     SqsSchema,
 } from '@aws-lambda-powertools/parser/schemas'
 import { asyncForAll, oneOf, random, tuple, unknown } from '@skyleague/axioms'
-import { type Schema, arbitrary } from '@skyleague/therefore'
+import { arbitrary, type Schema } from '@skyleague/therefore'
 import { expect, expectTypeOf, it, vi } from 'vitest'
 import { z } from 'zod'
 import { literalSchema, warmerEvent } from '../../../../test/schema.js'
-import { APIGatewayProxyEventV2Schema } from '../../../aws/apigateway/http.schema.js'
-import type { APIGatewayRequestAuthorizerEventV2Schema } from '../../../aws/apigateway/http.type.js'
+import type { APIGatewayRequestAuthorizerEventV2Schema } from '../../../aws/http.js'
 import { s3BatchEvent } from '../../../aws/s3-batch/s3.schema.js'
 import { secretRotationEvent } from '../../../aws/secret-rotation/secret-rotation.schema.js'
 import { context } from '../../../test/context/context.js'

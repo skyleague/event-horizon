@@ -97,6 +97,7 @@ export function eventHandler<
 
     const traceServicesFn = traceServices({ tracer })
 
+    // biome-ignore lint/suspicious/useAwait: we need to mark this one as async
     const config = memoize(async (): Promise<AsConfig<Configuration>> => {
         // biome-ignore lint/style/noNonNullAssertion: Config is allowed to be undefined
         return Promise.resolve(isFunction(definition.config) ? definition.config() : definition.config!).then(

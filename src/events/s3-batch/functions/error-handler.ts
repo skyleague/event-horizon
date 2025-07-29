@@ -1,9 +1,8 @@
+import type { S3BatchEventTask, S3BatchResultResult } from 'aws-lambda'
 import { EventError } from '../../../errors/event-error/event-error.js'
 import type { MaybeGenericParser } from '../../../parsers/types.js'
 import type { LambdaContext } from '../../types.js'
 import type { S3BatchHandler } from '../types.js'
-
-import type { S3BatchEventTask, S3BatchResultResult } from 'aws-lambda'
 
 export function s3BatchErrorHandler<
     Configuration,

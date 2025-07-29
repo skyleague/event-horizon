@@ -3,8 +3,8 @@ import { isLeft, mapLeft, mapTry, tryAsValue, tryToEither } from '@skyleague/axi
 import type { KinesisStreamBatchItemFailure, KinesisStreamBatchResponse } from 'aws-lambda'
 import type { KinesisDataStreamRecord } from '../../aws/kinesis/kinesis.type.js'
 import type { MaybeGenericParser } from '../../parsers/types.js'
-import { ioLoggerChild } from '../functions/io-logger-child.js'
 import { ioLogger } from '../functions/io-logger.js'
+import { ioLoggerChild } from '../functions/io-logger-child.js'
 import { ioValidate } from '../functions/io-validate.js'
 import type { LambdaContext } from '../types.js'
 import { kinesisErrorHandler } from './functions/error-handler.js'
@@ -30,7 +30,7 @@ export async function handleKinesisEvent<
     const ioLoggerFn = ioLogger({ type: 'kinesis' }, context)
     const ioLoggerChildFn = ioLoggerChild(context, context.logger)
 
-    let failures: KinesisStreamBatchItemFailure[] | undefined = undefined
+    let failures: KinesisStreamBatchItemFailure[] | undefined
 
     for (const [i, event] of events.entries()) {
         const item = { item: i }

@@ -1,4 +1,4 @@
-import type { DynamoDBStreamRecord } from '../../../aws/dynamodb/dynamodb.type.js'
+import type { DynamoDBStreamRecord } from '../../../aws/dynamodb.js'
 import type { DynamoDBStreamEvent } from '../types.js'
 
 export function dynamodbParseEvent() {

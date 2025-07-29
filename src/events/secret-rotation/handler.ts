@@ -1,5 +1,5 @@
 import type { Try } from '@skyleague/axioms'
-import { Nothing, isJust, mapTry } from '@skyleague/axioms'
+import { isJust, mapTry, Nothing } from '@skyleague/axioms'
 import type { SetRequired } from '@skyleague/axioms/types'
 import type { SecretsManagerRotationEvent } from 'aws-lambda'
 import type { MaybeGenericParser } from '../../parsers/types.js'
